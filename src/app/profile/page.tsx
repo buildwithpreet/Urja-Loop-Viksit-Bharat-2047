@@ -1,9 +1,6 @@
 "use client"
 
 import { 
-  Trophy, 
-  Recycle, 
-  Leaf, 
   Settings, 
   ChevronRight, 
   LogOut, 
@@ -11,58 +8,90 @@ import {
   Bell, 
   ShieldCheck, 
   MapPin,
+  Moon,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  History,
+  Recycle,
+  Leaf,
+  Trophy,
   Zap,
-  Moon
+  Star,
+  Shield
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { cn } from "@/lib/utils"
+import { useLanguage } from "@/components/shared/LanguageProvider"
 
 export default function Profile() {
+  const { t } = useLanguage()
+  const userActivity = [
+    { id: 1, action: t("Waste Drop-off Reward"), detail: t("Sector 5 Smart Bin • 2.4kg Plastic"), time: t("2 hours ago"), icon: Zap, status: "+ ₹24.00" },
+    { id: 2, action: t("Compost Purchased"), detail: t("Marketplace • 25kg Organic"), time: t("Yesterday"), icon: CheckCircle2, status: "- ₹450.00" },
+    { id: 3, action: t("AI Scan Bonus"), detail: t("Correctly Segregated Glass"), time: t("3 days ago"), icon: Zap, status: "+ ₹5.00" },
+  ]
+
   return (
-    <div className="p-8 pb-32 lg:p-12 space-y-12 animate-in fade-in duration-1000">
+    <div className="p-8 pb-32 lg:p-12 space-y-16 animate-in fade-in slide-in-from-bottom-10 duration-1000">
       {/* Profile Header */}
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
-        <div className="relative group">
-          <div className="w-40 h-40 rounded-4xl border-4 border-white dark:border-slate-800 shadow-premium overflow-hidden group-hover:scale-105 transition-transform duration-500">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Avatar" className="w-full h-full object-cover" />
+      <div className="relative p-10 ultra-glass rounded-[3rem] overflow-hidden border border-foreground/10 flex flex-col md:flex-row items-center md:items-start gap-12 group">
+        <div className="absolute inset-0 bg-mesh opacity-30 group-hover:opacity-40 transition-opacity"></div>
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/20 blur-[100px] rounded-full"></div>
+        
+        <div className="relative z-10 group">
+          <div className="w-48 h-48 rounded-[2.5rem] border-8 border-background/20 shadow-2xl overflow-hidden group-hover:scale-105 transition-all duration-700">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Avatar" className="w-full h-full object-cover scale-110" />
           </div>
-          <button className="absolute -bottom-4 -right-4 w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-110 active:scale-90 transition-all border-4 border-slate-50 dark:border-slate-900">
-            <Camera size={20} />
+          <button className="absolute -bottom-2 -right-2 w-14 h-14 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-110 active:scale-90 transition-all border-4 border-background z-20">
+            <Camera size={24} strokeWidth={2.5} />
           </button>
         </div>
-        <div className="flex-1 text-center md:text-left space-y-4">
-          <div>
-            <h1 className="text-4xl font-black text-gradient tracking-tight">Alex Harrison</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-semibold mt-1 flex items-center justify-center md:justify-start gap-2">
-              <MapPin size={16} className="text-emerald-500" />
-              Green Valley, Block C-12
+
+        <div className="flex-1 text-center md:text-left space-y-6 relative z-10 pt-2">
+          <div className="space-y-2">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 justify-center md:justify-start">
+              <h1 className="text-5xl font-black tracking-tighter text-foreground uppercase">Alex Harrison</h1>
+              <Badge className="w-fit bg-primary text-primary-foreground border-none px-4 py-1.5 font-black text-[10px] tracking-widest rounded-xl shadow-lg shadow-primary/20 uppercase mx-auto md:mx-0">
+                <Star size={12} className="mr-1.5 fill-current" /> {t("profile_platinum")}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground font-black text-xs tracking-widest uppercase flex items-center justify-center md:justify-start gap-2 opacity-70">
+              <MapPin size={14} className="text-primary" />
+              Green Valley • Block C-12 • New Delhi
             </p>
           </div>
-          <div className="flex flex-wrap justify-center md:justify-start gap-3">
-            <Badge className="bg-emerald-500/10 text-emerald-600 border-none px-4 py-1.5 font-black text-xs rounded-xl">GOLD MEMBER</Badge>
-            <Badge className="bg-blue-500/10 text-blue-600 border-none px-4 py-1.5 font-black text-xs rounded-xl">TOP CONTRIBUTOR</Badge>
+          
+          <div className="flex flex-wrap justify-center md:justify-start gap-4">
+             <div className="px-5 py-2.5 rounded-2xl ultra-glass border border-foreground/5 flex items-center gap-2 shadow-sm">
+                <Shield size={14} className="text-primary" strokeWidth={3} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Verified ID</span>
+             </div>
+             <button className="px-5 py-2.5 rounded-2xl bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 text-[10px] font-black uppercase tracking-widest text-foreground transition-all flex items-center gap-2">
+                <Settings size={14} strokeWidth={3} />
+                Manage Account
+             </button>
           </div>
         </div>
-        <button className="glass px-8 py-4 rounded-2xl text-sm font-black text-slate-900 dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center gap-3">
-          <Settings size={20} />
-          EDIT PROFILE
-        </button>
       </div>
 
       {/* Impact Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {[
-          { label: "Waste Contributed", value: "248kg", icon: Recycle, color: "text-emerald-500", bg: "bg-emerald-50" },
-          { label: "CO2 Saved", value: "84.2kg", icon: Leaf, color: "text-blue-500", bg: "bg-blue-50" },
-          { label: "Rewards Earned", value: "1,240", icon: Trophy, color: "text-amber-500", bg: "bg-amber-50" },
+          { label: t("profile_total_waste"), value: "248kg", icon: Recycle, color: "text-emerald-500", bg: "bg-emerald-500/10", suffix: "+12% this month" },
+          { label: t("profile_carbon"), value: "84.2kg", icon: Leaf, color: "text-blue-500", bg: "bg-blue-500/10", suffix: "Eco-Guardian Tier" },
+          { label: t("profile_credits"), value: "1,240", icon: Trophy, color: "text-amber-500", bg: "bg-amber-500/10", suffix: "≈ ₹1,240.00" },
         ].map((stat, i) => (
-          <div key={i} className="card-premium p-8 space-y-6">
-            <div className={`w-14 h-14 rounded-2xl ${stat.bg} dark:bg-emerald-500/10 ${stat.color} flex items-center justify-center shadow-inner`}>
-              <stat.icon size={28} />
+          <div key={i} className="ultra-glass p-8 rounded-[2.5rem] border border-foreground/5 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className={`w-16 h-16 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-8 shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+              <stat.icon size={32} strokeWidth={2.5} />
             </div>
-            <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-              <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{stat.value}</p>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{stat.label}</p>
+              <p className="text-4xl font-black text-foreground tracking-tighter">{stat.value}</p>
+              <p className="text-[10px] font-bold text-primary tracking-widest uppercase pt-2 opacity-60">{stat.suffix}</p>
             </div>
           </div>
         ))}
@@ -71,20 +100,30 @@ export default function Profile() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Recent Activity */}
         <div className="space-y-8">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Recent Activity</h2>
-          <div className="card-premium divide-y divide-slate-50 dark:divide-slate-800 overflow-hidden">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="p-6 flex items-center gap-6 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 flex items-center justify-center flex-shrink-0">
-                  <Zap size={22} fill="currentColor" />
+          <h2 className="text-2xl font-black text-foreground uppercase tracking-tighter flex items-center gap-4">
+             <div className="w-10 h-10 ultra-glass rounded-xl flex items-center justify-center text-primary">
+                <History size={20} strokeWidth={2.5} />
+             </div>
+             {t("profile_activity")}
+          </h2>
+          <div className="ultra-glass rounded-[2.5rem] border border-foreground/5 overflow-hidden divide-y divide-white/5">
+            {userActivity.map((item) => (
+              <div key={item.id} className="p-8 flex items-center gap-8 hover:bg-foreground/5 transition-all group">
+                <div className="w-14 h-14 rounded-2xl bg-foreground/5 text-primary flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-all duration-500 border border-foreground/5">
+                  <item.icon size={26} strokeWidth={2.5} />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-black text-slate-900 dark:text-white">Waste Drop-off Reward</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Sector 5 Smart Bin • 2.4kg Plastic</p>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-black text-foreground uppercase tracking-tight">{item.action}</p>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{item.detail}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-black text-emerald-600">+ ₹24.00</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">2h ago</p>
+                  <p className={cn(
+                    "text-lg font-black tabular-nums",
+                    item.status.startsWith('+') ? "text-primary" : "text-foreground"
+                  )}>
+                    {item.status}
+                  </p>
+                  <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.15em] mt-1 opacity-60">{item.time}</p>
                 </div>
               </div>
             ))}
@@ -93,39 +132,54 @@ export default function Profile() {
 
         {/* Support & Preferences */}
         <div className="space-y-8">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Quick Settings</h2>
+          <h2 className="text-2xl font-black text-foreground uppercase tracking-tighter flex items-center gap-4">
+             <div className="w-10 h-10 ultra-glass rounded-xl flex items-center justify-center text-primary">
+                <Settings size={20} strokeWidth={2.5} />
+             </div>
+             {t("profile_settings")}
+          </h2>
           <div className="grid grid-cols-1 gap-4">
             {/* Theme Toggle Card */}
-            <div className="card-premium p-6 flex items-center gap-6 group">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 flex items-center justify-center flex-shrink-0 shadow-inner">
-                <Moon size={22} />
+            <div className="ultra-glass p-8 rounded-[2rem] border border-foreground/5 flex items-center gap-8 group">
+              <div className="w-14 h-14 rounded-2xl bg-foreground/5 text-primary flex items-center justify-center flex-shrink-0 border border-foreground/5 shadow-inner">
+                <Moon size={26} strokeWidth={2.5} />
               </div>
-              <div className="flex-1 text-left">
-                <p className="text-sm font-black text-slate-900 dark:text-white">Appearance</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Switch between light and dark</p>
+              <div className="flex-1 text-left space-y-1">
+                <p className="text-sm font-black text-foreground uppercase tracking-tight">Dark Interface</p>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Optimize visual experience</p>
               </div>
               <ThemeToggle />
             </div>
 
             {[
-              { label: "Notification Settings", icon: Bell, desc: "Manage alert preferences" },
-              { label: "Privacy & Security", icon: ShieldCheck, desc: "Control your data sharing" },
+              { label: "Notification Hub", icon: Bell, desc: "Alert protocols & signals" },
+              { label: "Privacy Protocol", icon: ShieldCheck, desc: "Data encryption & security" },
             ].map((item, i) => (
-              <button key={i} className="card-premium p-6 flex items-center gap-6 group">
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:text-emerald-500 group-hover:bg-emerald-50 dark:group-hover:bg-slate-700 transition-all flex items-center justify-center flex-shrink-0">
-                  <item.icon size={22} />
+              <button key={i} className="ultra-glass p-8 rounded-[2rem] border border-foreground/5 flex items-center gap-8 group hover:bg-foreground/5 transition-all text-left">
+                <div className="w-14 h-14 rounded-2xl bg-foreground/5 text-muted-foreground group-hover:text-primary group-hover:border-primary/20 transition-all flex items-center justify-center flex-shrink-0 border border-foreground/5">
+                  <item.icon size={26} strokeWidth={2.5} />
                 </div>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-black text-slate-900 dark:text-white">{item.label}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{item.desc}</p>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-black text-foreground uppercase tracking-tight">{item.label}</p>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">{item.desc}</p>
                 </div>
-                <ChevronRight size={18} className="text-slate-300 group-hover:text-emerald-500 transition-all" />
+                <ChevronRight size={20} strokeWidth={3} className="text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </button>
             ))}
           </div>
-          <button className="w-full py-5 rounded-3xl bg-red-50 dark:bg-red-500/10 text-red-500 font-black text-sm hover:bg-red-100 transition-all flex items-center justify-center gap-3">
-            <LogOut size={18} />
-            LOGOUT ACCOUNT
+          <button 
+            onClick={() => {
+              localStorage.removeItem("urjaloop_onboarded")
+              window.location.href = "/splash"
+            }}
+            className="w-full py-4 rounded-[1.5rem] bg-amber-500/10 text-amber-500 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-amber-500/20 transition-all flex items-center justify-center gap-4 border border-amber-500/20 active:scale-[0.98] mb-4"
+          >
+            <History size={16} strokeWidth={3} />
+            Reset Onboarding Node
+          </button>
+          <button className="w-full py-6 rounded-[2rem] bg-destructive/10 text-destructive font-black text-[11px] uppercase tracking-[0.2em] hover:bg-destructive/20 transition-all flex items-center justify-center gap-4 border border-destructive/20 active:scale-[0.98]">
+            <LogOut size={18} strokeWidth={3} />
+            {t("profile_logout")}
           </button>
         </div>
       </div>

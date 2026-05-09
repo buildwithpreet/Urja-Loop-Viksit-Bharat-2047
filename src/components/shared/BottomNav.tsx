@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, ShoppingBag, Bot, User, Scan, MapPin } from "lucide-react"
+import { Home, ShoppingBag, User, Scan, MapPin, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -17,19 +17,20 @@ export function BottomNav({ onScanClick }: { onScanClick: () => void }) {
   const pathname = usePathname()
 
   return (
-    <nav className="md:hidden fixed bottom-8 left-8 right-8 h-20 glass rounded-[2.5rem] shadow-2xl z-50 flex items-center justify-between px-6 ring-1 ring-black/5">
+    <nav className="md:hidden fixed bottom-8 left-6 right-6 h-20 ultra-glass rounded-[2.5rem] shadow-2xl z-50 flex items-center justify-between px-6 border border-foreground/10 transition-all duration-700 animate-in slide-in-from-bottom-10">
       {navItems.map((item) => {
           if (item.isFab) {
             return (
               <button
                 key={item.name}
                 onClick={onScanClick}
-                className="relative -top-10 flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
+                className="relative -top-10 flex flex-col items-center justify-center transition-all hover:scale-110 active:scale-90 group"
               >
-                <div className="w-16 h-16 bg-slate-900 dark:bg-emerald-500 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-slate-900/40 text-white border-4 border-white dark:border-slate-900">
-                  <item.icon size={32} />
+                <div className="w-16 h-16 bg-primary rounded-[1.75rem] flex items-center justify-center shadow-2xl shadow-primary/40 text-primary-foreground border-4 border-background relative overflow-hidden group-hover:rotate-6 transition-all duration-500">
+                   <div className="absolute inset-0 bg-mesh opacity-20"></div>
+                   <item.icon size={28} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
                 </div>
-                <span className="text-[10px] font-black text-slate-900 mt-2 uppercase tracking-[0.2em]">{item.name}</span>
+                <div className="absolute -inset-2 bg-primary/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </button>
             )
           }
@@ -40,17 +41,23 @@ export function BottomNav({ onScanClick }: { onScanClick: () => void }) {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1.5 min-w-[50px] transition-all duration-300",
-                isActive ? "text-emerald-600 translate-y-[-2px]" : "text-slate-400"
+                "flex flex-col items-center justify-center gap-1.5 transition-all duration-500 relative group",
+                isActive ? "text-primary" : "text-muted-foreground/40 hover:text-primary/60"
               )}
             >
-              <item.icon size={24} className={cn(isActive && "fill-emerald-500/10")} />
-              <span className={cn("text-[9px] font-black uppercase tracking-tighter transition-all", isActive ? "opacity-100 scale-100" : "opacity-0 scale-50")}>
-                {item.name}
-              </span>
+              <div className={cn(
+                "p-2.5 rounded-2xl transition-all duration-500 relative",
+                isActive && "bg-primary/10 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+              )}>
+                <item.icon size={22} strokeWidth={isActive ? 2.5 : 1.5} className={cn("transition-all duration-500", isActive && "scale-110")} />
+              </div>
+              {isActive && (
+                <div className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full shadow-[0_0_12px_rgba(16,185,129,1)]"></div>
+              )}
             </Link>
           )
       })}
     </nav>
   )
 }
+

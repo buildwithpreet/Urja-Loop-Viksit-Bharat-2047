@@ -10,15 +10,16 @@ export function ThemeToggle() {
 
   // Avoid hydration mismatch
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
-  }, []) // eslint-disable-line react-hooks/set-state-in-effect
+  }, [])
 
   if (!mounted) return <div className="w-10 h-10" />
 
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="w-10 h-10 glass rounded-xl flex items-center justify-center text-slate-500 hover:text-emerald-500 transition-all active:scale-90 shadow-sm"
+      className="w-10 h-10 glass rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary transition-all active:scale-90 shadow-sm"
       aria-label="Toggle theme"
     >
       {theme === "dark" ? (

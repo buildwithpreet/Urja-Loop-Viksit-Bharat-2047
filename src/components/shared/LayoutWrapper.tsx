@@ -50,7 +50,6 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex-1 w-full max-w-5xl mx-auto p-4 md:p-8">
             {children}
           </div>
-
         </main>
 
         <BottomNav onScanClick={() => setIsScanModalOpen(true)} />

@@ -5,16 +5,18 @@ import {
   Settings, X, Globe, Accessibility, 
   Palette, Eye, Wind, Languages, 
   MousePointer2, ScreenShare, Check,
-  Menu, Building2, Wheat
+  Menu, Building2, Wheat, LogOut,
+  ChevronRight, Sparkles, ShieldCheck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAccessibility } from "./AccessibilityProvider"
-import { LanguageToggle } from "./LanguageToggle"
+import { useLanguage, LANGUAGES } from "./LanguageProvider"
 import { ModeToggle } from "./ModeToggle"
 import { ThemeToggle } from "./ThemeToggle"
 
 export function ProfileSettingsMenu() {
   const [isOpen, setIsOpen] = useState(false)
+  const { language, setLanguage, t } = useLanguage()
   const { 
     fontScale, setFontScale, 
     reducedMotion, setReducedMotion,
@@ -30,10 +32,10 @@ export function ProfileSettingsMenu() {
       {/* Hamburger Trigger */}
       <button
         onClick={() => setIsOpen(true)}
-        className="w-10 h-10 ultra-glass rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary transition-all shadow-sm"
-        aria-label="Open Settings"
+        className="w-12 h-12 ultra-glass rounded-2xl flex items-center justify-center text-muted-foreground hover:text-primary transition-all shadow-xl hover:scale-105 active:scale-95"
+        aria-label="System Settings"
       >
-        <Menu size={20} strokeWidth={2.5} />
+        <Menu size={24} strokeWidth={2.5} />
       </button>
 
       {/* Side Sheet / Menu */}
@@ -41,62 +43,87 @@ export function ProfileSettingsMenu() {
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] animate-in fade-in duration-300"
+            className="fixed inset-0 bg-background/40 backdrop-blur-md z-[100] animate-in fade-in duration-500"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Menu Panel */}
-          <div className="fixed right-0 top-0 h-full w-full max-w-xs bg-card border-l border-border shadow-2xl z-[101] overflow-y-auto animate-in slide-in-from-right duration-500">
-            <div className="p-6 space-y-8">
+          <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-card/95 backdrop-blur-2xl border-l border-border shadow-[0_0_50px_rgba(0,0,0,0.3)] z-[101] overflow-y-auto animate-in slide-in-from-right duration-500 selection:bg-primary/20">
+            <div className="p-8 space-y-10">
               
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-border">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                    <Settings size={20} strokeWidth={2.5} />
+              <div className="flex items-center justify-between pb-6 border-b border-border/50">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
+                    <Settings size={24} strokeWidth={2.5} className="animate-spin-slow" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-black uppercase tracking-widest text-foreground">System Config</h2>
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Control Panel</p>
+                    <h2 className="text-lg font-black uppercase tracking-widest text-foreground">Urja Control</h2>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-60">System Protocol v1.0</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground transition-all"
+                  className="w-10 h-10 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground transition-all hover:rotate-90"
                 >
-                  <X size={18} strokeWidth={2.5} />
+                  <X size={20} strokeWidth={2.5} />
                 </button>
               </div>
 
-              {/* Theme & Language Section */}
+              {/* Theme & Mode Section */}
               <div className="space-y-6">
-                 <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Appearance</span>
-                    <ThemeToggle />
-                 </div>
-                 
-                 <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-primary">
-                       <Globe size={14} strokeWidth={2.5} />
-                       <span className="text-[10px] font-black uppercase tracking-widest">Network Language</span>
+                 <div className="flex items-center justify-between bg-muted/30 p-4 rounded-2xl border border-border/50">
+                    <div className="flex items-center gap-3">
+                       <Palette size={18} className="text-primary" />
+                       <span className="text-[11px] font-black uppercase tracking-widest">Interface Theme</span>
                     </div>
-                    <LanguageToggle />
+                    <ThemeToggle />
                  </div>
 
                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-primary">
-                       <Building2 size={14} strokeWidth={2.5} />
-                       <span className="text-[10px] font-black uppercase tracking-widest">Sector Mode</span>
+                    <div className="flex items-center gap-2 px-1">
+                       <Building2 size={14} className="text-primary" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Sector Environment</span>
                     </div>
                     <ModeToggle />
                  </div>
               </div>
 
+              {/* Language Section - 20+ Languages Grid */}
+              <div className="space-y-4">
+                 <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                       <Globe size={14} className="text-primary" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Linguistic Node</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-full">22 Active</span>
+                 </div>
+                 <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                    {LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => setLanguage(lang.code as any)}
+                        className={cn(
+                          "flex flex-col items-start p-3 rounded-xl border transition-all text-left group",
+                          language === lang.code 
+                            ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/10" 
+                            : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )}
+                      >
+                        <span className="text-[11px] font-black uppercase tracking-tight">{lang.native}</span>
+                        <span className={cn("text-[9px] font-bold opacity-60", language === lang.code ? "text-primary-foreground" : "text-muted-foreground")}>
+                           {lang.name}
+                        </span>
+                      </button>
+                    ))}
+                 </div>
+              </div>
+
               {/* Accessibility Section */}
-              <div className="space-y-6 pt-4 border-t border-border">
-                 <div className="flex items-center gap-2 text-primary">
-                    <Accessibility size={16} strokeWidth={2.5} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Accessibility Protocol</span>
+              <div className="space-y-6 pt-6 border-t border-border/50">
+                 <div className="flex items-center gap-2 px-1">
+                    <Accessibility size={16} className="text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Sensory Protocols</span>
                  </div>
 
                  <div className="grid grid-cols-1 gap-2">
@@ -114,7 +141,7 @@ export function ProfileSettingsMenu() {
                     />
                     <AccessibilityToggle 
                       icon={Palette} 
-                      label="Monochrome" 
+                      label="Monochrome Mode" 
                       active={monochrome} 
                       onClick={() => setMonochrome(!monochrome)} 
                     />
@@ -124,26 +151,39 @@ export function ProfileSettingsMenu() {
                       active={dyslexiaFont} 
                       onClick={() => setDyslexiaFont(!dyslexiaFont)} 
                     />
-                    <AccessibilityToggle 
-                      icon={MousePointer2} 
-                      label="Large Cursor" 
-                      active={largeCursor} 
-                      onClick={() => setLargeCursor(!largeCursor)} 
-                    />
-                    <AccessibilityToggle 
-                      icon={ScreenShare} 
-                      label="Audio Hints" 
-                      active={screenReaderHints} 
-                      onClick={() => setScreenReaderHints(!screenReaderHints)} 
-                    />
                  </div>
               </div>
 
+              {/* System Actions */}
+              <div className="space-y-3 pt-6 border-t border-border/50">
+                 <button className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-all border border-transparent hover:border-border/50 group">
+                    <div className="flex items-center gap-3">
+                       <ShieldCheck size={18} className="text-emerald-500" />
+                       <span className="text-[11px] font-black uppercase tracking-widest">Privacy Encryption</span>
+                    </div>
+                    <ChevronRight size={14} className="text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                 </button>
+
+                 <button 
+                   onClick={() => window.location.href = "/login"}
+                   className="w-full flex items-center justify-between p-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 transition-all border border-transparent hover:border-red-500/30 group"
+                 >
+                    <div className="flex items-center gap-3">
+                       <LogOut size={18} className="text-red-500" />
+                       <span className="text-[11px] font-black uppercase tracking-widest text-red-600 dark:text-red-400">Terminate Session</span>
+                    </div>
+                    <X size={14} className="text-red-500/50 group-hover:rotate-90 transition-transform" />
+                 </button>
+              </div>
+
               {/* Footer Info */}
-              <div className="pt-8 text-center space-y-4">
-                 <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">
-                   UrjaLoop Neural Network v1.0
-                 </p>
+              <div className="pt-8 text-center space-y-6">
+                 <div className="flex items-center justify-center gap-2 text-primary opacity-40">
+                    <Sparkles size={12} />
+                    <p className="text-[9px] font-black uppercase tracking-[0.3em]">
+                      Neural Nexus v1.0.4
+                    </p>
+                 </div>
                  <button 
                   onClick={() => {
                     setFontScale("normal")
@@ -154,9 +194,9 @@ export function ProfileSettingsMenu() {
                     setLargeCursor(false)
                     setScreenReaderHints(false)
                   }}
-                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:underline transition-all"
                  >
-                   Restore Factory Defaults
+                   Clear Buffer & Reset
                  </button>
               </div>
 
@@ -183,21 +223,21 @@ function AccessibilityToggle({
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-center justify-between p-4 rounded-2xl border transition-all",
+        "w-full flex items-center justify-between p-4 rounded-2xl border transition-all group",
         active 
           ? "bg-primary/5 border-primary/20 text-foreground" 
-          : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted"
+          : "bg-muted/10 border-transparent text-muted-foreground hover:bg-muted/30"
       )}
     >
       <div className="flex items-center gap-3">
-        <Icon size={14} className={cn(active ? "text-primary" : "text-muted-foreground")} />
-        <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+        <Icon size={16} className={cn(active ? "text-primary" : "text-muted-foreground", "group-hover:scale-110 transition-transform")} />
+        <span className="text-[11px] font-black uppercase tracking-widest">{label}</span>
       </div>
       <div className={cn(
-        "w-5 h-5 rounded-lg border flex items-center justify-center transition-all",
-        active ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"
+        "w-6 h-6 rounded-lg border flex items-center justify-center transition-all",
+        active ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30 bg-muted/20"
       )}>
-        {active && <Check size={12} strokeWidth={4} />}
+        {active && <Check size={14} strokeWidth={4} />}
       </div>
     </button>
   )

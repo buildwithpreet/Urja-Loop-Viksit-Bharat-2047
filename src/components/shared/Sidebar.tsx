@@ -8,13 +8,10 @@ import {
   AlertCircle, Leaf, ChevronLeft, ChevronRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { LanguageToggle } from "./LanguageToggle"
-import { useLanguage } from "./LanguageProvider"
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
-  const { t } = useLanguage()
 
   const navItems = [
     { name: "Home", href: "/dashboard", icon: Home },
@@ -103,16 +100,8 @@ export function Sidebar() {
       <div className={cn(
         "p-3 border-t border-border space-y-2 transition-all duration-300",
       )}>
-        <div className={cn("flex flex-col gap-2 px-1", isCollapsed ? "items-center" : "")}>
-          
-          <div className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "justify-between")}>
-             {!isCollapsed && <span className="text-[11px] text-muted-foreground font-medium">Language</span>}
-             <LanguageToggle isCollapsed={isCollapsed} />
-          </div>
-        </div>
-        
         {/* User */}
-        <div className="pt-2 border-t border-border">
+        <div className="pt-2">
           <div className={cn(
             "flex items-center gap-2.5 p-2 rounded-xl hover:bg-muted transition-all cursor-pointer",
             isCollapsed ? "justify-center" : ""

@@ -4,11 +4,12 @@ import {
   Settings, ChevronRight, LogOut, Camera, Bell, ShieldCheck,
   MapPin, Moon, AlertTriangle, CheckCircle2, Clock, History,
   Recycle, Leaf, Trophy, Zap, Star, Shield, QrCode, Info,
-  HelpCircle, Globe, Lock, ChevronDown
+  HelpCircle, Globe, Lock, ChevronDown, Edit2
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
@@ -30,8 +31,20 @@ const ecoCreditHistory = [
 
 export default function Profile() {
   const { t } = useLanguage()
-  const { mode } = useMode()
+  const { mode, setMode } = useMode()
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [name, setName] = useState("Alex Harrison")
+  const [isFarmer, setIsFarmer] = useState(mode === "rural")
+
+  const handleSaveProfile = () => {
+    setIsEditing(false)
+    if (isFarmer) {
+      setMode("rural")
+    } else {
+      setMode("urban")
+    }
+  }
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section)
@@ -44,11 +57,14 @@ export default function Profile() {
   return (
     <div className="p-4 pb-32 lg:p-8 space-y-6 animate-in fade-in duration-700 min-h-screen">
       
+      {/* Profile Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
+        <ProfileSettingsMenu />
+      </div>
+
       {/* Profile Card */}
       <div className="relative bg-card border border-border rounded-3xl p-5 shadow-sm overflow-hidden">
-        <div className="absolute top-4 right-4 z-20">
-           <ProfileSettingsMenu />
-        </div>
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
         <div className="relative z-10 flex items-center gap-4">
           <div className="relative group">
@@ -60,12 +76,51 @@ export default function Profile() {
             </button>
           </div>
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-0.5">
-              <h1 className="text-xl font-bold text-foreground">Alex Harrison</h1>
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 rounded-full">
-                <Star size={10} className="text-primary fill-primary" />
-                <span className="text-[10px] font-bold text-primary">{t("profile_platinum")}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h1 className="text-xl font-bold text-foreground">{name}</h1>
+                <div className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 rounded-full">
+                  <Star size={10} className="text-primary fill-primary" />
+                  <span className="text-[10px] font-bold text-primary">{t("profile_platinum")}</span>
+                </div>
               </div>
+              <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                <DialogTrigger render={<button className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground" />}>
+                  <Edit2 size={16} />
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Edit Profile</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <label htmlFor="name" className="text-sm font-medium">Full Name</label>
+                      <input 
+                        id="name" 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <label className="text-sm font-medium">I am a Farmer</label>
+                        <p className="text-[10px] text-muted-foreground">Switch to rural farm management mode.</p>
+                      </div>
+                      <button 
+                        onClick={() => setIsFarmer(!isFarmer)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFarmer ? 'bg-primary' : 'bg-input'}`}
+                      >
+                        <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${isFarmer ? 'translate-x-5' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3 mt-4">
+                    <button onClick={() => setIsEditing(false)} className="px-4 py-2 rounded-xl text-sm font-medium hover:bg-muted transition-colors">Cancel</button>
+                    <button onClick={handleSaveProfile} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-md shadow-primary/20 hover:opacity-90 transition-all active:scale-95">Save Changes</button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
               <MapPin size={12} className="text-primary" />

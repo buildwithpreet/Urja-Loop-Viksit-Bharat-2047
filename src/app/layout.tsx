@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import { LanguageProvider } from "@/components/shared/LanguageProvider"
 import { ModeProvider } from "@/components/shared/ModeProvider"
 import { PwaRegister } from "@/components/shared/PwaRegister"
+import { Toaster } from "@/components/ui/sonner"
 
 const outfit = Outfit({ 
   subsets: ["latin"],
@@ -48,6 +49,7 @@ export default function RootLayout({
           <LanguageProvider>
             <ModeProvider>
               <PwaRegister />
+              <Toaster position="top-center" richColors theme="system" />
               <LayoutWrapper>
                 {children}
               </LayoutWrapper>

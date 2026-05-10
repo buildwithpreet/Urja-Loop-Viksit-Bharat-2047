@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
+import { toast } from "sonner"
 
 interface ScanModalProps {
   isOpen: boolean
@@ -580,7 +581,17 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                   { name: "Green Valley Recycler", distance: "1.1 km", type: "Dry Waste Only", open: true },
                   { name: "Municipal Compost Center", distance: "2.4 km", type: "Organic Waste", open: false },
                 ].map((center, i) => (
-                  <button key={i} className="w-full flex items-center gap-3 p-3 bg-card border border-border rounded-2xl hover:border-primary/40 hover:bg-muted/30 transition-all text-left">
+                  <button 
+                    key={i} 
+                    onClick={() => {
+                      if(center.open) {
+                        toast.success(`Checking in to ${center.name}...`)
+                      } else {
+                        toast.error(`${center.name} is currently closed.`)
+                      }
+                    }}
+                    className="w-full flex items-center gap-3 p-3 bg-card border border-border rounded-2xl hover:border-primary/40 hover:bg-muted/30 transition-all text-left"
+                  >
                     <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0",
                       center.open ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
                     )}>

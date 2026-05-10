@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useLanguage } from "@/components/shared/LanguageProvider"
+import { toast } from "sonner"
 
 const NEARBY_CENTERS = [
   { id: 1, name: "Kisan Bio-Hub, Sector 4", capacity: "Available", status: "open", dist: "2.4 km", buyer: true },
@@ -155,7 +156,10 @@ export function RuralHome() {
             </div>
             <h3 className="text-sm font-bold mb-1">No Active Pickups</h3>
             <p className="text-xs text-muted-foreground mb-4">Request a transport vehicle to collect your agri-waste directly from your farm.</p>
-            <button className="px-5 py-2.5 rounded-xl bg-blue-500 text-white text-xs font-bold flex items-center gap-2 hover:bg-blue-600 transition-colors">
+            <button 
+              onClick={() => toast.success("Pickup requested successfully! A tractor will be assigned soon.")}
+              className="px-5 py-2.5 rounded-xl bg-blue-500 text-white text-xs font-bold flex items-center gap-2 hover:bg-blue-600 transition-colors"
+            >
               Request Pickup <ArrowRight size={14} />
             </button>
           </div>

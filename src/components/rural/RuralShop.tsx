@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
+import { toast } from "sonner"
 
 const rawAgriWaste = [
   { id: 1, name: "Rice Straw (Prali)", type: "Raw Material", weight: "5000 kg", price: "₹2.4/kg", demand: "High", image: "https://images.unsplash.com/photo-1595981267035-7b04d84b4f1c?q=80&w=2070&auto=format&fit=crop", distance: "2.1 km", seller: "Kisan Farm Hub" },
@@ -150,7 +151,10 @@ export function RuralShop() {
                     <span className="mx-1">·</span>
                     <span className="truncate max-w-[100px]">{item.seller}</span>
                   </div>
-                  <button className="text-xs font-bold text-primary hover:underline">
+                  <button 
+                    onClick={() => toast.success(`Request sent to ${item.seller}`)}
+                    className="text-xs font-bold text-primary hover:underline"
+                  >
                     Contact
                   </button>
                 </div>
@@ -190,7 +194,10 @@ export function RuralShop() {
                     <Factory size={14} className="text-emerald-500" />
                     <span className="truncate max-w-[140px]">{product.processor}</span>
                   </div>
-                  <button className="text-xs font-bold text-primary hover:underline">
+                  <button 
+                    onClick={() => toast.success(`Purchased ${product.name} successfully!`)}
+                    className="text-xs font-bold text-primary hover:underline"
+                  >
                     Buy Now
                   </button>
                 </div>

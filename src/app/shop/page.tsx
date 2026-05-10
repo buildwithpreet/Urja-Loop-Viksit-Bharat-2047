@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralShop } from "@/components/rural/RuralShop"
+import { toast } from "sonner"
 
 const rawMaterials = [
   { id: 1, name: "PET Plastic Bottles (Baled)", type: "Plastic Waste", weight: "5.2 tons", price: "₹1,200/ton", seller: "Eco-Collect Delhi", quality: "Grade A", verified: true, demand: "High", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=400" },
@@ -170,7 +171,10 @@ export default function Shop() {
                 <span className="text-[11px] text-muted-foreground">{product.seller}</span>
               </div>
 
-              <button className="w-full bg-primary text-primary-foreground py-2.5 rounded-2xl text-xs font-bold tracking-wide hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2">
+              <button 
+                onClick={() => toast.success(activeTab === "raw" ? `Interest expressed for ${product.name}!` : `Successfully redeemed ${product.name}!`)}
+                className="w-full bg-primary text-primary-foreground py-2.5 rounded-2xl text-xs font-bold tracking-wide hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
                 <ShoppingCart size={13} />
                 {activeTab === "raw" ? "Express Interest" : "Redeem with Credits"}
               </button>
@@ -184,7 +188,10 @@ export default function Shop() {
         <Badge className="bg-primary/10 text-primary border-none mb-3 text-xs font-semibold">Enterprise Integration</Badge>
         <h3 className="text-lg font-bold text-foreground mb-2">Scale Your Circular Economy</h3>
         <p className="text-sm text-muted-foreground mb-4">Connect with processing centers, bulk buyers, and ESG-reporting tools for your organization.</p>
-        <button className="bg-primary text-primary-foreground px-6 py-2.5 rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center gap-2">
+        <button 
+          onClick={() => toast.success("Enterprise registration portal will open soon!")}
+          className="bg-primary text-primary-foreground px-6 py-2.5 rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center gap-2"
+        >
           Register as Enterprise <ChevronRight size={14} />
         </button>
       </div>

@@ -15,7 +15,7 @@ import { useMode } from "@/components/shared/ModeProvider"
 import { RuralHome } from "@/components/rural/RuralHome"
 import { useState, useEffect } from "react"
 
-const nearbyBins = [
+const INITIAL_BINS = [
   { id: 1, location: "Main Gate, Sector 14", fill: 18, status: "low", lastCleaned: "2h ago", next: "6:00 AM" },
   { id: 2, location: "Park Entrance", fill: 67, status: "medium", lastCleaned: "5h ago", next: "4:00 PM" },
   { id: 3, location: "Market Complex", fill: 91, status: "high", lastCleaned: "12h ago", next: "ASAP" },
@@ -38,6 +38,7 @@ export default function Home() {
   const { mode } = useMode()
   const [currentTime, setCurrentTime] = useState("")
   const [greeting, setGreeting] = useState("")
+  const [bins, setBins] = useState(INITIAL_BINS)
 
   useEffect(() => {
     const now = new Date()
@@ -46,6 +47,25 @@ export default function Home() {
     else if (hour < 17) setGreeting("Good Afternoon")
     else setGreeting("Good Evening")
     setCurrentTime(now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }))
+
+    // Live IoT Simulation
+    const interval = setInterval(() => {
+      setBins(currentBins => currentBins.map(bin => {
+        // Only increase fill by 0 to 2% randomly
+        const increase = Math.floor(Math.random() * 3)
+        let newFill = bin.fill + increase
+        if (newFill > 100) newFill = 100 // Cap at 100%
+
+        let newStatus = bin.status
+        if (newFill < 50) newStatus = "low"
+        else if (newFill < 85) newStatus = "medium"
+        else newStatus = "high"
+
+        return { ...bin, fill: newFill, status: newStatus }
+      }))
+    }, 5000) // Update every 5 seconds
+
+    return () => clearInterval(interval)
   }, [])
 
   if (mode === "rural") {
@@ -242,7 +262,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {nearbyBins.map((bin) => (
+          {bins.map((bin) => (
             <div key={bin.id} className="p-4 bg-card border border-border rounded-2xl hover:border-primary/30 transition-all cursor-pointer group">
               <div className="flex items-center justify-between mb-3">
                 <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center",

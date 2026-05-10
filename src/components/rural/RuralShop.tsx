@@ -8,6 +8,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/components/shared/LanguageProvider"
 
 const rawAgriWaste = [
   { id: 1, name: "Rice Straw (Prali)", type: "Raw Material", weight: "5000 kg", price: "₹2.4/kg", demand: "High", image: "https://images.unsplash.com/photo-1595981267035-7b04d84b4f1c?q=80&w=2070&auto=format&fit=crop", distance: "2.1 km", seller: "Kisan Farm Hub" },
@@ -21,6 +22,7 @@ const processedProducts = [
 ]
 
 export function RuralShop() {
+  const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState<"raw" | "processed">("raw")
 
   return (
@@ -29,12 +31,12 @@ export function RuralShop() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kisan Marketplace</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Sell agri-waste & buy sustainable byproducts.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("rural_shop_title")}</h1>
+          <p className="text-muted-foreground mt-1 text-sm">{t("rural_shop_subtitle")}</p>
         </div>
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
           <ShieldCheck size={16} />
-          <span className="text-xs font-bold uppercase tracking-wider">Viksit Bharat Verified</span>
+          <span className="text-xs font-bold uppercase tracking-wider">{t("rural_shop_verified")}</span>
         </div>
       </div>
 
@@ -78,24 +80,23 @@ export function RuralShop() {
 
       {/* Tabs & Search */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="flex bg-muted/50 p-1 rounded-2xl w-full md:w-auto">
+        {/* Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
           <button 
             onClick={() => setActiveTab("raw")}
-            className={cn(
-              "flex-1 md:w-40 py-2.5 rounded-xl text-sm font-bold transition-all",
-              activeTab === "raw" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            className={cn("px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all",
+              activeTab === "raw" ? "bg-amber-500 text-white shadow-md shadow-amber-500/20" : "bg-muted text-muted-foreground hover:bg-muted/80"
             )}
           >
-            Raw Agri Waste
+            {t("rural_shop_raw")}
           </button>
           <button 
             onClick={() => setActiveTab("processed")}
-            className={cn(
-              "flex-1 md:w-48 py-2.5 rounded-xl text-sm font-bold transition-all",
-              activeTab === "processed" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            className={cn("px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all",
+              activeTab === "processed" ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20" : "bg-muted text-muted-foreground hover:bg-muted/80"
             )}
           >
-            Processed Products
+            {t("rural_shop_processed")}
           </button>
         </div>
 

@@ -76,6 +76,42 @@ const translations: Translations = {
     // Common
     common_loading: "Synchronizing Network...",
     common_status: "Status",
+    
+    // Rural Home
+    rural_dashboard: "Kisan Dashboard",
+    rural_agri_insights: "Agri-Insights Active",
+    rural_weather: "32°C • Clear",
+    rural_waste_sold: "Agri-Waste Sold",
+    rural_earnings: "Total Earnings",
+    rural_pickups: "Pending Pickups",
+    rural_near_hub: "Nearest Processing Hub",
+    rural_ai_insights: "Smart Farm Insights",
+    rural_stubble_alert: "Stubble Burning Risk",
+    rural_stubble_desc: "High risk due to dry winds. Sell your rice straw instead of burning to earn credits.",
+    rural_biomass_demand: "Biomass Demand Surge",
+    rural_biomass_desc: "Nearby ethanol plant requires 500+ tons of biomass. High price offered.",
+    rural_recent_pickups: "Recent Pickup Requests",
+    rural_view_map: "View Map",
+    rural_history: "History",
+
+    // Rural Map
+    rural_map_title: "Rural Network",
+    rural_map_subtitle: "Live Collection & Processing",
+
+    // Rural Shop
+    rural_shop_title: "Kisan Marketplace",
+    rural_shop_subtitle: "Sell agri-waste & buy sustainable byproducts.",
+    rural_shop_raw: "Raw Agri-Waste",
+    rural_shop_processed: "Processed Products",
+    rural_shop_verified: "Viksit Bharat Verified",
+    
+    // Rural Profile
+    rural_profile_title: "Farmer Profile",
+    rural_profile_subtitle: "Zero-Burning Verified",
+    rural_profile_history: "Transaction History",
+    rural_profile_sustainability: "Sustainability Impact",
+    rural_profile_avoided: "Burning Avoided",
+    rural_profile_co2: "CO2 Emissions Saved",
   },
   hi: {
     // Navigation
@@ -153,6 +189,42 @@ const translations: Translations = {
     // Common
     common_loading: "नेटवर्क सिंक्रनाइज़ हो रहा है...",
     common_status: "स्थिति",
+
+    // Rural Home
+    rural_dashboard: "किसान डैशबोर्ड",
+    rural_agri_insights: "कृषि-अंतर्दृष्टि सक्रिय",
+    rural_weather: "32°C • साफ़",
+    rural_waste_sold: "कृषि-अपशिष्ट बेचा गया",
+    rural_earnings: "कुल कमाई",
+    rural_pickups: "लंबित पिकअप",
+    rural_near_hub: "निकटतम प्रसंस्करण केंद्र",
+    rural_ai_insights: "स्मार्ट कृषि अंतर्दृष्टि",
+    rural_stubble_alert: "पराली जलाने का जोखिम",
+    rural_stubble_desc: "शुष्क हवाओं के कारण उच्च जोखिम। जलाने के बजाय अपनी धान की पराली बेचें और क्रेडिट कमाएं।",
+    rural_biomass_demand: "बायोमास मांग में वृद्धि",
+    rural_biomass_desc: "पास के इथेनॉल प्लांट को 500+ टन बायोमास की आवश्यकता है। अच्छी कीमत मिल रही है।",
+    rural_recent_pickups: "हाल के पिकअप अनुरोध",
+    rural_view_map: "मैप देखें",
+    rural_history: "इतिहास",
+
+    // Rural Map
+    rural_map_title: "ग्रामीण नेटवर्क",
+    rural_map_subtitle: "लाइव संग्रह और प्रसंस्करण",
+
+    // Rural Shop
+    rural_shop_title: "किसान मार्केटप्लेस",
+    rural_shop_subtitle: "कृषि-अपशिष्ट बेचें और टिकाऊ उत्पाद खरीदें।",
+    rural_shop_raw: "कच्चा कृषि-अपशिष्ट",
+    rural_shop_processed: "संसाधित उत्पाद",
+    rural_shop_verified: "विकसित भारत सत्यापित",
+
+    // Rural Profile
+    rural_profile_title: "किसान प्रोफ़ाइल",
+    rural_profile_subtitle: "शून्य-दहन सत्यापित",
+    rural_profile_history: "लेनदेन इतिहास",
+    rural_profile_sustainability: "स्थिरता प्रभाव",
+    rural_profile_avoided: "पराली दहन से बचाव",
+    rural_profile_co2: "CO2 उत्सर्जन बचाया गया",
   }
 }
 

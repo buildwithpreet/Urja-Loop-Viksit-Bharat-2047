@@ -5,6 +5,7 @@ import { LayoutWrapper } from "@/components/shared/LayoutWrapper"
 import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import { LanguageProvider } from "@/components/shared/LanguageProvider"
 import { ModeProvider } from "@/components/shared/ModeProvider"
+import { PwaRegister } from "@/components/shared/PwaRegister"
 
 const outfit = Outfit({ 
   subsets: ["latin"],
@@ -20,6 +21,13 @@ export const metadata: Metadata = {
     title: "UrjaLoop | Neural Waste Intelligence",
     description: "The future of urban waste management for Bharat.",
     type: "website",
+  },
+  manifest: "/manifest.json",
+  themeColor: "#10b981",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "UrjaLoop",
   },
 }
 
@@ -39,6 +47,7 @@ export default function RootLayout({
         >
           <LanguageProvider>
             <ModeProvider>
+              <PwaRegister />
               <LayoutWrapper>
                 {children}
               </LayoutWrapper>

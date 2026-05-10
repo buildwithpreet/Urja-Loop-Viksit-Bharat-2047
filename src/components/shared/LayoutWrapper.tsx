@@ -8,7 +8,10 @@ import { ScanModal } from "./ScanModal"
 import { Footer } from "./Footer"
 import { ModeToggle } from "./ModeToggle"
 
-const AUTH_ROUTES = ["/splash", "/onboarding", "/login", "/verify-otp", "/setup-profile", "/permissions"]
+import { AccessibilityProvider } from "./AccessibilityProvider"
+import { AccessibilityMenu } from "./AccessibilityMenu"
+
+const AUTH_ROUTES = ["/", "/splash", "/onboarding", "/login", "/verify-otp", "/setup-profile", "/permissions"]
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isScanModalOpen, setIsScanModalOpen] = useState(false)
@@ -23,7 +26,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     if (!isAuthRoute) {
       const hasOnboarded = localStorage.getItem("urjaloop_onboarded")
       if (!hasOnboarded) {
-        router.push("/splash")
+        router.push("/login")
       }
     }
   }, [isAuthRoute, pathname, router])
@@ -32,33 +35,42 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   if (isAuthRoute) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
-        {children}
-      </div>
+      <AccessibilityProvider>
+        <div className="min-h-screen bg-background text-foreground">
+          {children}
+          <AccessibilityMenu />
+        </div>
+      </AccessibilityProvider>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
-      <main className="flex-1 w-full overflow-x-hidden flex flex-col">
+    <AccessibilityProvider>
+      <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary transition-colors duration-300">
+        
+        <Sidebar />
+        
+        <main id="main-content" className="flex-1 w-full overflow-x-hidden flex flex-col outline-none relative" tabIndex={-1}>
+          {/* Top Header with Mode Toggle */}
+          <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50 py-3 px-4 flex justify-center">
+            <ModeToggle />
+          </div>
 
-        {/* Top Header with Mode Toggle */}
-        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50 py-3 px-4 flex justify-center">
-          <ModeToggle />
-        </div>
-        {/* Page content */}
-        <div className="flex-1 w-full max-w-4xl mx-auto p-4 md:p-6 pb-24 md:pb-6">
-          {children}
-        </div>
-        {/* Premium footer — visible on all main pages */}
-        <Footer />
-      </main>
-      <BottomNav onScanClick={() => setIsScanModalOpen(true)} />
-      <ScanModal
-        isOpen={isScanModalOpen}
-        onClose={() => setIsScanModalOpen(false)}
-      />
-    </div>
+          <div className="flex-1 w-full max-w-5xl mx-auto p-4 md:p-8">
+            {children}
+          </div>
+
+          <Footer />
+        </main>
+
+        <BottomNav onScanClick={() => setIsScanModalOpen(true)} />
+        
+        <ScanModal
+          isOpen={isScanModalOpen}
+          onClose={() => setIsScanModalOpen(false)}
+        />
+        <AccessibilityMenu />
+      </div>
+    </AccessibilityProvider>
   )
 }

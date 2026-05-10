@@ -28,8 +28,7 @@ export default function Community() {
   return (
     <div className="p-8 pb-32 lg:p-12 space-y-16 animate-in fade-in slide-in-from-bottom-10 duration-1000">
       {/* Header Section */}
-      <div className="relative p-12 ultra-glass rounded-[3.5rem] overflow-hidden border border-foreground/10 flex flex-col md:flex-row justify-between items-center gap-10 group">
-        <div className="absolute inset-0 bg-mesh opacity-20"></div>
+      <div className="relative p-12 ultra-glass rounded-[3.5rem] overflow-hidden flex flex-col md:flex-row justify-between items-center gap-10 group">
         <div className="relative z-10 space-y-3 text-center md:text-left max-w-2xl">
           <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
              <div className="w-12 h-12 ultra-glass rounded-2xl flex items-center justify-center text-primary shadow-2xl">
@@ -43,7 +42,7 @@ export default function Community() {
           <p className="text-muted-foreground text-xs md:text-sm font-black uppercase tracking-[0.2em] opacity-60">Quantifying collective action for a cleaner tomorrow</p>
         </div>
         
-        <div className="relative z-10 ultra-glass border border-foreground/10 p-8 rounded-[2.5rem] flex items-center gap-6 shadow-2xl hover:scale-105 transition-transform duration-500">
+        <div className="relative z-10 ultra-glass p-8 rounded-[2.5rem] flex items-center gap-6 shadow-2xl hover:scale-105 transition-transform duration-500">
           <div className="w-16 h-16 bg-primary rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-primary/30">
              <Activity size={32} strokeWidth={2.5} />
           </div>
@@ -105,7 +104,6 @@ export default function Community() {
         <div className="grid gap-6">
           {recentActivities.map((activity) => (
             <Card key={activity.id} className="border-none ultra-glass rounded-[2.5rem] shadow-xl hover:bg-foreground/5 transition-all duration-500 group overflow-hidden">
-              <div className="absolute inset-0 bg-mesh opacity-0 group-hover:opacity-10 transition-opacity"></div>
               <CardContent className="p-8 flex flex-col sm:flex-row gap-8 sm:items-center justify-between relative z-10">
                 <div className="flex items-start sm:items-center gap-6">
                   <div className={cn(

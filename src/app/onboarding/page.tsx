@@ -54,117 +54,109 @@ export default function OnboardingScreen() {
 
   const handleNext = () => {
     if (isLastStep) {
-      router.push("/login")
+      router.push("/setup-profile")
     } else {
       setCurrentStep((prev) => prev + 1)
     }
   }
 
   const handleSkip = () => {
-    router.push("/login")
+    router.push("/setup-profile")
   }
 
   const StepContent = ONBOARDING_STEPS[currentStep]
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden bg-mesh">
-      {/* Strategic Background Gradient */}
+    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden transition-colors duration-300">
+      
+      {/* Background Glows */}
       <div className={cn(
-        "absolute inset-0 transition-all duration-1000 bg-gradient-to-b opacity-20",
-        StepContent.gradient
-      )}></div>
+        "absolute inset-0 transition-all duration-1000 opacity-20 dark:opacity-10 blur-[120px]",
+        StepContent.bg.replace('/10', '/30')
+      )} />
 
-      {/* Premium Header */}
-      <div className="w-full p-8 lg:p-12 flex justify-between items-center z-20">
-        <div className="flex items-center gap-4 group">
-           <div className="w-12 h-12 ultra-glass border border-foreground/10 rounded-2xl flex items-center justify-center text-primary shadow-2xl group-hover:rotate-12 transition-transform">
-              <Earth size={28} strokeWidth={2.5} />
+      {/* Header */}
+      <div className="w-full p-8 md:p-12 flex justify-between items-center z-20">
+        <div className="flex items-center gap-3">
+           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground">
+              <Earth size={20} strokeWidth={2} />
            </div>
-           <div className="flex flex-col">
-              <span className="font-black text-xl tracking-tighter uppercase leading-none">Urja<span className="text-primary">Loop</span></span>
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] opacity-40">Tactical Node</span>
-           </div>
+           <span className="font-medium text-lg text-foreground tracking-tight">UrjaLoop</span>
         </div>
         {!isLastStep && (
           <button 
             onClick={handleSkip}
-            className="text-[10px] font-black text-muted-foreground hover:text-primary transition-all px-6 py-3 uppercase tracking-widest ultra-glass rounded-2xl border border-foreground/10"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            {t("auth_skip")}
+            Skip
           </button>
         )}
       </div>
 
-      {/* Immersive Tactical View */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 z-10 w-full max-w-lg mx-auto">
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 z-10 w-full max-w-2xl mx-auto">
         <div 
           key={currentStep}
-          className="w-full flex flex-col items-center animate-in slide-in-from-bottom-20 fade-in duration-1000 ease-out fill-mode-both"
+          className="w-full flex flex-col items-center text-center space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700"
         >
-          {/* Central Neural Interface */}
-          <div className="relative mb-20 group">
+          {/* Visual Container */}
+          <div className="relative">
             <div className={cn(
-              "w-64 h-64 lg:w-72 lg:h-72 rounded-[4rem] ultra-glass border border-foreground/10 flex items-center justify-center shadow-2xl transition-all duration-1000 rotate-6 group-hover:rotate-0 relative overflow-hidden",
+              "w-48 h-48 md:w-56 md:h-56 rounded-[2.5rem] bg-card border border-border flex items-center justify-center shadow-2xl relative z-10",
               StepContent.bg
             )}>
-              <div className="absolute inset-0 bg-mesh opacity-20 animate-pulse"></div>
-              <StepContent.icon className={cn("w-32 h-32 lg:w-40 lg:h-40 drop-shadow-2xl", StepContent.color)} strokeWidth={1.5} />
+              <StepContent.icon className={cn("w-24 h-24 md:w-28 md:h-28", StepContent.color)} strokeWidth={1.5} />
             </div>
             
-            {/* Tactical Decals */}
+            {/* Subtle Aura */}
             <div className={cn(
-              "absolute inset-[-20px] rounded-[5rem] border border-dashed opacity-10 animate-[spin_30s_linear_infinite]",
-              StepContent.color.replace('text-', 'border-')
+              "absolute inset-[-20px] rounded-full blur-2xl opacity-20 animate-pulse",
+              StepContent.bg
             )}></div>
-            <div className="absolute -top-4 -right-4 w-16 h-16 ultra-glass border border-foreground/10 rounded-2xl flex items-center justify-center text-primary shadow-2xl">
-               <Zap size={24} strokeWidth={2.5} />
-            </div>
           </div>
 
-          <div className="text-center space-y-6 w-full">
-            <div className="space-y-2">
-               <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80">Module 0{currentStep + 1}</p>
-               <h2 className="text-4xl lg:text-5xl font-black text-foreground tracking-tighter uppercase leading-none max-w-[10ch] mx-auto">
-                 {StepContent.title}
-               </h2>
-            </div>
-            <p className="text-sm lg:text-base font-bold text-muted-foreground/60 leading-relaxed max-w-[32ch] mx-auto uppercase tracking-wide">
-              {StepContent.description}
-            </p>
+          <div className="space-y-4">
+             <p className="text-[10px] font-bold text-primary dark:text-[#34D399] uppercase tracking-[0.2em]">Step {currentStep + 1} of 4</p>
+             <h2 className="text-4xl md:text-5xl font-medium text-foreground tracking-tight">
+               {StepContent.title}
+             </h2>
+             <p className="text-muted-foreground leading-relaxed max-w-md mx-auto text-lg">
+               {StepContent.description}
+             </p>
           </div>
         </div>
       </div>
 
-      {/* Strategic Control Deck */}
-      <div className="w-full p-10 lg:p-12 z-20 max-w-lg mx-auto space-y-12 pb-20">
-        {/* Progress Matrix */}
-        <div className="flex justify-center items-center gap-4">
+      {/* Controls */}
+      <div className="w-full p-10 md:p-12 z-20 max-w-md mx-auto space-y-10 pb-16">
+        {/* Progress Dots */}
+        <div className="flex justify-center items-center gap-3">
           {ONBOARDING_STEPS.map((step, idx) => (
             <div 
               key={step.id} 
               className={cn(
-                "h-2 rounded-full transition-all duration-700",
+                "h-1.5 rounded-full transition-all duration-500",
                 currentStep === idx 
-                  ? "w-16 bg-primary shadow-2xl shadow-primary/40" 
-                  : "w-4 bg-foreground/5 border border-foreground/5"
+                  ? "w-8 bg-primary" 
+                  : "w-1.5 bg-neutral-200 dark:bg-white/10"
               )}
             />
           ))}
         </div>
 
-        {/* Tactical Engagement Button */}
+        {/* Action Button */}
         <button
           onClick={handleNext}
           className={cn(
-            "w-full flex items-center justify-center gap-4 h-20 rounded-[2.5rem] font-black text-[11px] uppercase tracking-[0.3em] transition-all active:scale-95 shadow-2xl group relative overflow-hidden",
+            "w-full flex items-center justify-center gap-3 h-14 rounded-full font-semibold text-sm transition-all active:scale-95 shadow-xl group",
             isLastStep 
-              ? "btn-premium shadow-primary/30" 
-              : "ultra-glass border border-foreground/10 text-foreground shadow-2xl"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(31,122,61,0.2)]" 
+              : "bg-muted/50 text-foreground border border-border hover:bg-muted"
           )}
         >
-          {isLastStep ? t("auth_finish") : t("auth_next")}
-          <div className="group-hover:translate-x-2 transition-transform">
-             {isLastStep ? <ShieldCheck size={20} strokeWidth={3} /> : <ArrowRight size={20} strokeWidth={3} />}
+          {isLastStep ? "Complete Setup" : "Next Step"}
+          <div className="group-hover:translate-x-1 transition-transform">
+             {isLastStep ? <Check size={18} strokeWidth={3} /> : <ArrowRight size={18} strokeWidth={3} />}
           </div>
         </button>
       </div>

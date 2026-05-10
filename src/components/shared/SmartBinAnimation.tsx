@@ -158,12 +158,12 @@ export function SmartBinAnimation() {
         {/* === GRADIENT DEFS === */}
         <defs>
           <linearGradient id="bodyGrad" x1="28" y1="95" x2="172" y2="213" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#065f46" />
-            <stop offset="50%" stopColor="#047857" />
+            <stop offset="0%" stopColor="#064e3b" />
+            <stop offset="50%" stopColor="#065f46" />
             <stop offset="100%" stopColor="#022c22" />
           </linearGradient>
           <linearGradient id="innerGrad" x1="32" y1="99" x2="168" y2="209" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="rgba(52,211,153,0.15)" />
+            <stop offset="0%" stopColor="rgba(52,211,153,0.2)" />
             <stop offset="100%" stopColor="transparent" />
           </linearGradient>
           <linearGradient id="lidGrad" x1="22" y1="76" x2="178" y2="98" gradientUnits="userSpaceOnUse">
@@ -176,10 +176,10 @@ export function SmartBinAnimation() {
       {/* === LABELS BELOW === */}
       <div className="flex flex-col items-center gap-1 mt-1">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[11px] font-bold" style={{ color: "#6ee7b7" }}>SMART BIN ONLINE</span>
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-300">SMART BIN ONLINE</span>
         </div>
-        <span className="text-[10px]" style={{ color: "rgba(110,231,183,0.45)" }}>AI · IoT · Circular Economy</span>
+        <span className="text-[10px] text-neutral-400 dark:text-emerald-500/50">AI · IoT · Circular Economy</span>
       </div>
 
       {/* === CIRCULAR ECONOMY ORBIT RING === */}

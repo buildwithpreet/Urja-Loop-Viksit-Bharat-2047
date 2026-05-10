@@ -10,7 +10,6 @@ import {
 import { cn } from "@/lib/utils"
 import { LanguageToggle } from "./LanguageToggle"
 import { useLanguage } from "./LanguageProvider"
-import { AccessibilityMenu } from "./AccessibilityMenu"
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -105,10 +104,6 @@ export function Sidebar() {
         "p-3 border-t border-border space-y-2 transition-all duration-300",
       )}>
         <div className={cn("flex flex-col gap-2 px-1", isCollapsed ? "items-center" : "")}>
-          <div className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "justify-between")}>
-             {!isCollapsed && <span className="text-[11px] text-muted-foreground font-medium">System Settings</span>}
-             <AccessibilityMenu isCollapsed={isCollapsed} />
-          </div>
           
           <div className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "justify-between")}>
              {!isCollapsed && <span className="text-[11px] text-muted-foreground font-medium">Language</span>}

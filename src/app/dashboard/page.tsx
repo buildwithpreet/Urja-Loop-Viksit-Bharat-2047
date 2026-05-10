@@ -66,9 +66,6 @@ export default function Home() {
             <Bell size={16} />
             <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
           </button>
-          <div className="w-10 h-10 rounded-xl border border-border overflow-hidden">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Avatar" className="w-full h-full object-cover" />
-          </div>
         </div>
       </div>
 

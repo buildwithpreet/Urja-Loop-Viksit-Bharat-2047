@@ -12,7 +12,6 @@ import { AppExperience } from "@/components/landing/AppExperience"
 import { RewardsEconomy } from "@/components/landing/RewardsEconomy"
 import { TargetAudience } from "@/components/landing/TargetAudience"
 import { SmartCityVision } from "@/components/landing/SmartCityVision"
-import { LandingFooter } from "@/components/landing/LandingFooter"
 
 export default function LandingPage() {
   return (
@@ -65,8 +64,6 @@ export default function LandingPage() {
         <TargetAudience />
         <SmartCityVision />
       </main>
-
-      <LandingFooter />
 
     </div>
   )

@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
-import { LanguageToggle } from "@/components/shared/LanguageToggle"
+import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
@@ -46,6 +46,9 @@ export default function Profile() {
       
       {/* Profile Card */}
       <div className="relative bg-card border border-border rounded-3xl p-5 shadow-sm overflow-hidden">
+        <div className="absolute top-4 right-4 z-20">
+           <ProfileSettingsMenu />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
         <div className="relative z-10 flex items-center gap-4">
           <div className="relative group">
@@ -169,36 +172,16 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Settings */}
+      {/* Security & Support Section */}
       <div className="bg-card border border-border rounded-3xl shadow-sm overflow-hidden">
         <div className="p-5 border-b border-border">
-          <h2 className="text-sm font-bold text-foreground">{t("profile_settings")}</h2>
+          <h2 className="text-sm font-bold text-foreground">Support & Security</h2>
         </div>
         
-        {/* Theme Toggle */}
-        <div className="p-4 flex items-center gap-3 border-b border-border">
-          <div className="w-9 h-9 bg-muted rounded-xl flex items-center justify-center">
-            <Moon size={16} className="text-muted-foreground" />
-          </div>
-          <p className="text-sm font-medium text-foreground flex-1">Dark Mode</p>
-          <ThemeToggle />
-        </div>
-
-        {/* Language Toggle */}
-        <div className="p-4 flex items-center gap-3 border-b border-border">
-          <div className="w-9 h-9 bg-muted rounded-xl flex items-center justify-center">
-            <Globe size={16} className="text-muted-foreground" />
-          </div>
-          <p className="text-sm font-medium text-foreground flex-1">Language</p>
-          <LanguageToggle />
-        </div>
-
-        {/* Settings links */}
         {[
-          { label: "Notification Preferences", icon: Bell },
-          { label: "Privacy & Data", icon: Lock },
-          { label: "About UrjaLoop", icon: Info },
-          { label: "How It Works", icon: HelpCircle },
+          { label: "Privacy & Data Protection", icon: Shield },
+          { label: "Community Guidelines", icon: Info },
+          { label: "Help Center & FAQs", icon: HelpCircle },
         ].map((item) => (
           <button key={item.label} className="w-full p-4 flex items-center gap-3 hover:bg-muted/30 transition-all border-b border-border last:border-0">
             <div className="w-9 h-9 bg-muted rounded-xl flex items-center justify-center">

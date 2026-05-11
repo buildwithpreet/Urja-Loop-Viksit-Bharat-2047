@@ -1,28 +1,21 @@
 {
-  "name": "UrjaLoop - Waste Intelligence",
+  "name": "UrjaLoop",
   "short_name": "UrjaLoop",
-  "description": "AI-powered smart waste management platform for Viksit Bharat 2047.",
+  "description": "Smart Waste Infrastructure & Eco Rewards",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#10b981",
+  "background_color": "#0A0C0B",
+  "theme_color": "#1F7A3D",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "/favicon.ico",
-      "type": "image/png",
+      "src": "https://api.dicebear.com/7.x/avataaars/svg?seed=UrjaLoop",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     },
     {
-      "src": "/favicon.ico",
-      "type": "image/png",
+      "src": "https://api.dicebear.com/7.x/avataaars/svg?seed=UrjaLoop",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     }
   ]
 }

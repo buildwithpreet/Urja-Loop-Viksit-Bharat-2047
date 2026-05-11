@@ -5,6 +5,7 @@ import { LayoutWrapper } from "@/components/shared/LayoutWrapper"
 import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import { LanguageProvider } from "@/components/shared/LanguageProvider"
 import { ModeProvider } from "@/components/shared/ModeProvider"
+import { AccessibilityProvider } from "@/components/shared/AccessibilityProvider"
 import { PwaRegister } from "@/components/shared/PwaRegister"
 import { Toaster } from "@/components/ui/sonner"
 
@@ -24,12 +25,15 @@ export const metadata: Metadata = {
     type: "website",
   },
   manifest: "/manifest.json",
-  themeColor: "#10b981",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "UrjaLoop",
   },
+}
+
+export const viewport = {
+  themeColor: "#10b981",
 }
 
 export default function RootLayout({
@@ -48,11 +52,13 @@ export default function RootLayout({
         >
           <LanguageProvider>
             <ModeProvider>
-              <PwaRegister />
-              <Toaster position="top-center" richColors theme="system" />
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
+              <AccessibilityProvider>
+                <PwaRegister />
+                <Toaster position="top-center" richColors theme="system" />
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
+              </AccessibilityProvider>
             </ModeProvider>
           </LanguageProvider>
         </ThemeProvider>

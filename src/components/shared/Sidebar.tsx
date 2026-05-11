@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
@@ -9,9 +10,27 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import { AccessibilityMenu } from "./AccessibilityMenu"
+
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
   const pathname = usePathname()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (data) setProfile(data)
+      }
+    }
+    fetchProfile()
+  }, [])
 
   const navItems = [
     { name: "Home", href: "/dashboard", icon: Home },
@@ -100,6 +119,9 @@ export function Sidebar() {
       <div className={cn(
         "p-3 border-t border-border space-y-2 transition-all duration-300",
       )}>
+        {/* Accessibility & Settings */}
+        <AccessibilityMenu isCollapsed={isCollapsed} />
+
         {/* User */}
         <div className="pt-2">
           <div className={cn(
@@ -107,14 +129,14 @@ export function Sidebar() {
             isCollapsed ? "justify-center" : ""
           )}>
             <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" 
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || "Alex"}`} 
               alt="Avatar" 
               className="w-7 h-7 rounded-lg border border-border shrink-0" 
             />
             {!isCollapsed && (
               <div className="flex-1 min-w-0 animate-in fade-in duration-200">
-                <p className="text-xs font-semibold truncate">Alex Harrison</p>
-                <p className="text-[9px] text-muted-foreground truncate">Sector 14 · New Delhi</p>
+                <p className="text-xs font-semibold truncate">{profile?.full_name || "Citizen"}</p>
+                <p className="text-[9px] text-muted-foreground truncate">{profile?.location || "India"}</p>
               </div>
             )}
           </div>

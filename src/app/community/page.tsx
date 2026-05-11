@@ -1,22 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
-  Users,
-  MapPin,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-  TrendingUp,
-  Globe,
-  Zap,
-  Activity,
-  Award
+  Users, MapPin, CheckCircle2, AlertTriangle, 
+  Clock, TrendingUp, Globe, Zap, Activity, Award
 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+
 
 const recentActivities = [
   { id: 1, type: "cleanup", location: "Sector 14 Market Hub", time: "2 hours ago", users: 12, impact: "450kg Carbon Offset" },
@@ -25,6 +19,41 @@ const recentActivities = [
 ]
 
 export default function Community() {
+  const [leaderboard, setLeaderboard] = useState<any[]>([])
+  const [impactStats, setImpactStats] = useState({ totalWaste: 0, totalCO2: 0, activeUsers: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      // Fetch Leaderboard
+      const { data: leaders } = await supabase
+        .from('profiles')
+        .select('id, full_name, eco_credits, role')
+        .order('eco_credits', { ascending: false })
+        .limit(5)
+      
+      if (leaders) setLeaderboard(leaders)
+
+      // Fetch Impact Stats
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('waste_processed, co2_saved')
+      
+      if (allProfiles) {
+        const waste = allProfiles.reduce((acc, p) => acc + (p.waste_processed || 0), 0)
+        const co2 = allProfiles.reduce((acc, p) => acc + (p.co2_saved || 0), 0)
+        setImpactStats({ 
+          totalWaste: waste, 
+          totalCO2: co2, 
+          activeUsers: allProfiles.length 
+        })
+      }
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
+
   return (
     <div className="p-8 pb-32 lg:p-12 space-y-16 animate-in fade-in slide-in-from-bottom-10 duration-1000">
       {/* Header Section */}
@@ -47,7 +76,7 @@ export default function Community() {
              <Activity size={32} strokeWidth={2.5} />
           </div>
           <div>
-             <p className="text-2xl font-black text-foreground tracking-tighter">1.2M+</p>
+             <p className="text-2xl font-black text-foreground tracking-tighter">{impactStats.activeUsers}</p>
              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Active Nodes</p>
           </div>
         </div>
@@ -74,12 +103,12 @@ export default function Community() {
           </div>
           
           <div className="relative">
-             <div className="w-48 h-48 rounded-[2.5rem] ultra-glass border-8 border-emerald-500/10 flex items-center justify-center shadow-2xl">
+              <div className="w-48 h-48 rounded-[2.5rem] ultra-glass border-8 border-emerald-500/10 flex items-center justify-center shadow-2xl">
                 <div className="text-center space-y-1">
-                  <span className="text-6xl font-black text-foreground tracking-tighter">94</span>
-                  <span className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-40">Tactical Score</span>
+                  <span className="text-6xl font-black text-foreground tracking-tighter">{Math.round(impactStats.totalCO2)}</span>
+                  <span className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-40">CO₂ SAVED (KG)</span>
                 </div>
-             </div>
+              </div>
              <div className="absolute -top-4 -right-4 w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-emerald-500/30 animate-bounce">
                 <Award size={28} strokeWidth={2.5} />
              </div>
@@ -102,42 +131,53 @@ export default function Community() {
         </div>
 
         <div className="grid gap-6">
-          {recentActivities.map((activity) => (
-            <Card key={activity.id} className="border-none ultra-glass rounded-[2.5rem] shadow-xl hover:bg-foreground/5 transition-all duration-500 group overflow-hidden">
+          {leaderboard.map((user, i) => (
+            <Card key={user.id} className="border-none ultra-glass rounded-[2.5rem] shadow-xl hover:bg-foreground/5 transition-all duration-500 group overflow-hidden">
               <CardContent className="p-8 flex flex-col sm:flex-row gap-8 sm:items-center justify-between relative z-10">
                 <div className="flex items-start sm:items-center gap-6">
                   <div className={cn(
-                    "w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-2xl border border-foreground/10",
-                    activity.type === "cleanup" ? "bg-blue-500/10 text-blue-500 shadow-blue-500/10" :
-                    activity.type === "report" ? "bg-amber-500/10 text-amber-500 shadow-amber-500/10" :
-                    "bg-emerald-500/10 text-emerald-500 shadow-emerald-500/10"
+                    "w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-2xl border border-foreground/10 text-2xl font-black",
+                    i === 0 ? "bg-amber-500/10 text-amber-500 shadow-amber-500/10" :
+                    i === 1 ? "bg-slate-400/10 text-slate-400 shadow-slate-400/10" :
+                    i === 2 ? "bg-orange-400/10 text-orange-400 shadow-orange-400/10" :
+                    "bg-muted text-muted-foreground"
                   )}>
-                    {activity.type === "cleanup" ? <Users size={28} strokeWidth={2.5} /> :
-                     activity.type === "report" ? <AlertTriangle size={28} strokeWidth={2.5} /> :
-                     <CheckCircle2 size={28} strokeWidth={2.5} />}
+                    {i + 1}
                   </div>
                   <div className="space-y-1.5">
                     <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
-                      {activity.type === "cleanup" ? "Collective Restoration" :
-                       activity.type === "report" ? "Anomaly Detected" :
-                       "Verification Completed"}
+                      {user.full_name}
                     </h3>
                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.15em] flex items-center gap-2 opacity-60">
-                      <MapPin size={14} className="text-primary" /> {activity.location}
+                      <Badge variant="outline" className="text-[9px] border-border uppercase font-black">{user.role}</Badge>
                     </p>
                   </div>
                 </div>
 
                 <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 pl-20 sm:pl-0">
-                  <div className="ultra-glass border border-foreground/10 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-foreground shadow-lg">
-                    {activity.impact || activity.status}
+                  <div className="ultra-glass border border-emerald-500/10 px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest text-emerald-500 shadow-lg">
+                    {user.eco_credits?.toLocaleString()} Credits
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest flex items-center gap-2 opacity-40">
-                    <Clock size={14} /> {activity.time}
-                  </span>
                 </div>
               </CardContent>
             </Card>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <h2 className="text-2xl font-black uppercase tracking-tighter">Mission Logistics</h2>
+        <div className="grid gap-4">
+          {recentActivities.map((activity) => (
+            <div key={activity.id} className="p-4 rounded-2xl border border-border bg-card/50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <Zap size={14} />
+                </div>
+                <p className="text-xs font-bold">{activity.location}</p>
+              </div>
+              <Badge className="bg-muted text-muted-foreground text-[9px]">{activity.time}</Badge>
+            </div>
           ))}
         </div>
       </div>

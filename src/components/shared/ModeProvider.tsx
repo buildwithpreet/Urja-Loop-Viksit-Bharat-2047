@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 
 export type AppMode = "urban" | "rural"
 
@@ -16,10 +17,27 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<AppMode>("urban")
 
   useEffect(() => {
-    const savedMode = localStorage.getItem("urjaloop_mode") as AppMode
-    if (savedMode && (savedMode === "urban" || savedMode === "rural")) {
-      setModeState(savedMode)
+    const initMode = async () => {
+      const savedMode = localStorage.getItem("urjaloop_mode") as AppMode
+      if (savedMode && (savedMode === "urban" || savedMode === "rural")) {
+        setModeState(savedMode)
+      } else {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (profile?.role) {
+            setModeState(profile.role as AppMode)
+            localStorage.setItem("urjaloop_mode", profile.role)
+          }
+        }
+      }
     }
+    initMode()
   }, [])
 
   const setMode = (newMode: AppMode) => {

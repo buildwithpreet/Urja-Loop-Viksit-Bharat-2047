@@ -4,12 +4,15 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Camera, User, Building2, MapPin, Briefcase, Zap, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 export default function SetupProfileScreen() {
   const router = useRouter()
   const [formData, setFormData] = useState({
     name: "",
     role: "Citizen",
+    areaType: "urban",
     location: "",
     organization: ""
   })
@@ -17,13 +20,62 @@ export default function SetupProfileScreen() {
 
   const roles = ["Citizen", "Collector", "Admin"]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.name && formData.location) {
       setIsSubmitting(true)
-      setTimeout(() => {
-        router.push("/permissions")
-      }, 1000)
+      
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        const isDemoSession = localStorage.getItem("urjaloop_demo_session") === "true"
+        
+        if (!user && !isDemoSession) {
+          toast.error("User not found. Please log in again.")
+          router.push("/login")
+          return
+        }
+
+        if (isDemoSession) {
+          // --- HACKATHON DEMO BYPASS ---
+          await new Promise(r => setTimeout(r, 1000)) // Artificial delay
+          localStorage.setItem("urjaloop_mode", formData.areaType)
+          localStorage.setItem("urjaloop_profile", JSON.stringify({
+            full_name: formData.name,
+            role: formData.areaType,
+            location: formData.location
+          }))
+          toast.success("Demo Profile Initialized!")
+          router.push("/permissions")
+          return
+        }
+
+        const { error } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            full_name: formData.name,
+            role: formData.areaType, // Use urban/rural as primary role for mode
+            user_type: formData.role.toLowerCase(), // Collector/Admin/Citizen
+            location: formData.location,
+            phone: user.phone,
+            eco_credits: 500, // Welcome bonus
+            waste_processed: 0,
+            co2_saved: 0
+          })
+
+        if (error) {
+          toast.error(error.message)
+        } else {
+          localStorage.setItem("urjaloop_mode", formData.areaType)
+          toast.success("Profile initialized successfully! Enjoy 500 welcome credits.")
+          router.push("/permissions")
+        }
+      } catch (err) {
+        toast.error("An unexpected error occurred")
+        console.error(err)
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -83,10 +135,40 @@ export default function SetupProfileScreen() {
               </div>
             </div>
 
+            {/* Area Type Selection */}
+            <div className="space-y-4 relative z-10">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                <MapPin size={14} className="text-primary" strokeWidth={2.5} /> Living Environment
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { id: "urban", label: "Urban City", desc: "Access Smart Bins" },
+                  { id: "rural", label: "Rural Farm", desc: "Agri-Waste Focus" }
+                ].map((area) => (
+                  <button
+                    key={area.id}
+                    type="button"
+                    onClick={() => setFormData({...formData, areaType: area.id})}
+                    className={cn(
+                      "p-4 rounded-2xl text-left transition-all border group/btn",
+                      formData.areaType === area.id
+                        ? "bg-primary/10 border-primary shadow-lg"
+                        : "ultra-glass border-border/50 opacity-60 hover:opacity-100"
+                    )}
+                  >
+                    <p className={cn("text-[11px] font-black uppercase tracking-widest mb-1", 
+                      formData.areaType === area.id ? "text-primary" : "text-foreground"
+                    )}>{area.label}</p>
+                    <p className="text-[9px] text-muted-foreground font-medium leading-tight">{area.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Network Authority Mapping */}
             <div className="space-y-4 relative z-10">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
-                <Briefcase size={14} className="text-primary" strokeWidth={2.5} /> Sector Designation
+                <Briefcase size={14} className="text-primary" strokeWidth={2.5} /> Operational Role
               </label>
               <div className="grid grid-cols-3 gap-3">
                 {roles.map((role) => (

@@ -3,20 +3,32 @@
 import { useState } from "react"
 import { 
   MapPin, Search, Navigation, Filter, AlertCircle,
-  Clock, Truck, Recycle, Info, ChevronUp, RefreshCw,
-  Layers, Eye, ThumbsUp, AlertTriangle
+  Clock, Truck, Recycle, Info, ChevronUp,
+  Layers, Eye, ThumbsUp, AlertTriangle, RefreshCw
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralMap } from "@/components/rural/RuralMap"
+import { supabase } from "@/lib/supabase"
+import { useEffect } from "react"
+import dynamic from "next/dynamic"
 
-const locations = [
-  { id: 1, type: "bin", lat: "38%", lng: "28%", fill: 18, status: "low", address: "Sector 14 Main Gate", lastCleaned: "2h ago", nextPickup: "Tomorrow, 6 AM", capacity: "120L" },
-  { id: 2, type: "bin", lat: "52%", lng: "48%", fill: 67, status: "medium", address: "City Center Park", lastCleaned: "5h ago", nextPickup: "Today, 4 PM", capacity: "120L" },
-  { id: 3, type: "bin", lat: "22%", lng: "62%", fill: 91, status: "high", address: "Green View Market", lastCleaned: "12h ago", nextPickup: "ASAP", capacity: "120L" },
-  { id: 4, type: "vehicle", lat: "58%", lng: "33%", address: "Collection Truck #402", route: "Sector 14 Route", eta: "~18 min away" },
-  { id: 5, type: "complaint", lat: "45%", lng: "70%", address: "Illegal Dumping Reported", status: "in-progress" },
+// Fix for Leaflet icons in Next.js
+import "leaflet/dist/leaflet.css"
+
+const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false })
+const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false })
+const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false })
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false })
+const useMap = dynamic(() => import("react-leaflet").then((mod) => mod.useMap), { ssr: false })
+
+// Define initial coordinates for Delhi/NCR as center
+const BHARAT_CENTER: [number, number] = [28.6139, 77.2090]
+
+const INITIAL_LOCATIONS = [
+  { id: 'v1', type: "vehicle", lat: "58%", lng: "33%", address: "Collection Truck #402", route: "Sector 14 Route", eta: "~18 min away" },
+  { id: 'c1', type: "complaint", lat: "45%", lng: "70%", address: "Illegal Dumping Reported", status: "in-progress" },
 ]
 
 const statusColor = {
@@ -27,10 +39,62 @@ const statusColor = {
 
 export default function MapPage() {
   const { mode } = useMode()
-  const [selectedEntity, setSelectedEntity] = useState<typeof locations[0]>(locations[2])
+  const [locations, setLocations] = useState<any[]>(INITIAL_LOCATIONS)
+  const [selectedEntity, setSelectedEntity] = useState<any>(INITIAL_LOCATIONS[0])
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [showTransparency, setShowTransparency] = useState(true)
   const [isSheetExpanded, setIsSheetExpanded] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchBins()
+  }, [])
+
+  const fetchBins = async () => {
+    setLoading(true)
+    try {
+      const { data: bins } = await supabase.from('smart_bins').select('*')
+      
+      const mappedBins = (bins || []).map(b => ({
+        id: b.id,
+        type: "bin",
+        // Convert mock percentage to relative lat/lng around center for demo
+        lat: b.lat_geo || BHARAT_CENTER[0] + (Math.random() - 0.5) * 0.05,
+        lng: b.lng_geo || BHARAT_CENTER[1] + (Math.random() - 0.5) * 0.05,
+        fill: b.fill_level || Math.floor(Math.random() * 100),
+        status: (b.fill_level || 0) > 80 ? "high" : (b.fill_level || 0) > 50 ? "medium" : "low",
+        address: b.location_name || "Smart Bin Station",
+        lastCleaned: "2h ago",
+        nextPickup: (b.fill_level || 0) > 80 ? "ASAP" : "Scheduled",
+        capacity: "120L"
+      }))
+
+      if (mappedBins.length === 0) {
+        // Add spread out mock bins
+        for(let i=0; i<5; i++) {
+          mappedBins.push({
+            id: `m${i}`,
+            type: 'bin',
+            lat: BHARAT_CENTER[0] + (Math.random() - 0.5) * 0.04,
+            lng: BHARAT_CENTER[1] + (Math.random() - 0.5) * 0.04,
+            fill: Math.floor(Math.random() * 100),
+            status: 'medium',
+            address: `Zone ${i+1} Collection Point`,
+            lastCleaned: '2h ago',
+            nextPickup: 'Daily',
+            capacity: '120L'
+          })
+        }
+      }
+
+      setLocations([...mappedBins])
+      if (mappedBins.length > 0) setSelectedEntity(mappedBins[0])
+    } catch (err) {
+      console.error("Map Data Error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (mode === "rural") {
     return <RuralMap />
@@ -39,78 +103,41 @@ export default function MapPage() {
   return (
     <div className="h-[calc(100vh-0rem)] w-full relative overflow-hidden bg-background animate-in fade-in duration-700">
       
-      {/* Map Simulation Background */}
-      <div className="absolute inset-0 z-0">
-        {/* City grid simulation */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(var(--primary-rgb, 16,185,129), 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(var(--primary-rgb, 16,185,129), 0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: "50px 50px"
-        }} />
-        {/* Road lines simulation */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10">
-          <line x1="0" y1="40%" x2="100%" y2="40%" stroke="currentColor" strokeWidth="3" />
-          <line x1="0" y1="65%" x2="100%" y2="65%" stroke="currentColor" strokeWidth="2" />
-          <line x1="35%" y1="0" x2="35%" y2="100%" stroke="currentColor" strokeWidth="3" />
-          <line x1="68%" y1="0" x2="68%" y2="100%" stroke="currentColor" strokeWidth="2" />
-          <rect x="30%" y="35%" width="20%" height="12%" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.5" rx="4" />
-          <rect x="55%" y="42%" width="15%" height="10%" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.5" rx="4" />
-        </svg>
+      <div className="absolute inset-0 z-0 bg-neutral-100 dark:bg-neutral-900">
+        <MapContainer 
+          center={BHARAT_CENTER} 
+          zoom={13} 
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={false}
+        >
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          />
+          
+          {locations.map((loc) => (
+            <Marker 
+              key={loc.id} 
+              position={[loc.lat, loc.lng]}
+              eventHandlers={{
+                click: () => setSelectedEntity(loc),
+              }}
+            >
+              {/* Custom icons would go here, but for now we use Leaflet default with popup */}
+              <Popup>
+                <div className="p-2">
+                   <p className="font-bold text-xs">{loc.address}</p>
+                   <p className="text-[10px] text-primary">{loc.type.toUpperCase()}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
 
-        {/* Heatmap overlay */}
+        {/* Heatmap overlay simulation */}
         {showHeatmap && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute bg-red-500/20 rounded-full blur-3xl w-32 h-32" style={{ top: "18%", left: "57%" }} />
-            <div className="absolute bg-amber-500/15 rounded-full blur-3xl w-24 h-24" style={{ top: "48%", left: "43%" }} />
-            <div className="absolute bg-emerald-500/10 rounded-full blur-3xl w-20 h-20" style={{ top: "33%", left: "23%" }} />
-          </div>
+          <div className="absolute inset-0 pointer-events-none z-[400] bg-primary/5 mix-blend-overlay" />
         )}
-
-        {/* Entity Markers */}
-        {locations.map((loc) => (
-          <button
-            key={loc.id}
-            onClick={() => { setSelectedEntity(loc); setIsSheetExpanded(false) }}
-            style={{ top: loc.lat, left: loc.lng }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 group transition-all duration-300 hover:scale-110 z-10"
-          >
-            {loc.type === "bin" && (
-              <div className="relative">
-                {(loc.fill ?? 0) > 85 && (
-                  <div className={cn("absolute -inset-2 rounded-full animate-ping opacity-30", statusColor[loc.status as keyof typeof statusColor].bg)} />
-                )}
-                <div className={cn(
-                  "w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg border-2 border-background transition-all",
-                  selectedEntity.id === loc.id ? "scale-125 ring-2 ring-primary" : "",
-                  loc.status === "low" ? "bg-emerald-500 text-white" :
-                  loc.status === "medium" ? "bg-amber-500 text-white" : "bg-red-500 text-white"
-                )}>
-                  <Recycle size={18} strokeWidth={2.5} />
-                </div>
-                {/* Fill indicator */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-background text-foreground text-[9px] font-black px-1.5 py-0.5 rounded-full border border-border shadow-sm whitespace-nowrap">
-                  {loc.fill}%
-                </div>
-              </div>
-            )}
-            {loc.type === "vehicle" && (
-              <div className={cn("w-11 h-11 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg border-2 border-background transition-all",
-                selectedEntity.id === loc.id ? "scale-125 ring-2 ring-blue-500" : ""
-              )}>
-                <Truck size={18} strokeWidth={2.5} />
-              </div>
-            )}
-            {loc.type === "complaint" && (
-              <div className={cn("w-11 h-11 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg border-2 border-background transition-all",
-                selectedEntity.id === loc.id ? "scale-125 ring-2 ring-orange-500" : ""
-              )}>
-                <AlertTriangle size={18} strokeWidth={2.5} />
-              </div>
-            )}
-          </button>
-        ))}
       </div>
 
       {/* Top Search Bar */}
@@ -145,8 +172,11 @@ export default function MapPage() {
         >
           <Eye size={16} />
         </button>
-        <button className="w-10 h-10 rounded-2xl bg-card/95 backdrop-blur-xl border border-border flex items-center justify-center text-muted-foreground hover:text-primary shadow-lg transition-all">
-          <RefreshCw size={16} />
+        <button 
+          onClick={fetchBins}
+          className="w-10 h-10 rounded-2xl bg-card/95 backdrop-blur-xl border border-border flex items-center justify-center text-muted-foreground hover:text-primary shadow-lg transition-all"
+        >
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
 
@@ -219,7 +249,15 @@ export default function MapPage() {
                 </div>
               </div>
 
-              <button className="w-full bg-primary text-primary-foreground py-2.5 rounded-2xl text-xs font-bold tracking-wide hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2">
+              <button 
+                onClick={() => {
+                  const isMock = typeof selectedEntity.lat === 'string' && selectedEntity.lat.includes('%')
+                  const query = isMock ? encodeURIComponent(selectedEntity.address) : `${selectedEntity.lat},${selectedEntity.lng}`
+                  const url = `https://www.google.com/maps/search/?api=1&query=${query}`
+                  window.open(url, '_blank')
+                }}
+                className="w-full bg-primary text-primary-foreground py-2.5 rounded-2xl text-xs font-bold tracking-wide hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
                 <Navigation size={14} /> Get Directions
               </button>
             </>

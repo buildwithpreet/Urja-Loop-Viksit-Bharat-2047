@@ -1,9 +1,5 @@
 "use client"
 
-import Link from "next/link"
-import { Leaf, Menu } from "lucide-react"
-import { ThemeToggle } from "@/components/shared/ThemeToggle"
-
 import { HeroSection } from "@/components/landing/HeroSection"
 import { ProblemSection } from "@/components/landing/ProblemSection"
 import { HowItWorks } from "@/components/landing/HowItWorks"
@@ -13,57 +9,61 @@ import { RewardsEconomy } from "@/components/landing/RewardsEconomy"
 import { TargetAudience } from "@/components/landing/TargetAudience"
 import { SmartCityVision } from "@/components/landing/SmartCityVision"
 import { LandingFooter } from "@/components/landing/LandingFooter"
+import { LandingHeader } from "@/components/landing/LandingHeader"
+import { LandingAccordion } from "@/components/landing/LandingAccordion"
+import { ArchitectureSection } from "@/components/landing/ArchitectureSection"
+import { ImpactMetrics } from "@/components/landing/ImpactMetrics"
 
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       
-      {/* STICKY HEADER - MINIMALIST */}
-      <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="max-w-6xl mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
-          
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-sm">
-              <Leaf size={16} strokeWidth={2} />
-            </div>
-            <span className="font-semibold text-lg tracking-tight">UrjaLoop</span>
-          </Link>
-          
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-             <a href="#hardware" className="hover:text-foreground transition-colors">The Smart Bin</a>
-             <a href="#software" className="hover:text-foreground transition-colors">The App</a>
-             <a href="#economy" className="hover:text-foreground transition-colors">Rewards</a>
-          </nav>
-
-          <div className="flex items-center gap-4">
-             <ThemeToggle />
-             <Link href="/login" className="hidden md:block">
-               <button className="text-sm font-medium hover:text-primary transition-colors px-4 py-2">
-                 Log In
-               </button>
-             </Link>
-             <Link href="/login">
-               <button className="bg-foreground text-background text-sm font-medium px-5 py-2 rounded-full hover:bg-foreground/90 transition-colors shadow-sm">
-                 Get Started
-               </button>
-             </Link>
-             <button className="md:hidden text-foreground">
-               <Menu size={24} />
-             </button>
-          </div>
-          
-        </div>
-      </header>
+      <LandingHeader />
 
       <main>
         <HeroSection />
-        <ProblemSection />
-        <HowItWorks />
-        <SmartBinDetailed />
-        <AppExperience />
-        <RewardsEconomy />
-        <TargetAudience />
-        <SmartCityVision />
+        
+        {/* New: Impact Quick Metrics */}
+        <div id="impact">
+           <ImpactMetrics />
+        </div>
+
+        <div id="problem">
+          <ProblemSection />
+        </div>
+
+        <div id="how-it-works">
+          <HowItWorks />
+        </div>
+
+        <div id="hardware">
+          <SmartBinDetailed />
+        </div>
+
+        {/* New: Openable Technical Sections */}
+        <div id="blueprint">
+           <LandingAccordion />
+        </div>
+
+        <div id="architecture">
+           <ArchitectureSection />
+        </div>
+
+        <div id="software">
+          <AppExperience />
+        </div>
+
+        <div id="economy">
+          <RewardsEconomy />
+        </div>
+
+        <div id="community">
+          <TargetAudience />
+        </div>
+
+        <div id="vision">
+          <SmartCityVision />
+        </div>
       </main>
 
       <LandingFooter />

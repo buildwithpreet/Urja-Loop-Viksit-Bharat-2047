@@ -6,7 +6,7 @@ import { Home, MapPin, QrCode, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { name: "Home", href: "/", icon: Home },
+  { name: "Home", href: "/dashboard", icon: Home },
   { name: "Map", href: "/map", icon: MapPin },
   { name: "Scan", href: null, icon: QrCode, isScan: true }, // center scan button
   { name: "Market", href: "/shop", icon: ShoppingBag },

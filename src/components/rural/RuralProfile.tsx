@@ -3,12 +3,16 @@
 import { 
   User, QrCode, ShieldCheck, MapPin, 
   Settings, LogOut, ChevronRight, Leaf, History, 
-  Store, Tractor, Wheat, ArrowRight, Globe
+  Store, Tractor, Wheat, ArrowRight, Globe, Edit2
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { LanguageToggle } from "@/components/shared/LanguageToggle"
+import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useMode } from "@/components/shared/ModeProvider"
+import { useState } from "react"
 
 const farmerStats = [
   { label: "Agri Waste Sold", value: "1,240 kg", icon: Wheat, color: "text-amber-500", bg: "bg-amber-500/10" },
@@ -24,10 +28,29 @@ const recentActivity = [
 ]
 
 export function RuralProfile() {
+  const { mode, setMode } = useMode()
+  const [isEditing, setIsEditing] = useState(false)
+  const [name, setName] = useState("Ram Singh")
+  const [isFarmer, setIsFarmer] = useState(mode === "rural")
+
+  const handleSaveProfile = () => {
+    setIsEditing(false)
+    if (isFarmer) {
+      setMode("rural")
+    } else {
+      setMode("urban")
+    }
+  }
+
   return (
     <div className="p-4 pb-32 lg:p-8 space-y-8 animate-in fade-in duration-700">
       
       {/* Profile Header */}
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-bold text-foreground">My Farm Profile</h1>
+        <ProfileSettingsMenu />
+      </div>
+
       <div className="flex flex-col md:flex-row items-center md:items-start gap-6 bg-card p-6 rounded-3xl border border-border relative overflow-hidden">
         {/* Glow */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-3xl -translate-y-1/2 rounded-full pointer-events-none" />
@@ -41,12 +64,51 @@ export function RuralProfile() {
           </div>
         </div>
 
-        <div className="flex-1 text-center md:text-left z-10">
-          <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1 justify-center md:justify-start">
-            <h1 className="text-2xl font-bold">Ram Singh</h1>
+        <div className="flex-1 text-center md:text-left z-10 w-full">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1 justify-center md:justify-start relative">
+            <h1 className="text-2xl font-bold">{name}</h1>
             <Badge variant="secondary" className="bg-amber-500/10 text-amber-500 border-none mx-auto md:mx-0 w-fit">
               Verified Farmer
             </Badge>
+            <div className="absolute right-0 top-0 md:static md:ml-auto">
+              <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                <DialogTrigger render={<button className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground" />}>
+                  <Edit2 size={16} />
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Edit Profile</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <label htmlFor="name-rural" className="text-sm font-medium">Full Name</label>
+                      <input 
+                        id="name-rural" 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <label className="text-sm font-medium">I am a Farmer</label>
+                        <p className="text-[10px] text-muted-foreground">Switch to rural farm management mode.</p>
+                      </div>
+                      <button 
+                        onClick={() => setIsFarmer(!isFarmer)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFarmer ? 'bg-primary' : 'bg-input'}`}
+                      >
+                        <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${isFarmer ? 'translate-x-5' : 'translate-x-0'}`} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3 mt-4">
+                    <button onClick={() => setIsEditing(false)} className="px-4 py-2 rounded-xl text-sm font-medium hover:bg-muted transition-colors">Cancel</button>
+                    <button onClick={handleSaveProfile} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-md shadow-primary/20 hover:opacity-90 transition-all active:scale-95">Save Changes</button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
           <p className="text-muted-foreground flex items-center justify-center md:justify-start gap-1 text-sm mb-4">
             <MapPin size={14} /> Ludhiana, Punjab

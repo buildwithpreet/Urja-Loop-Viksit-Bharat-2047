@@ -38,7 +38,6 @@ export default function SplashScreen() {
           {/* Core Logo */}
           <div className="w-36 h-36 bg-primary rounded-[3rem] flex items-center justify-center shadow-2xl shadow-primary/30 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-            <div className="absolute inset-0 bg-mesh opacity-20"></div>
             <Globe className="text-white w-20 h-20 relative z-10 drop-shadow-2xl" strokeWidth={1.5} />
           </div>
 

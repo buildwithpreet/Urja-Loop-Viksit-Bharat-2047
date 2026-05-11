@@ -28,14 +28,14 @@ export default function SetupProfileScreen() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden bg-mesh p-6">
+    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden p-6 transition-colors duration-300">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
       {/* Header Strategy */}
       <div className="w-full max-w-lg mx-auto pt-10 pb-6 z-10 animate-in slide-in-from-top-6 fade-in duration-1000">
         <div className="flex items-center gap-4 mb-4">
-           <div className="w-10 h-10 ultra-glass border border-foreground/10 rounded-xl flex items-center justify-center text-primary shadow-xl">
+           <div className="w-10 h-10 ultra-glass rounded-xl flex items-center justify-center text-primary shadow-xl">
               <User size={20} strokeWidth={2.5} />
            </div>
            <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80">Profile Manifest</span>
@@ -52,18 +52,18 @@ export default function SetupProfileScreen() {
           {/* Neural Avatar Interface */}
           <div className="flex justify-center py-6">
             <div className="relative group cursor-pointer">
-              <div className="w-32 h-32 rounded-[2.5rem] ultra-glass border border-foreground/10 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:rotate-6 group-hover:scale-105 shadow-2xl relative z-10">
+              <div className="w-32 h-32 rounded-[2.5rem] ultra-glass flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:rotate-6 group-hover:scale-105 shadow-2xl relative z-10">
                 <User size={56} className="text-primary/40" strokeWidth={1.5} />
                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
-              <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-primary/40 border-4 border-background group-hover:scale-110 transition-transform z-20">
+              <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40 border-4 border-background group-hover:scale-110 transition-transform z-20">
                 <Camera size={20} strokeWidth={2.5} />
               </div>
               <div className="absolute inset-0 bg-primary/20 rounded-[2.5rem] blur-2xl -z-10 scale-125 animate-pulse"></div>
             </div>
           </div>
 
-          <div className="ultra-glass border border-foreground/10 rounded-[2.5rem] p-10 shadow-2xl space-y-10 relative overflow-hidden">
+          <div className="ultra-glass rounded-[2.5rem] p-10 shadow-2xl space-y-10 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-10"></div>
             
             {/* Operator Designation */}
@@ -78,7 +78,7 @@ export default function SetupProfileScreen() {
                    value={formData.name}
                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                    placeholder="ENTER FULL NAME"
-                   className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
+                   className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
                  />
               </div>
             </div>
@@ -97,8 +97,8 @@ export default function SetupProfileScreen() {
                     className={cn(
                       "h-14 rounded-xl text-[10px] font-black transition-all border uppercase tracking-widest",
                       formData.role === role
-                        ? "bg-primary text-white border-primary shadow-2xl shadow-primary/30 scale-105"
-                        : "ultra-glass border-foreground/10 text-muted-foreground opacity-60 hover:opacity-100 hover:border-primary/30"
+                        ? "bg-primary text-primary-foreground border-primary shadow-2xl shadow-primary/30 scale-105"
+                        : "ultra-glass text-muted-foreground opacity-60 hover:opacity-100 hover:border-primary/30"
                     )}
                   >
                     {role}
@@ -118,7 +118,7 @@ export default function SetupProfileScreen() {
                 value={formData.location}
                 onChange={(e) => setFormData({...formData, location: e.target.value})}
                 placeholder="CITY / VILLAGE NAME"
-                className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
+                className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
               />
             </div>
 
@@ -134,7 +134,7 @@ export default function SetupProfileScreen() {
                 value={formData.organization}
                 onChange={(e) => setFormData({...formData, organization: e.target.value})}
                 placeholder="NGO / GOVERNMENT / COMPANY"
-                className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
+                className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
               />
             </div>
           </div>

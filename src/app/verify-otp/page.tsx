@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, CheckCircle2, ShieldCheck, Timer, Cpu } from "lucide-react"
+import { ArrowLeft, CheckCircle2, ShieldCheck, Timer, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function VerifyOtpScreen() {
@@ -68,8 +68,8 @@ export default function VerifyOtpScreen() {
         setIsVerifying(false)
         setIsSuccess(true)
         setTimeout(() => {
-          router.push("/setup-profile")
-        }, 2000)
+          router.push("/onboarding")
+        }, 1500)
       }, 1500)
     }
   }
@@ -78,57 +78,50 @@ export default function VerifyOtpScreen() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-mesh animate-in fade-in duration-1000">
-        <div className="relative">
-          <div className="w-32 h-32 bg-primary rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl shadow-primary/40 animate-in zoom-in duration-1000 fill-mode-both relative z-10">
-            <CheckCircle2 size={64} strokeWidth={2.5} />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-center transition-colors duration-300">
+        <div className="relative mb-8">
+          <div className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center text-primary-foreground shadow-2xl animate-in zoom-in duration-700">
+            <CheckCircle2 size={48} strokeWidth={2} />
           </div>
-          <div className="absolute inset-0 bg-primary/20 rounded-[2.5rem] blur-3xl -z-10 scale-150 animate-pulse"></div>
+          <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-3xl -z-10 scale-150 animate-pulse"></div>
         </div>
-        <div className="mt-12 text-center space-y-3">
-          <h2 className="text-4xl font-black text-foreground uppercase tracking-tighter animate-in slide-in-from-bottom-8 duration-700 delay-300">
-            Identity Verified
-          </h2>
-          <p className="text-[10px] text-primary font-black uppercase tracking-[0.3em] opacity-80 animate-in slide-in-from-bottom-4 duration-700 delay-500">
-            Synchronizing Neural Profile...
-          </p>
+        <div className="space-y-3">
+          <h2 className="text-3xl font-medium text-foreground tracking-tight">Verified</h2>
+          <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Accessing Infrastructure...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden bg-mesh p-6">
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden p-6 transition-colors duration-300">
+      
+      {/* Background Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* Header Strategy */}
-      <div className="w-full max-w-lg mx-auto py-8 flex items-center justify-between z-10 animate-in fade-in slide-in-from-top-4 duration-1000">
+      {/* Header */}
+      <div className="w-full max-w-md mx-auto py-8 z-10">
         <button 
           onClick={() => router.back()}
-          className="w-14 h-14 ultra-glass border border-foreground/10 rounded-2xl flex items-center justify-center text-foreground hover:border-primary/30 transition-all active:scale-90"
+          className="w-12 h-12 bg-muted/50 border border-border rounded-xl flex items-center justify-center text-foreground hover:bg-muted transition-all"
         >
-          <ArrowLeft size={24} strokeWidth={2.5} />
+          <ArrowLeft size={20} strokeWidth={2} />
         </button>
-        <div className="w-14 h-14 ultra-glass border border-foreground/10 rounded-2xl flex items-center justify-center text-primary">
-          <Cpu size={24} strokeWidth={2.5} className="animate-pulse" />
-        </div>
       </div>
 
-      {/* Main Tactical Area */}
-      <div className="flex-1 flex flex-col items-center justify-center z-10 w-full max-w-lg mx-auto space-y-12 animate-in slide-in-from-bottom-10 fade-in duration-1000">
-        <div className="text-center space-y-3 w-full">
-           <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Enter Auth Code</h1>
-           <div className="flex items-center justify-center flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
-              <span className="text-muted-foreground">Transmitted to</span>
-              <span className="text-primary font-black">+91 98765 43210</span>
-              <button onClick={() => router.back()} className="text-white hover:text-primary underline-offset-4 underline decoration-primary/30">
-                Change Node
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center z-10 w-full max-w-md mx-auto space-y-12">
+        <div className="text-center space-y-4 w-full">
+           <h1 className="text-3xl font-medium text-foreground tracking-tight">Enter Verification Code</h1>
+           <div className="flex flex-col items-center gap-2">
+              <p className="text-sm text-muted-foreground font-medium">Sent to +91 98765 43210</p>
+              <button onClick={() => router.back()} className="text-xs text-primary hover:underline font-semibold transition-colors">
+                Change Number
               </button>
            </div>
         </div>
 
-        {/* OTP Input Matrix */}
+        {/* OTP Inputs */}
         <div className="flex justify-between w-full gap-3">
           {otp.map((digit, index) => (
             <input
@@ -142,55 +135,58 @@ export default function VerifyOtpScreen() {
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
               className={cn(
-                "w-full h-20 text-center text-3xl font-black rounded-2xl border transition-all focus:outline-none ultra-glass",
+                "w-full h-16 text-center text-2xl font-medium rounded-2xl border transition-all focus:outline-none",
                 digit 
-                  ? "border-primary/50 bg-primary/10 text-primary shadow-lg shadow-primary/10 scale-105" 
-                  : "border-foreground/10 bg-foreground/5 text-foreground focus:border-primary focus:ring-4 focus:ring-primary/10"
+                  ? "border-primary bg-primary/5 text-foreground shadow-[0_0_15px_rgba(52,211,153,0.1)]" 
+                  : "border-border bg-muted/30 text-foreground focus:border-primary/50"
               )}
             />
           ))}
         </div>
 
-        {/* Temporal Counter */}
-        <div className="flex flex-col items-center space-y-6 w-full">
-          <div className="ultra-glass border border-foreground/10 px-8 py-4 rounded-2xl flex items-center gap-4">
-            <Timer size={18} className={cn("text-primary", timer < 10 && "animate-pulse text-red-500")} strokeWidth={2.5} />
-            {timer > 0 ? (
-              <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest leading-none">
-                Protocol expires in <span className="text-foreground tabular-nums">{timer}s</span>
-              </p>
-            ) : (
-              <button 
-                onClick={() => setTimer(30)}
-                className="text-[11px] font-black text-primary hover:underline uppercase tracking-widest"
-              >
-                Request New Code
-              </button>
-            )}
+        {/* Controls */}
+        <div className="w-full space-y-8">
+          <div className="flex flex-col items-center space-y-6">
+            <div className="flex items-center gap-3 text-xs font-medium">
+              <Timer size={14} className={cn("text-primary", timer < 10 && "text-red-500 animate-pulse")} />
+              {timer > 0 ? (
+                <p className="text-muted-foreground">
+                  Expires in <span className="text-foreground tabular-nums font-bold">{timer}s</span>
+                </p>
+              ) : (
+                <button 
+                  onClick={() => setTimer(30)}
+                  className="text-primary hover:underline font-semibold"
+                >
+                  Resend Code
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={handleVerify}
+              disabled={!isComplete || isVerifying}
+              className={cn(
+                "w-full h-14 rounded-full font-semibold text-sm transition-all flex items-center justify-center gap-3",
+                isComplete && !isVerifying
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(31,122,61,0.2)] active:scale-95" 
+                  : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+              )}
+            >
+              {isVerifying ? (
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                <>
+                  Authorize Session <ArrowRight size={18} />
+                </>
+              )}
+            </button>
           </div>
 
-          <div className="w-full flex items-center gap-4 text-muted-foreground/30 px-4">
-             <div className="h-px flex-1 bg-foreground/5"></div>
-             <ShieldCheck size={16} />
-             <div className="h-px flex-1 bg-foreground/5"></div>
+          <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/40 uppercase font-bold tracking-[0.2em]">
+            <ShieldCheck size={14} className="text-primary/40" />
+            End-to-End Encrypted
           </div>
-
-          <button
-            onClick={handleVerify}
-            disabled={!isComplete || isVerifying}
-            className={cn(
-              "w-full h-20 rounded-3xl font-black text-[13px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 relative overflow-hidden",
-              isComplete
-                ? "btn-premium shadow-primary/30 active:scale-95" 
-                : "bg-foreground/5 text-muted-foreground opacity-40 cursor-not-allowed grayscale"
-            )}
-          >
-            {isVerifying ? (
-              <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              "Authorize Session"
-            )}
-          </button>
         </div>
       </div>
     </div>

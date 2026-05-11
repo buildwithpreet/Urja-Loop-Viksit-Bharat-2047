@@ -1,0 +1,64 @@
+import { RefreshCw, Leaf, ShoppingBag, ArrowRight } from "lucide-react"
+
+export function RewardsEconomy() {
+   return (
+      <section className="py-24 bg-card border-y border-border">
+         <div className="max-w-6xl mx-auto px-6 md:px-10">
+
+            <div className="flex flex-col lg:flex-row items-center gap-16">
+
+               <div className="flex-1 w-full order-2 lg:order-1">
+                  <div className="bg-background rounded-[3rem] p-12 border border-border flex items-center justify-center relative min-h-[400px]">
+
+                     {/* Circular Diagram */}
+                     <div className="relative w-64 h-64">
+                        <div className="absolute inset-0 border border-border rounded-full" />
+
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border p-3 rounded-2xl shadow-sm">
+                           <Leaf className="text-primary" size={24} strokeWidth={1.5} />
+                        </div>
+
+                        <div className="absolute bottom-6 -right-4 bg-card border border-border p-3 rounded-2xl shadow-sm">
+                           <RefreshCw className="text-primary" size={24} strokeWidth={1.5} />
+                        </div>
+
+                        <div className="absolute bottom-6 -left-4 bg-card border border-border p-3 rounded-2xl shadow-sm">
+                           <ShoppingBag className="text-primary" size={24} strokeWidth={1.5} />
+                        </div>
+
+                        <div className="absolute inset-0 m-auto w-24 h-24 bg-accent text-primary rounded-full flex items-center justify-center font-medium shadow-sm border border-primary/20">
+                           Credits
+                        </div>
+                     </div>
+
+                  </div>
+               </div>
+
+               <div className="flex-1 order-1 lg:order-2">
+                  <p className="text-primary font-semibold tracking-wide uppercase text-sm mb-4">Urja Economy</p>
+                  <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-foreground mb-6">
+                     Waste isn't trash. <br /> It's a currency.
+                  </h2>
+                  <p className="text-muted-foreground leading-relaxed mb-8">
+                     Every item you dispose of correctly at an UrjaLoop bin generates digital value. Our blockchain-verified economy ensures that your contribution to a cleaner India translates into real-world purchasing power.
+                  </p>
+
+                  <ul className="space-y-4 text-foreground font-medium">
+                     <li className="flex items-center gap-3">
+                        <ArrowRight size={16} className="text-primary" /> Pay for groceries at local partner stores
+                     </li>
+                     <li className="flex items-center gap-3">
+                        <ArrowRight size={16} className="text-primary" /> Offset your municipal property taxes
+                     </li>
+                     <li className="flex items-center gap-3">
+                        <ArrowRight size={16} className="text-primary" /> Fund sustainable farming with agri-credits
+                     </li>
+                  </ul>
+               </div>
+
+            </div>
+
+         </div>
+      </section>
+   )
+}

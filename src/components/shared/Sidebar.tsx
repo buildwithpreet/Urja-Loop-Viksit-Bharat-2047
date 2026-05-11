@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
@@ -8,15 +9,31 @@ import {
   AlertCircle, Leaf, ChevronLeft, ChevronRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
 import { useMode } from "@/components/shared/ModeProvider"
+import { AccessibilityMenu } from "./AccessibilityMenu"
 
 export function Sidebar() {
   const { mode } = useMode()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
   const pathname = usePathname()
 
   const isFarmer = mode === "rural"
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (data) setProfile(data)
+      }
+    }
+    fetchProfile()
+  }, [])
 
   const navItems = [
     { name: "Home", href: "/dashboard", icon: Home },
@@ -84,7 +101,6 @@ export function Sidebar() {
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
             >
-              {/* Active indicator */}
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
               )}
@@ -105,6 +121,8 @@ export function Sidebar() {
       <div className={cn(
         "p-3 border-t border-border space-y-2 transition-all duration-300",
       )}>
+        <AccessibilityMenu isCollapsed={isCollapsed} />
+
         {/* User */}
         <div className="pt-2">
           <Link href="/profile" className={cn(
@@ -112,14 +130,14 @@ export function Sidebar() {
             isCollapsed ? "justify-center" : ""
           )}>
             <img 
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${isFarmer ? 'Ram' : 'Alex'}`} 
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || (isFarmer ? 'Ram' : 'Alex')}`} 
               alt="Avatar" 
               className="w-7 h-7 rounded-lg border border-border shrink-0 bg-white" 
             />
             {!isCollapsed && (
               <div className="flex-1 min-w-0 animate-in fade-in duration-200 text-left">
-                <p className="text-xs font-semibold truncate">{isFarmer ? "Ram Singh" : "Alex Harrison"}</p>
-                <p className="text-[9px] text-muted-foreground truncate">{isFarmer ? "Ludhiana · Punjab" : "Sector 14 · New Delhi"}</p>
+                <p className="text-xs font-semibold truncate">{profile?.full_name || (isFarmer ? "Ram Singh" : "Alex Harrison")}</p>
+                <p className="text-[9px] text-muted-foreground truncate">{profile?.location || (isFarmer ? "Ludhiana · Punjab" : "Sector 14 · New Delhi")}</p>
               </div>
             )}
           </Link>

@@ -1,33 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
   ShoppingCart, Search, Filter, ShieldCheck, ChevronRight,
-  Leaf, Package, Recycle, TrendingUp, Award, Zap, Star,
-  ArrowRight, CheckCircle2, CreditCard
+  Leaf, Package, Recycle, TrendingUp, Award, Zap,
+  ArrowRight
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useState as useStateFn } from "react"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralShop } from "@/components/rural/RuralShop"
 import { toast } from "sonner"
-
-const rawMaterials = [
-  { id: 1, name: "PET Plastic Bottles (Baled)", type: "Plastic Waste", weight: "5.2 tons", price: "₹1,200/ton", seller: "Eco-Collect Delhi", quality: "Grade A", verified: true, demand: "High", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=400" },
-  { id: 2, name: "Shredded Paper & Cardboard", type: "Paper Waste", weight: "12 tons", price: "₹800/ton", seller: "GreenStream Paper", quality: "LWC Standard", verified: true, demand: "Medium", image: "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=400" },
-  { id: 3, name: "Agricultural Husk Residue", type: "Agri Waste", weight: "40 tons", price: "₹350/ton", seller: "Agro-Link Hub", quality: "Standard", verified: false, demand: "High", image: "https://images.unsplash.com/photo-1595113316349-9fa4eb24f884?auto=format&fit=crop&q=80&w=400" },
-]
-
-const processedProducts = [
-  { id: 4, name: "Premium Organic Compost", type: "Processed Output", weight: "25kg bags", price: "₹450/bag", seller: "Urja Bio-Farms", quality: "98% Pure", verified: true, demand: "Very High", image: "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&q=80&w=400", desc: "Ready-to-use certified organic compost" },
-  { id: 5, name: "Recycled PET Pellets", type: "Recycled Plastic", weight: "Per ton", price: "₹2,400/ton", seller: "Eco-Tech Recycling", quality: "ISO Certified", verified: true, demand: "High", image: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=400", desc: "Food-grade recycled plastic pellets" },
-  { id: 6, name: "Biofuel Briquettes", type: "Biomass Energy", weight: "Per 10kg", price: "₹280/10kg", seller: "BioFuel Systems", quality: "Grade B", verified: true, demand: "Medium", image: "https://images.unsplash.com/photo-1595113316349-9fa4eb24f884?auto=format&fit=crop&q=80&w=400", desc: "Clean-burning agricultural biomass briquettes" },
-  { id: 7, name: "Recycled Paper Sheets", type: "Recycled Paper", weight: "Per ream", price: "₹120/ream", seller: "GreenStream Paper", quality: "80gsm", verified: true, demand: "Medium", image: "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=400", desc: "100% recycled office paper" },
-]
+import { supabase } from "@/lib/supabase"
 
 const demandColor = {
   "Very High": "bg-red-500/10 text-red-600 dark:text-red-400",
@@ -39,13 +24,90 @@ export default function Shop() {
   const { t } = useLanguage()
   const { mode } = useMode()
   const [activeTab, setActiveTab] = useState<"raw" | "processed">("processed")
+  const [search, setSearch] = useState("")
+  const [profile, setProfile] = useState<any>(null)
+  const [rawMaterials, setRawMaterials] = useState<any[]>([])
+  const [processedProducts, setProcessedProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (data) setProfile(data)
+      }
+
+      // Fetch Marketplace Items
+      const { data: items } = await supabase
+        .from('marketplace_items')
+        .select('*')
+        .eq('type', 'urban')
+      
+      if (items) {
+        setRawMaterials(items.filter(i => i.category === 'Raw Material' || i.category === 'Waste'))
+        setProcessedProducts(items.filter(i => i.category !== 'Raw Material' && i.category !== 'Waste'))
+      }
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
 
   if (mode === "rural") {
     return <RuralShop />
   }
-  const [search, setSearch] = useState("")
 
   const products = activeTab === "raw" ? rawMaterials : processedProducts
+
+  const handlePurchase = async (item: any) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      toast.error("Please login to make a purchase")
+      return
+    }
+
+    const price = typeof item.price === 'string' 
+      ? parseInt(item.price.replace(/[^0-9]/g, '')) 
+      : item.price
+
+    if (!profile || profile.eco_credits < price) {
+      toast.error("Insufficient Eco Credits!")
+      return
+    }
+
+    // 1. Deduct Credits
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ eco_credits: profile.eco_credits - price })
+      .eq('id', session.user.id)
+
+    if (profileError) {
+      toast.error("Transaction failed")
+      return
+    }
+
+    // 2. Decrement Stock
+    await supabase
+      .from('marketplace_items')
+      .update({ stock: (item.stock || 10) - 1 })
+      .eq('id', item.id)
+
+    // 3. Log Activity
+    await supabase.from('activity_log').insert({
+      user_id: session.user.id,
+      action: "Marketplace Purchase",
+      description: `Bought ${item.name} for ${price} credits`,
+      points_earned: -price
+    })
+
+    setProfile({...profile, eco_credits: profile.eco_credits - price})
+    toast.success(`Successfully purchased ${item.name}!`)
+  }
 
   return (
     <div className="p-4 pb-32 lg:p-8 space-y-6 animate-in fade-in duration-700 min-h-screen">
@@ -63,8 +125,8 @@ export default function Shop() {
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Eco Credits</p>
-            <p className="text-xl font-bold text-foreground">1,240</p>
-            <p className="text-[10px] text-primary font-medium">≈ ₹1,240</p>
+            <p className="text-xl font-bold text-foreground">{profile?.eco_credits?.toLocaleString() || "0"}</p>
+            <p className="text-[10px] text-primary font-medium">≈ ₹{profile?.eco_credits?.toLocaleString() || "0"}</p>
           </div>
         </div>
       </div>
@@ -120,20 +182,10 @@ export default function Shop() {
         </button>
       </div>
 
-      {/* Tab description */}
-      <div className="px-1">
-        {activeTab === "processed" ? (
-          <p className="text-xs text-muted-foreground">Verified, AI-inspected output products ready for purchase. Supports circular economy.</p>
-        ) : (
-          <p className="text-xs text-muted-foreground">Connect with verified waste collectors and processors in your area.</p>
-        )}
-      </div>
-
       {/* Product Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())).map((product) => (
           <div key={product.id} className="bg-card border border-border rounded-3xl overflow-hidden hover:shadow-md hover:border-primary/30 transition-all group">
-            {/* Image */}
             <div className="aspect-[16/7] overflow-hidden relative">
               <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -152,7 +204,6 @@ export default function Shop() {
               </div>
             </div>
 
-            {/* Details */}
             <div className="p-4">
               <div className="flex items-start justify-between gap-2 mb-1">
                 <p className="text-sm font-bold text-foreground leading-tight">{product.name}</p>
@@ -161,7 +212,7 @@ export default function Shop() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mb-1">{product.type} · {product.weight}</p>
-              {'desc' in product && <p className="text-xs text-muted-foreground mb-3">{(product as typeof processedProducts[0]).desc}</p>}
+              {'desc' in product && <p className="text-xs text-muted-foreground mb-3">{(product as any).desc}</p>}
               
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-1.5">
@@ -172,7 +223,7 @@ export default function Shop() {
               </div>
 
               <button 
-                onClick={() => toast.success(activeTab === "raw" ? `Interest expressed for ${product.name}!` : `Successfully redeemed ${product.name}!`)}
+                onClick={() => handlePurchase(product)}
                 className="w-full bg-primary text-primary-foreground py-2.5 rounded-2xl text-xs font-bold tracking-wide hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 <ShoppingCart size={13} />
@@ -181,19 +232,6 @@ export default function Shop() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Enterprise Banner */}
-      <div className="p-6 bg-gradient-to-br from-primary/10 to-emerald-500/5 border border-primary/20 rounded-3xl">
-        <Badge className="bg-primary/10 text-primary border-none mb-3 text-xs font-semibold">Enterprise Integration</Badge>
-        <h3 className="text-lg font-bold text-foreground mb-2">Scale Your Circular Economy</h3>
-        <p className="text-sm text-muted-foreground mb-4">Connect with processing centers, bulk buyers, and ESG-reporting tools for your organization.</p>
-        <button 
-          onClick={() => toast.success("Enterprise registration portal will open soon!")}
-          className="bg-primary text-primary-foreground px-6 py-2.5 rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center gap-2"
-        >
-          Register as Enterprise <ChevronRight size={14} />
-        </button>
       </div>
     </div>
   )

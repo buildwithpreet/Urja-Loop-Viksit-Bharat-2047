@@ -12,7 +12,9 @@ import { LanguageToggle } from "@/components/shared/LanguageToggle"
 import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useMode } from "@/components/shared/ModeProvider"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 const farmerStats = [
   { label: "Agri Waste Sold", value: "1,240 kg", icon: Wheat, color: "text-amber-500", bg: "bg-amber-500/10" },
@@ -30,15 +32,77 @@ const recentActivity = [
 export function RuralProfile() {
   const { mode, setMode } = useMode()
   const [isEditing, setIsEditing] = useState(false)
-  const [name, setName] = useState("Ram Singh")
-  const [isFarmer, setIsFarmer] = useState(mode === "rural")
+  const [profile, setProfile] = useState<any>(null)
+  const [activities, setActivities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const handleSaveProfile = () => {
-    setIsEditing(false)
-    if (isFarmer) {
-      setMode("rural")
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        // Fetch Profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (profileData) setProfile(profileData)
+
+        // Fetch Activities
+        const { data: logData } = await supabase
+          .from('activity_log')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(10)
+        
+        if (logData) {
+          setActivities(logData.map(l => ({
+            id: l.id,
+            title: l.action,
+            desc: l.description,
+            time: new Date(l.created_at).toLocaleDateString() === new Date().toLocaleDateString() ? "Today" : new Date(l.created_at).toLocaleDateString(),
+            icon: l.action.includes("Scan") ? Wheat : l.action.includes("Pickup") ? Tractor : Store,
+            color: l.points_earned >= 0 ? "text-emerald-500" : "text-amber-500",
+            bg: l.points_earned >= 0 ? "bg-emerald-500/10" : "bg-amber-500/10"
+          })))
+        }
+      }
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      toast.error(error.message)
     } else {
-      setMode("urban")
+      toast.success("Logged out successfully")
+      window.location.href = "/login"
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    setIsEditing(false)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profile.full_name,
+          role: profile.role
+        })
+        .eq('id', session.user.id)
+      
+      if (error) {
+        toast.error(error.message)
+      } else {
+        toast.success("Profile updated")
+        if (profile.role === "rural") setMode("rural")
+        else setMode("urban")
+      }
     }
   }
 
@@ -57,7 +121,7 @@ export function RuralProfile() {
         
         <div className="relative">
           <div className="w-24 h-24 rounded-full bg-muted border-4 border-background shadow-xl overflow-hidden relative z-10">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=RamSingh" alt="Ram Singh" className="w-full h-full object-cover" />
+            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || "Ram"}`} alt={profile?.full_name} className="w-full h-full object-cover" />
           </div>
           <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1.5 rounded-full border-4 border-background z-20">
             <ShieldCheck size={16} />
@@ -66,7 +130,7 @@ export function RuralProfile() {
 
         <div className="flex-1 text-center md:text-left z-10 w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1 justify-center md:justify-start relative">
-            <h1 className="text-2xl font-bold">{name}</h1>
+            <h1 className="text-2xl font-bold">{profile?.full_name || "Farmer"}</h1>
             <Badge variant="secondary" className="bg-amber-500/10 text-amber-500 border-none mx-auto md:mx-0 w-fit">
               Verified Farmer
             </Badge>
@@ -84,8 +148,8 @@ export function RuralProfile() {
                       <label htmlFor="name-rural" className="text-sm font-medium">Full Name</label>
                       <input 
                         id="name-rural" 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)}
+                        value={profile?.full_name || ""} 
+                        onChange={(e) => setProfile({...profile, full_name: e.target.value})}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </div>
@@ -95,10 +159,10 @@ export function RuralProfile() {
                         <p className="text-[10px] text-muted-foreground">Switch to rural farm management mode.</p>
                       </div>
                       <button 
-                        onClick={() => setIsFarmer(!isFarmer)}
-                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFarmer ? 'bg-primary' : 'bg-input'}`}
+                        onClick={() => setProfile({...profile, role: profile.role === "rural" ? "citizen" : "rural"})}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${profile?.role === "rural" ? 'bg-primary' : 'bg-input'}`}
                       >
-                        <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${isFarmer ? 'translate-x-5' : 'translate-x-0'}`} />
+                        <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${profile?.role === "rural" ? 'translate-x-5' : 'translate-x-0'}`} />
                       </button>
                     </div>
                   </div>
@@ -115,8 +179,8 @@ export function RuralProfile() {
           </p>
 
           <div className="flex flex-wrap justify-center md:justify-start gap-2">
-            <Badge variant="outline" className="border-border bg-background">Farm ID: #PB-4029</Badge>
-            <Badge variant="outline" className="border-border bg-background">Joined: Mar 2024</Badge>
+            <Badge variant="outline" className="border-border bg-background">Farm ID: #PB-{profile?.id?.slice(0, 4) || "4029"}</Badge>
+            <Badge variant="outline" className="border-border bg-background">Joined: {profile?.created_at ? new Date(profile.created_at).getFullYear() : "2024"}</Badge>
           </div>
         </div>
 
@@ -128,7 +192,12 @@ export function RuralProfile() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {farmerStats.map((stat) => (
+        {[
+          { label: "Agri Waste Sold", value: (profile?.waste_processed || 0) + " kg", icon: Wheat, color: "text-amber-500", bg: "bg-amber-500/10" },
+          { label: "Eco Credits", value: profile?.eco_credits?.toLocaleString() || "0", icon: Leaf, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Pickup History", value: "8", icon: Tractor, color: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: "Marketplace Activity", value: "12", icon: Store, color: "text-purple-500", bg: "bg-purple-500/10" },
+        ].map((stat) => (
           <Card key={stat.label} className="card-premium overflow-hidden group">
             <CardContent className="p-5 flex flex-col items-center text-center">
               <div className={`p-3 rounded-2xl mb-3 transition-transform group-hover:scale-110 ${stat.bg}`}>
@@ -152,7 +221,7 @@ export function RuralProfile() {
           </div>
           
           <div className="space-y-4">
-            {recentActivity.map((activity) => (
+            {(activities.length > 0 ? activities : recentActivity).map((activity) => (
               <div key={activity.id} className="flex gap-4 p-3 rounded-2xl hover:bg-muted/50 transition-colors">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${activity.bg}`}>
                   <activity.icon size={18} className={activity.color} />
@@ -217,7 +286,10 @@ export function RuralProfile() {
             </div>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors font-bold text-sm">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors font-bold text-sm"
+          >
             <LogOut size={16} /> Log Out
           </button>
         </div>

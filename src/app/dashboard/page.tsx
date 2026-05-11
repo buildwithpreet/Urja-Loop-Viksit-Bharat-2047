@@ -6,12 +6,13 @@ import {
   Droplets, Users, Recycle,
   ChevronRight, Leaf, ScanLine,
   Activity, Sparkles, Map as MapIcon,
-  Award, Truck
+  Award, Truck, ShoppingCart
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 
 const communityMetrics = [
   { label: "Complaints Resolved", value: "14", sub: "This week in Sector 14", color: "text-primary", icon: CheckCircle2 },
@@ -32,10 +33,20 @@ const impactOutcomes = [
   { label: "CO₂ Offset", value: "4.2", unit: "kg", color: "var(--color-blue-500)", pct: 48, sub: "Community impact" },
 ]
 
-export default function Home() {
+const INITIAL_BINS = [
+  { id: 1, location: "Main Gate, Sector 14", fill: 18, status: "low", lastCleaned: "2h ago", next: "6:00 AM" },
+  { id: 2, location: "Park Entrance", fill: 67, status: "medium", lastCleaned: "5h ago", next: "4:00 PM" },
+  { id: 3, location: "Market Complex", fill: 91, status: "high", lastCleaned: "12h ago", next: "ASAP" },
+]
+
+export default function DashboardPage() {
   const { t } = useLanguage()
   const [currentTime, setCurrentTime] = useState("")
   const [greeting, setGreeting] = useState("")
+  const [bins, setBins] = useState(INITIAL_BINS)
+  const [profile, setProfile] = useState<any>(null)
+  const [activities, setActivities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const now = new Date()
@@ -44,6 +55,81 @@ export default function Home() {
     else if (hour < 17) setGreeting("Good Afternoon")
     else setGreeting("Good Evening")
     setCurrentTime(now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }))
+
+    const DEMO_PROFILE = {
+      full_name: "Demo User",
+      location: "Sector 14 · New Delhi",
+      eco_credits: 1240,
+      waste_processed: 18.4,
+      co2_saved: 4.2
+    }
+
+    const fetchData = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data: userData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        setProfile(userData || DEMO_PROFILE)
+      } else {
+        setProfile(DEMO_PROFILE)
+      }
+
+      // 2. Fetch Bins
+      const { data: binsData } = await supabase.from('smart_bins').select('*')
+      if (binsData) {
+        setBins(binsData.map(b => ({
+          id: b.id,
+          location: b.location_name,
+          fill: b.fill_level,
+          status: b.status,
+          lastCleaned: "Just now",
+          next: b.fill_level > 80 ? "ASAP" : "Scheduled"
+        })))
+      }
+
+      // 3. Fetch Activity Log
+      if (session) {
+        const { data: logData } = await supabase
+          .from('activity_log')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(5)
+        
+        if (logData) {
+          setActivities(logData.map(l => ({
+            id: l.id,
+            item: l.action,
+            location: l.description,
+            time: new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            icon: l.action.includes("Scan") ? ScanLine : l.action.includes("Purchase") ? ShoppingCart : Activity,
+            status: l.points_earned > 0 ? "success" : "info",
+            description: l.description
+          })))
+        }
+      }
+      setLoading(false)
+    }
+
+    fetchData()
+
+    // Real-time Subscription for Bins
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'smart_bins' }, (payload) => {
+        setBins(prev => prev.map(b => b.id === payload.new.id ? {
+          ...b, 
+          fill: payload.new.fill_level,
+          status: payload.new.status
+        } : b))
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   return (
@@ -54,11 +140,11 @@ export default function Home() {
         <div className="space-y-1">
           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest">{currentTime}</p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            {greeting}, <span className="text-primary">Alex</span>
+            {greeting}, <span className="text-primary">{profile?.full_name || "Alex"}</span>
           </h1>
           <div className="flex items-center gap-2 mt-1">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs text-muted-foreground font-medium">Sector 14 · New Delhi</span>
+            <span className="text-xs text-muted-foreground font-medium">{profile?.location || "Sector 14 · New Delhi"}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -86,7 +172,7 @@ export default function Home() {
                   <span className="text-[10px] font-semibold text-primary uppercase tracking-widest">Community Status</span>
                 </div>
                 <h2 className="text-3xl font-medium tracking-tight leading-tight">
-                  Sector 14 is <span className="text-primary">thriving.</span>
+                  {profile?.location?.split('·')[0] || "Sector 14"} is <span className="text-primary">thriving.</span>
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-sm">
                   Cleanliness improved by <span className="text-foreground font-semibold">12%</span> this month. Your contributions are making a visible difference.
@@ -142,7 +228,7 @@ export default function Home() {
                 <Zap size={14} className="text-primary" fill="currentColor" />
                 <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Urja Rewards</span>
               </div>
-              <h3 className="text-3xl font-semibold">1,240</h3>
+              <h3 className="text-3xl font-semibold">{profile?.eco_credits?.toLocaleString() || "1,240"}</h3>
               <p className="text-xs text-muted-foreground mt-1 font-medium">Earned through conscious disposal</p>
             </div>
             <Link href="/shop" className="relative z-10 mt-6">
@@ -250,7 +336,32 @@ export default function Home() {
         </div>
         <div className="rounded-[2.5rem] border border-border bg-card p-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {impactOutcomes.map((stat) => (
+            {[
+              { 
+                label: "Landfill Avoided", 
+                value: profile?.waste_processed || "18.4", 
+                unit: "kg", 
+                color: "var(--primary)", 
+                pct: Math.min(Math.round((profile?.waste_processed || 18.4) / 50 * 100), 100), 
+                sub: "Direct contribution" 
+              },
+              { 
+                label: "Energy Generated", 
+                value: ((profile?.waste_processed || 18.4) * 0.12).toFixed(1), 
+                unit: "kWh", 
+                color: "#f59e0b", 
+                pct: 65, 
+                sub: "From organic waste" 
+              },
+              { 
+                label: "CO₂ Offset", 
+                value: profile?.co2_saved || "4.2", 
+                unit: "kg", 
+                color: "#3b82f6", 
+                pct: 48, 
+                sub: "Community impact" 
+              },
+            ].map((stat) => (
               <div key={stat.label} className="flex flex-col items-center text-center group">
                 {/* Elegant Ring */}
                 <div className="relative w-24 h-24 mb-6">
@@ -273,18 +384,6 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <div className="mt-10 pt-8 border-t border-border grid grid-cols-2 gap-6">
-            <div className="p-6 bg-muted/20 rounded-[1.5rem] text-center border border-border hover:border-primary/20 transition-all">
-              <p className="text-2xl font-semibold text-primary">18.4 kg</p>
-              <p className="text-xs font-semibold mt-1">Landfill Avoided</p>
-              <p className="text-[10px] text-muted-foreground mt-1 font-medium">Personal contribution this month</p>
-            </div>
-            <div className="p-6 bg-muted/20 rounded-[1.5rem] text-center border border-border hover:border-amber-500/20 transition-all">
-              <p className="text-2xl font-semibold text-amber-500">2.1 kWh</p>
-              <p className="text-xs font-semibold mt-1">Energy Generated</p>
-              <p className="text-[10px] text-muted-foreground mt-1 font-medium">Produced from organic waste</p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -295,10 +394,10 @@ export default function Home() {
           <h2 className="text-xl font-medium tracking-tight">Live Community Activity</h2>
         </div>
         <div className="space-y-0 max-w-2xl">
-          {communityActivity.map((act, i) => (
+          {(activities.length > 0 ? activities : communityActivity).map((act, i, arr) => (
             <div key={act.id} className="relative pl-10 group">
               {/* Timeline line */}
-              {i < communityActivity.length - 1 && (
+              {i < arr.length - 1 && (
                 <div className="absolute left-[11px] top-8 bottom-0 w-px bg-border group-hover:bg-primary/10 transition-colors" />
               )}
               {/* Icon Dot */}

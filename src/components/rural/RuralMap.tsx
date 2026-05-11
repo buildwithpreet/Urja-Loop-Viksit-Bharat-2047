@@ -270,7 +270,13 @@ export function RuralMap() {
                 {selectedEntity.dist && <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1"><MapPin size={12}/> {selectedEntity.dist}</p>}
                 {selectedEntity.eta && <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1"><Tractor size={12}/> ETA: {selectedEntity.eta}</p>}
               </div>
-              <button className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+              <button 
+                onClick={() => {
+                  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEntity.name)}`
+                  window.open(url, '_blank')
+                }}
+                className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+              >
                 <Navigation size={18} className="fill-white" />
               </button>
             </div>

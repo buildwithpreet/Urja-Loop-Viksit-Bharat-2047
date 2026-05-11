@@ -2,382 +2,249 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { 
-  Camera, User, MapPin, Zap, ShieldCheck, 
-  Mail, Sprout, Recycle, Check, Map 
-} from "lucide-react"
+import { Camera, User, Building2, MapPin, Briefcase, Zap, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 export default function SetupProfileScreen() {
   const router = useRouter()
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     role: "Citizen",
-    isFarmer: false,
-    farmerDetails: {
-      farmType: "",
-      biomassWaste: "",
-      farmLocation: "",
-      wantsToSellBiomass: false
-    },
+    areaType: "urban",
     location: "",
-    pinCode: "",
-    preferredStation: "",
-    alerts: {
-      collectionReminders: true,
-      creditUpdates: true,
-      stationAlerts: true,
-      sustainabilityInsights: true
-    }
+    organization: ""
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const roles = ["Citizen", "Farmer", "Collector", "Recycler / Vendor", "Municipality"]
+  const roles = ["Citizen", "Collector", "Admin"]
 
-  const toggleAlert = (key: keyof typeof formData.alerts) => {
-    setFormData(prev => ({
-      ...prev,
-      alerts: {
-        ...prev.alerts,
-        [key]: !prev.alerts[key]
-      }
-    }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.name && formData.location) {
       setIsSubmitting(true)
-      setTimeout(() => {
-        router.push("/permissions")
-      }, 1500)
+      
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        const isDemoSession = localStorage.getItem("urjaloop_demo_session") === "true"
+        
+        if (!user && !isDemoSession) {
+          toast.error("User not found. Please log in again.")
+          router.push("/login")
+          return
+        }
+
+        if (isDemoSession) {
+          // --- HACKATHON DEMO BYPASS ---
+          await new Promise(r => setTimeout(r, 1000)) // Artificial delay
+          localStorage.setItem("urjaloop_mode", formData.areaType)
+          localStorage.setItem("urjaloop_profile", JSON.stringify({
+            full_name: formData.name,
+            role: formData.areaType,
+            location: formData.location
+          }))
+          toast.success("Demo Profile Initialized!")
+          router.push("/permissions")
+          return
+        }
+
+        const { error } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            full_name: formData.name,
+            role: formData.areaType, // Use urban/rural as primary role for mode
+            user_type: formData.role.toLowerCase(), // Collector/Admin/Citizen
+            location: formData.location,
+            phone: user.phone,
+            eco_credits: 500, // Welcome bonus
+            waste_processed: 0,
+            co2_saved: 0
+          })
+
+        if (error) {
+          toast.error(error.message)
+        } else {
+          localStorage.setItem("urjaloop_mode", formData.areaType)
+          toast.success("Profile initialized successfully! Enjoy 500 welcome credits.")
+          router.push("/permissions")
+        }
+      } catch (err) {
+        toast.error("An unexpected error occurred")
+        console.error(err)
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden p-4 sm:p-6 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden p-6 transition-colors duration-300">
       {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
       {/* Header Strategy */}
-      <div className="w-full max-w-2xl mx-auto pt-8 pb-6 z-10 animate-in slide-in-from-top-6 fade-in duration-1000">
-        <div className="flex items-center gap-3 mb-3">
-           <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
-              <User size={16} strokeWidth={2.5} />
+      <div className="w-full max-w-lg mx-auto pt-10 pb-6 z-10 animate-in slide-in-from-top-6 fade-in duration-1000">
+        <div className="flex items-center gap-4 mb-4">
+           <div className="w-10 h-10 ultra-glass rounded-xl flex items-center justify-center text-primary shadow-xl">
+              <User size={20} strokeWidth={2.5} />
            </div>
-           <span className="text-[11px] font-bold text-primary uppercase tracking-[0.2em]">Profile Setup</span>
+           <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80">Profile Manifest</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Create Your UrjaLoop Identity</h1>
-        <p className="text-sm sm:text-base font-medium text-muted-foreground mt-3 max-w-lg leading-relaxed">
-          Set up your profile to start tracking waste contributions, earn Urja Credits, and access nearby recycling services.
-        </p>
+        <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Initialize Identity</h1>
+        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40 mt-2">Configure your node parameters for network access</p>
       </div>
 
-      {/* Main Form Deck */}
-      <div className="flex-1 flex flex-col z-10 w-full max-w-2xl mx-auto animate-in slide-in-from-bottom-10 fade-in duration-1000 fill-mode-both pb-24">
+      {/* Main Tactical Deck */}
+      <div className="flex-1 flex flex-col z-10 w-full max-w-lg mx-auto animate-in slide-in-from-bottom-10 fade-in duration-1000 fill-mode-both pb-24">
         
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-10">
           
-          {/* Profile Avatar Section */}
-          <div className="ultra-glass rounded-3xl p-8 shadow-xl shadow-black/5 border border-white/10 relative overflow-hidden flex flex-col sm:flex-row items-center gap-6">
-             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50"></div>
-             <div className="relative group cursor-pointer shrink-0 z-10">
-               <div className="w-28 h-28 rounded-full bg-foreground/5 border border-border flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:scale-105 shadow-inner">
-                 <User size={40} className="text-foreground/20" strokeWidth={1.5} />
-                 <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-               </div>
-               <div className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg border-4 border-background group-hover:scale-110 transition-transform">
-                 <Camera size={16} strokeWidth={2.5} />
-               </div>
-             </div>
-             <div className="text-center sm:text-left z-10">
-                <h3 className="text-base font-semibold text-foreground">Upload Profile Photo</h3>
-                <p className="text-xs text-muted-foreground mt-1">Optional but recommended for community verification</p>
-             </div>
-          </div>
-
-          {/* Section 1 — Basic Information */}
-          <div className="space-y-5">
-            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">1</span> Basic Information
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground ml-1">Full Name</label>
-                <div className="relative flex items-center">
-                  <User size={18} className="absolute left-4 text-muted-foreground/50" />
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="Enter your full name"
-                    className="w-full bg-foreground/5 border border-border rounded-xl h-14 pl-12 pr-4 font-medium text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/40"
-                  />
-                </div>
+          {/* Neural Avatar Interface */}
+          <div className="flex justify-center py-6">
+            <div className="relative group cursor-pointer">
+              <div className="w-32 h-32 rounded-[2.5rem] ultra-glass flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:rotate-6 group-hover:scale-105 shadow-2xl relative z-10">
+                <User size={56} className="text-primary/40" strokeWidth={1.5} />
+                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground ml-1">Email Address</label>
-                <div className="relative flex items-center">
-                  <Mail size={18} className="absolute left-4 text-muted-foreground/50" />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    placeholder="Enter your email"
-                    className="w-full bg-foreground/5 border border-border rounded-xl h-14 pl-12 pr-4 font-medium text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/40"
-                  />
-                </div>
+              <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40 border-4 border-background group-hover:scale-110 transition-transform z-20">
+                <Camera size={20} strokeWidth={2.5} />
               </div>
+              <div className="absolute inset-0 bg-primary/20 rounded-[2.5rem] blur-2xl -z-10 scale-125 animate-pulse"></div>
             </div>
           </div>
 
-          <div className="w-full h-px bg-border"></div>
-
-          {/* Section 2 — User Type */}
-          <div className="space-y-5">
-            <div className="flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2">
-               <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                 <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">2</span> Select Your Role
-               </h2>
-               <p className="text-xs text-muted-foreground">Your role helps personalize waste collection and rewards.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {roles.map((role) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => setFormData({...formData, role})}
-                  className={cn(
-                    "h-12 px-5 rounded-xl text-sm font-medium transition-all border flex items-center gap-2",
-                    formData.role === role
-                      ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
-                      : "bg-foreground/5 text-foreground/70 border-border hover:border-primary/30 hover:bg-foreground/10"
-                  )}
-                >
-                  {formData.role === role && <Check size={16} />}
-                  {role}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="w-full h-px bg-border"></div>
-
-          {/* Section 3 — Farmer Toggle */}
-          <div className="space-y-5">
-             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">3</span> Agricultural Details
-             </h2>
-             
-             <div className="flex items-center justify-between bg-foreground/5 border border-border rounded-2xl p-5">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                     <Sprout size={20} />
-                   </div>
-                   <div className="pr-4">
-                     <h3 className="text-sm font-semibold text-foreground">Are you involved in farming or agricultural waste generation?</h3>
-                   </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setFormData({...formData, isFarmer: !formData.isFarmer})}
-                  className={cn(
-                    "w-14 h-8 rounded-full transition-colors relative shrink-0",
-                    formData.isFarmer ? "bg-primary" : "bg-foreground/20"
-                  )}
-                >
-                  <div className={cn(
-                    "absolute top-1 left-1 w-6 h-6 rounded-full bg-white transition-transform shadow-sm",
-                    formData.isFarmer ? "translate-x-6" : "translate-x-0"
-                  )} />
-                </button>
-             </div>
-
-             {formData.isFarmer && (
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in slide-in-from-top-4 fade-in duration-300">
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted-foreground ml-1">Farm Type</label>
-                    <select
-                      value={formData.farmerDetails.farmType}
-                      onChange={(e) => setFormData({...formData, farmerDetails: {...formData.farmerDetails, farmType: e.target.value}})}
-                      className="w-full bg-foreground/5 border border-border rounded-xl h-14 px-4 font-medium text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none"
-                    >
-                      <option value="" disabled>Crop / Dairy / Mixed Farming</option>
-                      <option value="Crop">Crop Farming</option>
-                      <option value="Dairy">Dairy</option>
-                      <option value="Mixed">Mixed Farming</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted-foreground ml-1">Biomass Waste Generated</label>
-                    <select
-                      value={formData.farmerDetails.biomassWaste}
-                      onChange={(e) => setFormData({...formData, farmerDetails: {...formData.farmerDetails, biomassWaste: e.target.value}})}
-                      className="w-full bg-foreground/5 border border-border rounded-xl h-14 px-4 font-medium text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none"
-                    >
-                      <option value="" disabled>Select Volume</option>
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted-foreground ml-1">Farm Location</label>
-                    <input
-                      type="text"
-                      value={formData.farmerDetails.farmLocation}
-                      onChange={(e) => setFormData({...formData, farmerDetails: {...formData.farmerDetails, farmLocation: e.target.value}})}
-                      placeholder="Village / District"
-                      className="w-full bg-foreground/5 border border-border rounded-xl h-14 px-4 font-medium text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/40"
-                    />
-                  </div>
-                  <div className="space-y-2 flex flex-col justify-center">
-                    <div className="flex items-center justify-between bg-foreground/5 border border-border rounded-xl h-14 px-4 mt-6 sm:mt-0">
-                       <span className="text-sm font-medium text-foreground">Interested in Biomass Selling?</span>
-                       <button
-                        type="button"
-                        onClick={() => setFormData({...formData, farmerDetails: {...formData.farmerDetails, wantsToSellBiomass: !formData.farmerDetails.wantsToSellBiomass}})}
-                        className={cn(
-                          "w-12 h-6 rounded-full transition-colors relative shrink-0",
-                          formData.farmerDetails.wantsToSellBiomass ? "bg-primary" : "bg-foreground/20"
-                        )}
-                      >
-                        <div className={cn(
-                          "absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm",
-                          formData.farmerDetails.wantsToSellBiomass ? "translate-x-6" : "translate-x-0"
-                        )} />
-                      </button>
-                    </div>
-                  </div>
-               </div>
-             )}
-          </div>
-
-          <div className="w-full h-px bg-border"></div>
-
-          {/* Section 4 — Location */}
-          <div className="space-y-5">
-            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">4</span> Location Settings
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2 sm:col-span-2">
-                <label className="text-xs font-semibold text-muted-foreground ml-1">Primary Location</label>
-                <div className="relative flex items-center">
-                  <MapPin size={18} className="absolute left-4 text-muted-foreground/50" />
-                  <input
-                    type="text"
-                    required
-                    value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    placeholder="City / Village Name"
-                    className="w-full bg-foreground/5 border border-border rounded-xl h-14 pl-12 pr-4 font-medium text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/40"
-                  />
-                </div>
+          <div className="ultra-glass rounded-[2.5rem] p-10 shadow-2xl space-y-10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-10"></div>
+            
+            {/* Operator Designation */}
+            <div className="space-y-4 relative z-10">
+              <label htmlFor="name" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                <User size={14} className="text-primary" strokeWidth={2.5} /> Primary Identifier
+              </label>
+              <div className="relative group/input">
+                 <input
+                   id="name"
+                   type="text"
+                   value={formData.name}
+                   onChange={(e) => setFormData({...formData, name: e.target.value})}
+                   placeholder="ENTER FULL NAME"
+                   className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
+                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground ml-1">PIN Code</label>
-                <div className="relative flex items-center">
-                  <Map size={18} className="absolute left-4 text-muted-foreground/50" />
-                  <input
-                    type="text"
-                    value={formData.pinCode}
-                    onChange={(e) => setFormData({...formData, pinCode: e.target.value})}
-                    placeholder="Enter PIN code"
-                    className="w-full bg-foreground/5 border border-border rounded-xl h-14 pl-12 pr-4 font-medium text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/40"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground ml-1">Preferred Loop Station</label>
-                <div className="relative flex items-center">
-                  <Recycle size={18} className="absolute left-4 text-muted-foreground/50" />
-                  <select
-                    value={formData.preferredStation}
-                    onChange={(e) => setFormData({...formData, preferredStation: e.target.value})}
-                    className="w-full bg-foreground/5 border border-border rounded-xl h-14 pl-12 pr-4 font-medium text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none"
+            </div>
+
+            {/* Area Type Selection */}
+            <div className="space-y-4 relative z-10">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                <MapPin size={14} className="text-primary" strokeWidth={2.5} /> Living Environment
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { id: "urban", label: "Urban City", desc: "Access Smart Bins" },
+                  { id: "rural", label: "Rural Farm", desc: "Agri-Waste Focus" }
+                ].map((area) => (
+                  <button
+                    key={area.id}
+                    type="button"
+                    onClick={() => setFormData({...formData, areaType: area.id})}
+                    className={cn(
+                      "p-4 rounded-2xl text-left transition-all border group/btn",
+                      formData.areaType === area.id
+                        ? "bg-primary/10 border-primary shadow-lg"
+                        : "ultra-glass border-border/50 opacity-60 hover:opacity-100"
+                    )}
                   >
-                    <option value="" disabled>Select nearby station</option>
-                    <option value="Station 1">Central City Station</option>
-                    <option value="Station 2">North Block Hub</option>
-                    <option value="Station 3">Village Junction</option>
-                  </select>
-                </div>
+                    <p className={cn("text-[11px] font-black uppercase tracking-widest mb-1", 
+                      formData.areaType === area.id ? "text-primary" : "text-foreground"
+                    )}>{area.label}</p>
+                    <p className="text-[9px] text-muted-foreground font-medium leading-tight">{area.desc}</p>
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
 
-          <div className="w-full h-px bg-border"></div>
+            {/* Network Authority Mapping */}
+            <div className="space-y-4 relative z-10">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                <Briefcase size={14} className="text-primary" strokeWidth={2.5} /> Operational Role
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {roles.map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => setFormData({...formData, role})}
+                    className={cn(
+                      "h-14 rounded-xl text-[10px] font-black transition-all border uppercase tracking-widest",
+                      formData.role === role
+                        ? "bg-primary text-primary-foreground border-primary shadow-2xl shadow-primary/30 scale-105"
+                        : "ultra-glass text-muted-foreground opacity-60 hover:opacity-100 hover:border-primary/30"
+                    )}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {/* Section 5 — Notifications & Rewards */}
-          <div className="space-y-5">
-             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">5</span> Notifications & Rewards
-             </h2>
-             <p className="text-xs text-muted-foreground mb-4">Enable Smart Alerts</p>
-             
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-               {[
-                 { id: 'collectionReminders', label: 'Collection reminders' },
-                 { id: 'creditUpdates', label: 'Credit reward updates' },
-                 { id: 'stationAlerts', label: 'Nearby station alerts' },
-                 { id: 'sustainabilityInsights', label: 'Sustainability insights' }
-               ].map((alert) => (
-                 <div key={alert.id} className="flex items-center justify-between bg-foreground/5 border border-border rounded-xl p-4">
-                    <span className="text-sm font-medium text-foreground">{alert.label}</span>
-                    <button
-                      type="button"
-                      onClick={() => toggleAlert(alert.id as keyof typeof formData.alerts)}
-                      className={cn(
-                        "w-12 h-6 rounded-full transition-colors relative shrink-0",
-                        formData.alerts[alert.id as keyof typeof formData.alerts] ? "bg-primary" : "bg-foreground/20"
-                      )}
-                    >
-                      <div className={cn(
-                        "absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm",
-                        formData.alerts[alert.id as keyof typeof formData.alerts] ? "translate-x-6" : "translate-x-0"
-                      )} />
-                    </button>
-                 </div>
-               ))}
-             </div>
+            {/* Geographical Anchor */}
+            <div className="space-y-4 relative z-10">
+              <label htmlFor="location" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                <MapPin size={14} className="text-primary" strokeWidth={2.5} /> Deployment Zone
+              </label>
+              <input
+                id="location"
+                type="text"
+                value={formData.location}
+                onChange={(e) => setFormData({...formData, location: e.target.value})}
+                placeholder="CITY / VILLAGE NAME"
+                className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
+              />
+            </div>
+
+            {/* Affiliated Collective */}
+            <div className="space-y-4 relative z-10">
+              <label htmlFor="organization" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center justify-between">
+                <span className="flex items-center gap-3"><Building2 size={14} className="text-primary" strokeWidth={2.5} /> Collective Entity</span>
+                <span className="text-[8px] opacity-40 lowercase normal-case tracking-widest">(Optional Integration)</span>
+              </label>
+              <input
+                id="organization"
+                type="text"
+                value={formData.organization}
+                onChange={(e) => setFormData({...formData, organization: e.target.value})}
+                placeholder="NGO / GOVERNMENT / COMPANY"
+                className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
+              />
+            </div>
           </div>
 
           {/* Verification Protocol Execution */}
-          <div className="pt-6 space-y-6">
+          <div className="space-y-6">
             <button
               type="submit"
               disabled={!formData.name || !formData.location || isSubmitting}
               className={cn(
-                "w-full h-16 rounded-2xl font-bold text-base transition-all flex items-center justify-center gap-3 relative overflow-hidden",
+                "w-full h-20 rounded-3xl font-black text-[13px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 relative overflow-hidden",
                 formData.name && formData.location
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]" 
-                  : "bg-foreground/5 text-muted-foreground cursor-not-allowed"
+                  ? "btn-premium shadow-primary/30 active:scale-95" 
+                  : "bg-foreground/5 text-muted-foreground opacity-40 cursor-not-allowed grayscale"
               )}
             >
               {isSubmitting ? (
-                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Activate Urja Profile
-                  <Zap size={18} />
+                  Commit Neural Profile
+                  <Zap size={20} strokeWidth={2.5} className="group-hover:animate-pulse" />
                 </>
               )}
             </button>
-            <div className="text-center space-y-4">
-               <p className="text-xs font-medium text-muted-foreground">
-                 Your contribution supports cleaner cities and circular waste recovery systems.
-               </p>
-               <div className="flex flex-wrap items-center justify-center gap-2 text-muted-foreground/50 text-[10px] uppercase font-bold tracking-wider">
-                  <span className="flex items-center gap-1"><ShieldCheck size={12} /> Data secured</span>
-                  <span>•</span>
-                  <span>Location privacy protected</span>
-                  <span>•</span>
-                  <span>Verified contribution tracking</span>
-               </div>
+            <div className="flex items-center justify-center gap-3 text-muted-foreground/30">
+               <ShieldCheck size={16} strokeWidth={2.5} />
+               <span className="text-[9px] font-black uppercase tracking-[0.3em]">Identity Protocol Encrypted</span>
             </div>
           </div>
         </form>

@@ -1,12 +1,18 @@
 "use client"
-import { useState, useMemo, useEffect } from "react"
+
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Navigation2, Filter, AlertTriangle, X, Zap, Clock, Truck, Recycle, Scan, ArrowRight, Camera, CheckCircle2, Layers, MapPin, Wind, Cpu, Map as MapIcon, MapPinned } from "lucide-react"
+import { 
+  Search, Navigation2, Filter, AlertTriangle, X, Zap, Clock, Truck, 
+  Recycle, Scan, ArrowRight, Camera, CheckCircle2, Layers, 
+  MapPin, Wind, Cpu, Map as MapIcon, MapPinned, Eye, RefreshCw
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralMap } from "@/components/rural/RuralMap"
 import { GoogleMap, useJsApiLoader, OverlayViewF, PolylineF } from "@react-google-maps/api"
+import { supabase } from "@/lib/supabase"
 
 type MapState = "browsing" | "selected" | "scanning" | "reporting"
 type NodeKind = "station" | "bin" | "ewaste" | "compost" | "plastic" | "van" | "complaint" | "cleanup" | "hub"
@@ -19,7 +25,7 @@ interface Node {
    distance?: string; trustBadge?: string
 }
 
-const NODES: Node[] = [
+const STATIC_NODES: Node[] = [
    { id: "gp-st", kind: "station", name: "LOOP STATION 01", lat: 28.5584, lng: 77.2066, fill: 44, status: "available", wasteTypes: ["dry", "plastic", "ewaste"], context: "Metro Station · High Footfall", lastPickup: "1h ago", openTill: "10 PM", wet: 10, dry: 50, plastic: 30, ewaste: 10, distance: "160m", trustBadge: "Municipal Verified" },
    { id: "hk-st", kind: "cleanup", name: "CLEANUP ZONE", lat: 28.5494, lng: 77.1903, fill: 0, status: "active", wasteTypes: ["organic"], context: "Market Zone · Community Drive", lastPickup: "Live", distance: "920m", trustBadge: "Community Active" },
    { id: "hub-01", kind: "hub", name: "COLLECTION HUB", lat: 28.5524, lng: 77.2153, fill: 62, status: "available", wasteTypes: ["plastic", "dry"], context: "Regional Center", lastPickup: "2h ago", openTill: "10 PM", distance: "1.2km", trustBadge: "Certified Hub" },
@@ -63,6 +69,7 @@ const kindGlow: Record<string, string> = {
    van: "shadow-[0_0_15px_rgba(59,130,246,0.3)]",
    urgent: "shadow-[0_0_25px_rgba(239,68,68,0.5)]"
 }
+
 const KindIcon = ({ kind, size = 16 }: { kind: NodeKind; size?: number }) => {
    if (kind === "station" || kind === "cleanup") return <Zap size={size} className="text-emerald-400" />
    if (kind === "bin") return <Recycle size={size} className="text-white/60" />
@@ -76,13 +83,13 @@ const KindIcon = ({ kind, size = 16 }: { kind: NodeKind; size?: number }) => {
 
 function FillRing({ fill = 0, status }: { fill?: number; status: string }) {
    const color = status === "urgent" ? "#ef4444" : status === "nearly-full" ? "#f59e0b" : "#10b981"
-   const r = 22, c = 50, circ = 2 * Math.PI * r
+   const r = 22, c = 25, circ = 2 * Math.PI * r // Fixed center/radius for 50x50 viewBox
    return (
       <svg width="50" height="50" className="absolute inset-0">
          <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3" />
          <circle cx={c} cy={c} r={r} fill="none" stroke={color} strokeWidth="3"
             strokeDasharray={`${(fill / 100) * circ} ${circ}`} strokeLinecap="round"
-            transform="rotate(-90 50 50)" style={{ transition: "stroke-dasharray 1s ease" }} />
+            transform="rotate(-90 25 25)" style={{ transition: "stroke-dasharray 1s ease" }} />
       </svg>
    )
 }
@@ -96,26 +103,54 @@ export default function MapPage() {
    const [vanPos, setVanPos] = useState({ lat: 28.5520, lng: 77.2080 })
    const [activeLayer, setActiveLayer] = useState<string | null>(null)
    const [storyIdx, setStoryIdx] = useState(0)
+   const [dynamicNodes, setDynamicNodes] = useState<Node[]>([])
+   const [loading, setLoading] = useState(false)
+
+   const fetchBins = useCallback(async () => {
+      setLoading(true)
+      try {
+         const { data: bins } = await supabase.from('smart_bins').select('*')
+         if (bins) {
+            const mapped = bins.map(b => ({
+               id: b.id,
+               kind: "bin" as NodeKind,
+               name: b.location_name || "Smart Bin",
+               lat: b.lat_geo || 28.5524 + (Math.random() - 0.5) * 0.02,
+               lng: b.lng_geo || 77.2003 + (Math.random() - 0.5) * 0.02,
+               fill: b.fill_level || 0,
+               status: (b.fill_level > 80 ? "urgent" : b.fill_level > 50 ? "nearly-full" : "available") as any,
+               wasteTypes: ["dry", "organic"],
+               context: b.location_name || "City Sector",
+               lastPickup: "2h ago",
+               trustBadge: "AI Verified"
+            }))
+            setDynamicNodes(mapped)
+         }
+      } catch (err) {
+         console.error("Fetch error:", err)
+      } finally {
+         setLoading(false)
+      }
+   }, [])
 
    useEffect(() => {
+      fetchBins()
       const i = setInterval(() => setVanPos(p => ({ lat: p.lat + 0.00009, lng: p.lng + 0.00004 })), 4000)
-      return () => clearInterval(i)
-   }, [])
+      const storyTimer = setInterval(() => setStoryIdx(p => (p + 1) % STORY_BADGES.length), 4000)
+      return () => { clearInterval(i); clearInterval(storyTimer); }
+   }, [fetchBins])
 
-   useEffect(() => {
-      const i = setInterval(() => setStoryIdx(p => (p + 1) % STORY_BADGES.length), 4000)
-      return () => clearInterval(i)
-   }, [])
+   const allNodes = useMemo(() => [...STATIC_NODES, ...dynamicNodes], [dynamicNodes])
 
    const filtered = useMemo(() => {
-      if (!query) return NODES
+      if (!query) return allNodes
       const q = query.toLowerCase()
-      return NODES.filter(n =>
+      return allNodes.filter(n =>
          n.name.toLowerCase().includes(q) ||
          n.wasteTypes.some(w => w.toLowerCase().includes(q)) ||
          n.context.toLowerCase().includes(q)
       )
-   }, [query])
+   }, [query, allNodes])
 
    const { isLoaded } = useJsApiLoader({
       id: "urjaloop-google-maps",
@@ -153,7 +188,6 @@ export default function MapPage() {
                                  <div className="relative z-10"><KindIcon kind={node.kind} size={node.kind === "station" ? 20 : 16} /></div>
                                  {node.status === "urgent" && <div className="absolute inset-0 rounded-full border border-red-500 animate-ping opacity-30" />}
                               </div>
-                              {/* CAPSULE LABEL */}
                               <div className="px-3 py-1 bg-black/90 backdrop-blur-md rounded-full border border-white/5 shadow-2xl transition-all group-hover:bg-emerald-500 group-hover:text-black">
                                  <p className="text-[10px] font-black text-white group-hover:text-black whitespace-nowrap tracking-wider uppercase">{node.name}</p>
                               </div>
@@ -162,8 +196,8 @@ export default function MapPage() {
                      </OverlayViewF>
                   ))}
 
-                  {mapState === "selected" && selected && selected.lat && (
-                     <PolylineF path={[{ lat: 28.5500, lng: 77.2003 }, { lat: selected.lat, lng: selected.lng }]}
+                  {mapState === "selected" && selected && (
+                     <PolylineF path={[{ lat: 28.5524, lng: 77.2003 }, { lat: selected.lat, lng: selected.lng }]}
                         options={{
                            strokeColor: "#10b981", strokeOpacity: 0.5, strokeWeight: 3,
                            icons: [{ icon: { path: "M 0,-1 0,1", strokeOpacity: 1, scale: 3 }, offset: "0", repeat: "18px" }]
@@ -175,14 +209,13 @@ export default function MapPage() {
                   <div className="w-5 h-5 border-2 border-white/10 border-t-emerald-500 rounded-full animate-spin" />
                </div>
             )}
+         </div>
 
-            {/* CIVIC NETWORK STATUS BADGE */}
-            <div className="absolute bottom-32 left-6 z-40">
-               <div className="bg-black/80 backdrop-blur-xl border border-white/5 rounded-full px-5 py-2.5 shadow-2xl flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/90">Sector 14 Civic Network</p>
-               </div>
-            </div>
+         {/* REFRESH CONTROL */}
+         <div className="absolute top-24 right-4 z-[70]">
+             <button onClick={fetchBins} className="w-10 h-10 rounded-xl bg-[#191b1e]/95 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-emerald-500 shadow-2xl transition-all">
+                <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+             </button>
          </div>
 
          {/* AMBIENT STORY TICKER */}
@@ -199,7 +232,7 @@ export default function MapPage() {
 
          {/* SEARCH BAR */}
          {mapState !== "scanning" && (
-            <div className="absolute top-20 left-4 right-4 z-[70] max-w-lg mx-auto">
+            <div className="absolute top-20 left-4 right-4 z-[70] max-w-lg mx-auto pr-12">
                <div className="bg-[#191b1e]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-5 h-14 flex items-center gap-3 shadow-2xl">
                   <Search size={18} className="text-white/20 shrink-0" />
                   <input type="text" value={query} onChange={e => setQuery(e.target.value)}
@@ -221,22 +254,6 @@ export default function MapPage() {
             </div>
          )}
 
-         {/* LAYER TOGGLES */}
-         {mapState === "browsing" && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2">
-               {[{ id: "routes", icon: Navigation2, label: "Routes" }, { id: "fill", icon: Layers, label: "Fill Levels" }, { id: "report", icon: AlertTriangle, label: "Report" }].map(l => (
-                  <button key={l.id} title={l.label}
-                     onClick={() => l.id === "report" ? setMapState("reporting") : setActiveLayer(activeLayer === l.id ? null : l.id)}
-                     className={cn("w-11 h-11 rounded-xl flex items-center justify-center border shadow-xl transition-all",
-                        l.id === "report" ? "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white" :
-                           activeLayer === l.id ? "bg-emerald-500 border-emerald-400 text-black" :
-                              "bg-[#191b1e]/90 backdrop-blur-xl border-white/8 text-white/30 hover:text-white")}>
-                     <l.icon size={16} />
-                  </button>
-               ))}
-            </div>
-         )}
-
          {/* ADAPTIVE BOTTOM SHEET */}
          <div className={cn("absolute bottom-0 left-0 right-0 z-[60] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]", sheetH)}>
             <div className="h-full bg-[#181a1c]/98 backdrop-blur-[40px] border-t border-white/8 rounded-t-[28px] flex flex-col overflow-hidden shadow-[0_-16px_60px_rgba(0,0,0,0.6)]">
@@ -250,7 +267,7 @@ export default function MapPage() {
                      <div>
                         <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/20">Live Network</p>
                         <p className="text-sm font-semibold text-white/80 mt-0.5">
-                           {filtered.filter(n => n.kind !== "van" && n.kind !== "complaint").length} nodes nearby · 1 urgent
+                           {filtered.filter(n => n.kind !== "van" && n.kind !== "complaint").length} nodes nearby · {filtered.some(n => n.status === "urgent") ? "1 urgent" : "Clear"}
                         </p>
                      </div>
                      <button onClick={() => router.push("/scanner?mode=waste")}
@@ -281,8 +298,8 @@ export default function MapPage() {
                            <h2 className="text-2xl font-semibold tracking-tight text-white leading-tight">{selected.name}</h2>
                            <p className="text-xs text-white/30 mt-1">{selected.context}</p>
                            <div className="flex items-center gap-4 mt-2 text-[11px] text-white/30 font-medium">
-                              <span className="flex items-center gap-1"><Clock size={11} /> Pickup {selected.lastPickup}</span>
-                              {selected.openTill && <span className="flex items-center gap-1"><MapPin size={11} /> Open till {selected.openTill}</span>}
+                              <span className="flex items-center gap-1"><Clock size={11} /> {selected.lastPickup}</span>
+                              {selected.openTill && <span className="flex items-center gap-1"><MapPin size={11} /> {selected.openTill}</span>}
                               {selected.distance && <span>{selected.distance} away</span>}
                            </div>
                         </div>
@@ -291,7 +308,6 @@ export default function MapPage() {
                         </button>
                      </div>
 
-                     {/* Fill & Waste Breakdown */}
                      {selected.fill !== undefined && selected.fill > 0 && (
                         <div className="space-y-3">
                            <div className="flex items-center justify-between">
@@ -301,37 +317,14 @@ export default function MapPage() {
                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                               <div className={cn("h-full rounded-full transition-all duration-1000", selected.fill > 80 ? "bg-red-500" : selected.fill > 60 ? "bg-amber-500" : "bg-emerald-500")} style={{ width: `${selected.fill}%` }} />
                            </div>
-                           <div className="grid grid-cols-4 gap-2 pt-1">
-                              {[{ l: "Wet", v: selected.wet, c: "bg-blue-500" }, { l: "Dry", v: selected.dry, c: "bg-stone-400" }, { l: "Plastic", v: selected.plastic, c: "bg-sky-400" }, { l: "E-Waste", v: selected.ewaste, c: "bg-purple-400" }].map(s => (
-                                 <div key={s.l} className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 text-center">
-                                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
-                                       <div className={cn("h-full rounded-full", s.c)} style={{ width: `${s.v || 0}%` }} />
-                                    </div>
-                                    <p className="text-[10px] font-bold text-white">{s.v || 0}%</p>
-                                    <p className="text-[9px] text-white/25 mt-0.5">{s.l}</p>
-                                 </div>
-                              ))}
-                           </div>
                         </div>
                      )}
 
-                     {/* Waste Types */}
-                     {selected.wasteTypes.length > 0 && (
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-black uppercase tracking-widest text-white/25">Accepted Streams</p>
-                           <div className="flex flex-wrap gap-2">
-                              {selected.wasteTypes.map(t => (
-                                 <span key={t} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/8 border border-emerald-500/15 rounded-full text-[11px] font-semibold text-emerald-400">
-                                    <CheckCircle2 size={11} />{t}
-                                 </span>
-                              ))}
-                           </div>
-                        </div>
-                     )}
-
-                     {/* Actions */}
                      <div className="flex gap-3 pt-2">
-                        <button className="flex-[3] h-14 bg-emerald-500 text-black font-bold rounded-2xl flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all text-sm shadow-lg shadow-emerald-500/10">
+                        <button onClick={() => {
+                            const url = `https://www.google.com/maps/search/?api=1&query=${selected.lat},${selected.lng}`
+                            window.open(url, '_blank')
+                        }} className="flex-[3] h-14 bg-emerald-500 text-black font-bold rounded-2xl flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all text-sm shadow-lg shadow-emerald-500/10">
                            <Navigation2 size={18} />Navigate via Eco-Path
                         </button>
                         <button onClick={() => router.push("/scanner?mode=waste")}
@@ -339,17 +332,6 @@ export default function MapPage() {
                            <Scan size={18} />
                         </button>
                      </div>
-                  </div>
-               )}
-
-               {/* SCANNING STATE fallback */}
-               {mapState === "scanning" && (
-                  <div className="flex-1 flex flex-col items-center justify-center px-8 text-center animate-in zoom-in-95 duration-500 pb-40">
-                     <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4">
-                        <Scan size={32} className="text-emerald-500" />
-                     </div>
-                     <h2 className="text-xl font-bold mb-2">Redirecting to AI Scanner</h2>
-                     <button onClick={() => router.push("/scanner?mode=waste")} className="px-6 py-3 bg-emerald-500 text-black font-bold rounded-xl">Open Camera</button>
                   </div>
                )}
 

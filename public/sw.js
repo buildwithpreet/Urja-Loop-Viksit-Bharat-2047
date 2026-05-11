@@ -1,13 +1,17 @@
-self.addEventListener("install", (event) => {
-  console.log("UrjaLoop Service Worker installing...");
-  self.skipWaiting();
+const CACHE_NAME = 'urjaloop-v1';
+const ASSETS_TO_CACHE = [
+  '/',
+  '/manifest.json'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+  );
 });
 
-self.addEventListener("activate", (event) => {
-  console.log("UrjaLoop Service Worker activated.");
-});
-
-self.addEventListener("fetch", (event) => {
-  // Pass-through fetch to satisfy PWA installability requirements
-  event.respondWith(fetch(event.request));
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => response || fetch(event.request))
+  );
 });

@@ -51,9 +51,9 @@ const IMPACT_STATS = [
 
 export function LandingFooter() {
   return (
-    <footer className="bg-background border-t border-border relative pt-16 pb-10 px-6 md:px-10">
+    <footer className="bg-background border-t border-border relative pt-16 pb-10">
       
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto px-6 md:px-10">
         
         {/* Impact Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16 p-8 rounded-[2rem] bg-card border border-border shadow-sm">

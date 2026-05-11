@@ -3,7 +3,8 @@
 import { 
   Settings, ChevronRight, LogOut, Camera, Bell, ShieldCheck,
   MapPin, Moon, History, Recycle, Leaf, Trophy, QrCode, 
-  Globe, Edit2, CheckCircle2, Wallet
+  Globe, Edit2, CheckCircle2, Wallet, Menu, X, Info, 
+  UserCircle, Smartphone, Eye
 } from "lucide-react"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { LanguageToggle } from "@/components/shared/LanguageToggle"
@@ -13,8 +14,9 @@ import { useState } from "react"
 import Link from "next/link"
 
 export default function Profile() {
-  const { mode } = useMode()
+  const { mode, setMode } = useMode()
   const isFarmer = mode === "rural"
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const stats = isFarmer ? [
     { label: "Biomass Contributed", value: "1.2 Tons", icon: Leaf, color: "text-emerald-500", bg: "bg-emerald-500/10" },
@@ -36,8 +38,113 @@ export default function Profile() {
   ]
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 pb-32 lg:p-8 space-y-6 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-background text-foreground pt-6 p-4 pb-32 lg:p-8 space-y-4 relative overflow-x-hidden">
       
+      {/* 1. HAMBURGER SETTINGS DRAWER (Premium) */}
+      <div className={cn(
+        "fixed inset-0 z-[100] transition-all duration-500",
+        isSettingsOpen ? "visible" : "invisible"
+      )}>
+         {/* Backdrop */}
+         <div 
+           className={cn("absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500", isSettingsOpen ? "opacity-100" : "opacity-0")}
+           onClick={() => setIsSettingsOpen(false)}
+         />
+         
+         {/* Side Drawer */}
+         <div className={cn(
+           "absolute top-0 right-0 h-full w-80 bg-card border-l border-border shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] p-8 overflow-y-auto",
+           isSettingsOpen ? "translate-x-0" : "translate-x-full"
+         )}>
+            <div className="flex items-center justify-between mb-10">
+               <h2 className="text-xl font-bold uppercase tracking-tight">Settings</h2>
+               <button onClick={() => setIsSettingsOpen(false)} className="p-2 hover:bg-muted rounded-full transition-colors">
+                  <X size={20} />
+               </button>
+            </div>
+
+            <div className="space-y-8">
+               {/* Mode Switcher */}
+               <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Sector Mode</p>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-2xl">
+                     <button 
+                       onClick={() => setMode("urban")}
+                       className={cn("py-2 px-3 rounded-xl text-[11px] font-bold transition-all", mode === "urban" ? "bg-background text-primary shadow-sm" : "text-muted-foreground")}
+                     >
+                        Urban
+                     </button>
+                     <button 
+                       onClick={() => setMode("rural")}
+                       className={cn("py-2 px-3 rounded-xl text-[11px] font-bold transition-all", mode === "rural" ? "bg-background text-primary shadow-sm" : "text-muted-foreground")}
+                     >
+                        Rural
+                     </button>
+                  </div>
+               </div>
+
+               {/* System Settings */}
+               <div className="space-y-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">System</p>
+                  
+                  <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        <Globe size={16} className="text-primary" />
+                        <span className="text-xs font-bold">Language</span>
+                     </div>
+                     <LanguageToggle />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        <Moon size={16} className="text-primary" />
+                        <span className="text-xs font-bold">Appearance</span>
+                     </div>
+                     <ThemeToggle />
+                  </div>
+               </div>
+
+               {/* Preferences */}
+               <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Preferences</p>
+                  {[
+                    { label: "Accessibility", icon: Eye, desc: "Visual aids & text scaling" },
+                    { label: "Privacy & Data", icon: ShieldCheck, desc: "Your sustainability data" },
+                    { label: "Help & Support", icon: Info, desc: "Contact municipal team" }
+                  ].map(item => (
+                    <button key={item.label} className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-muted transition-colors text-left group">
+                       <div className="flex items-center gap-3">
+                          <item.icon size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                          <div>
+                             <p className="text-xs font-bold">{item.label}</p>
+                             <p className="text-[9px] text-muted-foreground leading-tight">{item.desc}</p>
+                          </div>
+                       </div>
+                       <ChevronRight size={14} className="text-muted-foreground/30" />
+                    </button>
+                  ))}
+               </div>
+
+               <div className="pt-8">
+                  <button className="w-full p-4 bg-red-500/5 border border-red-500/10 rounded-2xl text-red-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/10 transition-colors">
+                     <LogOut size={16} /> Log Out
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      {/* Profile Header Row (Above Card) */}
+      <div className="flex items-center justify-between px-2 pt-2">
+         <h1 className="text-2xl font-black uppercase tracking-widest text-foreground/80">Account</h1>
+         <button 
+           onClick={() => setIsSettingsOpen(true)}
+           className="w-12 h-12 bg-card border border-border rounded-2xl flex items-center justify-center text-foreground hover:bg-muted transition-all active:scale-95 shadow-sm"
+         >
+            <Menu size={24} />
+         </button>
+      </div>
+
       {/* Profile Header Card */}
       <div className="relative bg-card border border-border rounded-[2.5rem] p-6 shadow-sm overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
@@ -56,7 +163,7 @@ export default function Profile() {
             </button>
           </div>
 
-          <div className="flex-1 text-center sm:text-left space-y-1">
+          <div className="flex-1 text-center sm:text-left space-y-1 pr-12 sm:pr-0">
             <div className="flex items-center justify-center sm:justify-start gap-2">
               <h1 className="text-2xl font-bold tracking-tight">{isFarmer ? "Ram Singh" : "Alex Harrison"}</h1>
               <div className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-1">
@@ -148,90 +255,6 @@ export default function Profile() {
           ))}
         </div>
       </div>
-
-      {/* Settings Section */}
-      <div className="space-y-3">
-        <h2 className="text-xs font-black text-foreground uppercase tracking-[0.2em] flex items-center gap-2 px-1 opacity-60">
-          <Settings size={14} className="text-primary" />
-          Settings
-        </h2>
-        <div className="bg-card border border-border rounded-3xl divide-y divide-border overflow-hidden">
-          {/* Nearby Centers */}
-          <div className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors cursor-pointer">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/5 text-primary flex items-center justify-center">
-                <MapPin size={16} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Nearby Centers</p>
-                <p className="text-[10px] text-muted-foreground font-medium">Manage processing units</p>
-              </div>
-            </div>
-            <ChevronRight size={16} className="text-muted-foreground" />
-          </div>
-
-          {/* Payment Details */}
-          <div className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors cursor-pointer">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/5 text-primary flex items-center justify-center">
-                <Wallet size={16} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Payment / Bank Details</p>
-                <p className="text-[10px] text-muted-foreground font-medium">Manage your earnings</p>
-              </div>
-            </div>
-            <ChevronRight size={16} className="text-muted-foreground" />
-          </div>
-
-          {/* Notifications */}
-          <div className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors cursor-pointer">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/5 text-primary flex items-center justify-center">
-                <Bell size={16} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Notifications</p>
-                <p className="text-[10px] text-muted-foreground font-medium">Smart alerts & updates</p>
-              </div>
-            </div>
-            <ChevronRight size={16} className="text-muted-foreground" />
-          </div>
-
-          {/* Language */}
-          <div className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-muted/50 text-muted-foreground flex items-center justify-center">
-                <Globe size={16} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Language</p>
-                <p className="text-[10px] text-muted-foreground font-medium">Regional Support</p>
-              </div>
-            </div>
-            <LanguageToggle />
-          </div>
-
-          {/* Theme */}
-          <div className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-muted/50 text-muted-foreground flex items-center justify-center">
-                <Moon size={16} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Appearance</p>
-                <p className="text-[10px] text-muted-foreground font-medium">System theme</p>
-              </div>
-            </div>
-            <ThemeToggle />
-          </div>
-        </div>
-      </div>
-
-      {/* Logout */}
-      <button className="w-full p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-600 hover:bg-red-500/10 transition-all flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] active:scale-[0.98]">
-        <LogOut size={16} /> Log Out
-      </button>
 
       <p className="text-[10px] text-muted-foreground text-center pb-8 opacity-30 uppercase font-black tracking-[0.4em]">
         UrjaLoop · Viksit Bharat 2047

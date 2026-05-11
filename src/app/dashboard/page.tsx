@@ -155,14 +155,14 @@ export default function Home() {
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
              <div className="p-5 bg-card border border-border rounded-[1.5rem] flex flex-col justify-center">
-                <Wind size={16} className="text-blue-500 mb-3" />
-                <p className="text-lg font-semibold">32°C</p>
-                <p className="text-[10px] text-muted-foreground font-medium">Fresh Air Quality</p>
+                <Wind size={16} className="text-emerald-500 mb-3" />
+                <p className="text-lg font-semibold text-emerald-500">42 AQI</p>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest leading-none">Fresh Air Quality</p>
              </div>
              <div className="p-5 bg-card border border-border rounded-[1.5rem] flex flex-col justify-center">
-                <Droplets size={16} className="text-blue-500 mb-3" />
-                <p className="text-lg font-semibold">52%</p>
-                <p className="text-[10px] text-muted-foreground font-medium">Humidity Level</p>
+                <Zap size={16} className="text-amber-500 mb-3" />
+                <p className="text-lg font-semibold">32°C</p>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest leading-none">Local Temp</p>
              </div>
           </div>
         </div>

@@ -9,9 +9,14 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import { useMode } from "@/components/shared/ModeProvider"
+
 export function Sidebar() {
+  const { mode } = useMode()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
+
+  const isFarmer = mode === "rural"
 
   const navItems = [
     { name: "Home", href: "/dashboard", icon: Home },
@@ -102,22 +107,22 @@ export function Sidebar() {
       )}>
         {/* User */}
         <div className="pt-2">
-          <div className={cn(
+          <Link href="/profile" className={cn(
             "flex items-center gap-2.5 p-2 rounded-xl hover:bg-muted transition-all cursor-pointer",
             isCollapsed ? "justify-center" : ""
           )}>
             <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" 
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${isFarmer ? 'Ram' : 'Alex'}`} 
               alt="Avatar" 
-              className="w-7 h-7 rounded-lg border border-border shrink-0" 
+              className="w-7 h-7 rounded-lg border border-border shrink-0 bg-white" 
             />
             {!isCollapsed && (
-              <div className="flex-1 min-w-0 animate-in fade-in duration-200">
-                <p className="text-xs font-semibold truncate">Alex Harrison</p>
-                <p className="text-[9px] text-muted-foreground truncate">Sector 14 · New Delhi</p>
+              <div className="flex-1 min-w-0 animate-in fade-in duration-200 text-left">
+                <p className="text-xs font-semibold truncate">{isFarmer ? "Ram Singh" : "Alex Harrison"}</p>
+                <p className="text-[9px] text-muted-foreground truncate">{isFarmer ? "Ludhiana · Punjab" : "Sector 14 · New Delhi"}</p>
               </div>
             )}
-          </div>
+          </Link>
         </div>
       </div>
     </aside>

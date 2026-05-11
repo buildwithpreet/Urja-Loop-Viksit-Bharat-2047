@@ -1,22 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { 
   MapPin, Search, Navigation, Filter, AlertCircle,
   Clock, Truck, Recycle, Info, ChevronUp, RefreshCw,
-  Layers, Eye, ThumbsUp, AlertTriangle
+  Layers, Eye, ThumbsUp, AlertTriangle, X
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralMap } from "@/components/rural/RuralMap"
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from "@react-google-maps/api"
 
+// Real Coordinates for New Delhi / NCR Area
 const locations = [
-  { id: 1, type: "bin", lat: "38%", lng: "28%", fill: 18, status: "low", address: "Sector 14 Main Gate", lastCleaned: "2h ago", nextPickup: "Tomorrow, 6 AM", capacity: "120L" },
-  { id: 2, type: "bin", lat: "52%", lng: "48%", fill: 67, status: "medium", address: "City Center Park", lastCleaned: "5h ago", nextPickup: "Today, 4 PM", capacity: "120L" },
-  { id: 3, type: "bin", lat: "22%", lng: "62%", fill: 91, status: "high", address: "Green View Market", lastCleaned: "12h ago", nextPickup: "ASAP", capacity: "120L" },
-  { id: 4, type: "vehicle", lat: "58%", lng: "33%", address: "Collection Truck #402", route: "Sector 14 Route", eta: "~18 min away" },
-  { id: 5, type: "complaint", lat: "45%", lng: "70%", address: "Illegal Dumping Reported", status: "in-progress" },
+  { id: 1, type: "bin", lat: 28.545, lng: 77.195, fill: 18, status: "low", address: "Sector 14 Main Gate", lastCleaned: "2h ago", nextPickup: "Tomorrow, 6 AM", capacity: "120L" },
+  { id: 2, type: "bin", lat: 28.552, lng: 77.215, fill: 67, status: "medium", address: "City Center Park", lastCleaned: "5h ago", nextPickup: "Today, 4 PM", capacity: "120L" },
+  { id: 3, type: "bin", lat: 28.560, lng: 77.230, fill: 91, status: "high", address: "Green View Market", lastCleaned: "12h ago", nextPickup: "ASAP", capacity: "120L" },
+  { id: 4, type: "vehicle", lat: 28.538, lng: 77.210, address: "Collection Truck #402", route: "Sector 14 Route", eta: "~18 min away" },
+  { id: 5, type: "complaint", lat: 28.542, lng: 77.240, address: "Illegal Dumping Reported", status: "in-progress" },
 ]
 
 const statusColor = {
@@ -25,12 +27,122 @@ const statusColor = {
   high: { bg: "bg-red-500", text: "text-red-600 dark:text-red-400", badge: "bg-red-500/10 text-red-600 dark:text-red-400", label: "Needs Pickup" },
 }
 
+const mapContainerStyle = {
+  width: '100%',
+  height: '100vh',
+};
+
+const center = {
+  lat: 28.545,
+  lng: 77.215,
+};
+
+// Custom Dark Map Style for UrjaLoop
+const mapOptions = {
+  disableDefaultUI: true,
+  zoomControl: false,
+  styles: [
+    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+    {
+      featureType: "administrative.locality",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "poi",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "geometry",
+      stylers: [{ color: "#263c3f" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#6b9a76" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#38414e" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#212a37" }],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#9ca5b3" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: "#746855" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#1f2835" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#f3d19c" }],
+    },
+    {
+      featureType: "transit",
+      elementType: "geometry",
+      stylers: [{ color: "#2f3948" }],
+    },
+    {
+      featureType: "transit.station",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#17263c" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#515c6d" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.stroke",
+      stylers: [{ color: "#17263c" }],
+    },
+  ],
+};
+
 export default function MapPage() {
   const { mode } = useMode()
-  const [selectedEntity, setSelectedEntity] = useState<typeof locations[0]>(locations[2])
+  const [selectedEntity, setSelectedEntity] = useState<any>(locations[2])
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [showTransparency, setShowTransparency] = useState(true)
   const [isSheetExpanded, setIsSheetExpanded] = useState(false)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: "AIzaSyAaoPl-hmbJyViPAY02ktYEIkVTDV_HVq4"
+  })
+
+  const onLoad = useCallback(function callback(map: google.maps.Map) {
+    setMap(map)
+  }, [])
+
+  const onUnmount = useCallback(function callback(map: google.maps.Map) {
+    setMap(null)
+  }, [])
 
   if (mode === "rural") {
     return <RuralMap />
@@ -39,78 +151,62 @@ export default function MapPage() {
   return (
     <div className="h-[calc(100vh-0rem)] w-full relative overflow-hidden bg-background animate-in fade-in duration-700">
       
-      {/* Map Simulation Background */}
+      {/* Real Google Map Integration */}
       <div className="absolute inset-0 z-0">
-        {/* City grid simulation */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(var(--primary-rgb, 16,185,129), 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(var(--primary-rgb, 16,185,129), 0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: "50px 50px"
-        }} />
-        {/* Road lines simulation */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-10">
-          <line x1="0" y1="40%" x2="100%" y2="40%" stroke="currentColor" strokeWidth="3" />
-          <line x1="0" y1="65%" x2="100%" y2="65%" stroke="currentColor" strokeWidth="2" />
-          <line x1="35%" y1="0" x2="35%" y2="100%" stroke="currentColor" strokeWidth="3" />
-          <line x1="68%" y1="0" x2="68%" y2="100%" stroke="currentColor" strokeWidth="2" />
-          <rect x="30%" y="35%" width="20%" height="12%" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.5" rx="4" />
-          <rect x="55%" y="42%" width="15%" height="10%" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.5" rx="4" />
-        </svg>
-
-        {/* Heatmap overlay */}
-        {showHeatmap && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute bg-red-500/20 rounded-full blur-3xl w-32 h-32" style={{ top: "18%", left: "57%" }} />
-            <div className="absolute bg-amber-500/15 rounded-full blur-3xl w-24 h-24" style={{ top: "48%", left: "43%" }} />
-            <div className="absolute bg-emerald-500/10 rounded-full blur-3xl w-20 h-20" style={{ top: "33%", left: "23%" }} />
+        {isLoaded ? (
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={center}
+            zoom={14}
+            onLoad={onLoad}
+            onUnmount={onUnmount}
+            options={mapOptions}
+          >
+            {locations.map((loc) => (
+              <MarkerF
+                key={loc.id}
+                position={{ lat: loc.lat, lng: loc.lng }}
+                onClick={() => {
+                  setSelectedEntity(loc)
+                  setIsSheetExpanded(false)
+                }}
+                icon={
+                  loc.type === "bin" 
+                    ? {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 12,
+                        fillColor: loc.status === "low" ? "#10b981" : loc.status === "medium" ? "#f59e0b" : "#ef4444",
+                        fillOpacity: 1,
+                        strokeWeight: 4,
+                        strokeColor: "#ffffff",
+                      }
+                    : loc.type === "vehicle"
+                    ? {
+                        path: "M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-4.5h-2v-4.5h2V14z",
+                        scale: 1,
+                        fillColor: "#3b82f6",
+                        fillOpacity: 1,
+                        strokeWeight: 0,
+                        anchor: new google.maps.Point(12, 12),
+                      }
+                    : {
+                        path: "M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z",
+                        scale: 1,
+                        fillColor: "#f97316",
+                        fillOpacity: 1,
+                        strokeWeight: 0,
+                        anchor: new google.maps.Point(12, 12),
+                      }
+                }
+              />
+            ))}
+          </GoogleMap>
+        ) : (
+          <div className="w-full h-full bg-card flex flex-col items-center justify-center gap-4">
+             <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+             <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Initializing Neural Map Core...</p>
           </div>
         )}
-
-        {/* Entity Markers */}
-        {locations.map((loc) => (
-          <button
-            key={loc.id}
-            onClick={() => { setSelectedEntity(loc); setIsSheetExpanded(false) }}
-            style={{ top: loc.lat, left: loc.lng }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 group transition-all duration-300 hover:scale-110 z-10"
-          >
-            {loc.type === "bin" && (
-              <div className="relative">
-                {(loc.fill ?? 0) > 85 && (
-                  <div className={cn("absolute -inset-2 rounded-full animate-ping opacity-30", statusColor[loc.status as keyof typeof statusColor].bg)} />
-                )}
-                <div className={cn(
-                  "w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg border-2 border-background transition-all",
-                  selectedEntity.id === loc.id ? "scale-125 ring-2 ring-primary" : "",
-                  loc.status === "low" ? "bg-emerald-500 text-white" :
-                  loc.status === "medium" ? "bg-amber-500 text-white" : "bg-red-500 text-white"
-                )}>
-                  <Recycle size={18} strokeWidth={2.5} />
-                </div>
-                {/* Fill indicator */}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-background text-foreground text-[9px] font-black px-1.5 py-0.5 rounded-full border border-border shadow-sm whitespace-nowrap">
-                  {loc.fill}%
-                </div>
-              </div>
-            )}
-            {loc.type === "vehicle" && (
-              <div className={cn("w-11 h-11 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg border-2 border-background transition-all",
-                selectedEntity.id === loc.id ? "scale-125 ring-2 ring-blue-500" : ""
-              )}>
-                <Truck size={18} strokeWidth={2.5} />
-              </div>
-            )}
-            {loc.type === "complaint" && (
-              <div className={cn("w-11 h-11 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg border-2 border-background transition-all",
-                selectedEntity.id === loc.id ? "scale-125 ring-2 ring-orange-500" : ""
-              )}>
-                <AlertTriangle size={18} strokeWidth={2.5} />
-              </div>
-            )}
-          </button>
-        ))}
       </div>
 
       {/* Top Search Bar */}

@@ -129,7 +129,9 @@ export default function Profile() {
             <History size={14} className="text-primary" />
             Recent Activity
           </h2>
-          <button className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">View All</button>
+          <Link href="/activity" className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">
+            View All History
+          </Link>
         </div>
         <div className="bg-card border border-border rounded-3xl divide-y divide-border overflow-hidden">
           {activities.map((activity, idx) => (

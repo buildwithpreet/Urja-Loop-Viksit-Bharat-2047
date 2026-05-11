@@ -14,20 +14,25 @@ export function RewardsEconomy() {
                      <div className="relative w-64 h-64">
                         <div className="absolute inset-0 border border-border rounded-full" />
 
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border p-3 rounded-2xl shadow-sm">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-muted border border-neutral-200 dark:border-white/10 p-3 rounded-2xl shadow-xl animate-bounce [animation-duration:3s]">
                            <Leaf className="text-primary" size={24} strokeWidth={1.5} />
                         </div>
 
-                        <div className="absolute bottom-6 -right-4 bg-card border border-border p-3 rounded-2xl shadow-sm">
+                        <div className="absolute bottom-6 -right-4 bg-white dark:bg-muted border border-neutral-200 dark:border-white/10 p-3 rounded-2xl shadow-xl animate-bounce [animation-duration:4s]">
                            <RefreshCw className="text-primary" size={24} strokeWidth={1.5} />
                         </div>
 
-                        <div className="absolute bottom-6 -left-4 bg-card border border-border p-3 rounded-2xl shadow-sm">
+                        <div className="absolute bottom-6 -left-4 bg-white dark:bg-muted border border-neutral-200 dark:border-white/10 p-3 rounded-2xl shadow-xl animate-bounce [animation-duration:3.5s]">
                            <ShoppingBag className="text-primary" size={24} strokeWidth={1.5} />
                         </div>
 
-                        <div className="absolute inset-0 m-auto w-24 h-24 bg-accent text-primary rounded-full flex items-center justify-center font-medium shadow-sm border border-primary/20">
-                           Credits
+                        {/* Central Credits Coin */}
+                        <div className="absolute inset-0 m-auto w-32 h-32 flex items-center justify-center z-10">
+                           <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
+                           <div className="relative w-full h-full bg-primary text-primary-foreground dark:text-black rounded-full flex flex-col items-center justify-center font-bold shadow-2xl border-4 border-white/20 dark:border-primary/30 backdrop-blur-md">
+                              <span className="text-[10px] uppercase tracking-tighter opacity-80 mb-1">Urja</span>
+                              <span className="text-xl leading-none">Credits</span>
+                           </div>
                         </div>
                      </div>
 

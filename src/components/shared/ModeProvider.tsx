@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 
 export type AppMode = "urban" | "rural"
 
@@ -21,6 +22,7 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
       // eslint-disable-next-line
       setModeState(savedMode)
     }
+    initMode()
   }, [])
 
   const setMode = (newMode: AppMode) => {

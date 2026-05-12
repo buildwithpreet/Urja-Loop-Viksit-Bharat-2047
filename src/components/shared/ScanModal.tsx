@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
 import { toast } from "sonner"
+import { supabase } from "@/lib/supabase"
 
 interface ScanModalProps {
   isOpen: boolean
@@ -133,9 +134,40 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
     return () => stopCamera()
   }, [isOpen, view, status, startCamera])
 
-  const handleCapture = () => {
+  const handleCapture = async () => {
     setStatus("loading")
     stopCamera()
+    
+    if (view === "report") {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        await supabase.from('complaints').insert({
+          id: `CMP-${Math.floor(Math.random() * 9000) + 1000}`,
+          user_id: session.user.id,
+          type: "Illegal / Open Dumping",
+          location_name: "Sector 14 Market · Block C · New Delhi",
+          severity: "High",
+          description: "Citizen reported illegal dumping via AI Scan.",
+          status: "Submitted",
+          status_idx: 0,
+          ai_validated: true
+        })
+        
+        await supabase.from('activity_log').insert({
+          user_id: session.user.id,
+          action: "Report Filed",
+          description: "Illegal Dumping Reported",
+          points_earned: 50 // Bonus for reporting
+        })
+        
+        // Update credits
+        const { data: profile } = await supabase.from('profiles').select('eco_credits').eq('id', session.user.id).single()
+        if (profile) {
+          await supabase.from('profiles').update({ eco_credits: profile.eco_credits + 50 }).eq('id', session.user.id)
+        }
+      }
+    }
+    
     setTimeout(() => setStatus("success"), 2000)
   }
 
@@ -359,8 +391,47 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                     className="w-full border border-border py-3 rounded-2xl text-xs font-bold text-foreground hover:bg-muted transition-all">
                     Scan Another Item
                   </button>
-                  <button onClick={reset} className="w-full bg-primary text-primary-foreground py-3 rounded-2xl text-xs font-bold hover:opacity-90 transition-all">
-                    Done
+                  <button 
+                    onClick={async () => {
+                      const { data: { session } } = await supabase.auth.getSession()
+                      if (!session) {
+                        toast.error("Login to earn credits!")
+                        return
+                      }
+
+                      // 1. Get current stats
+                      const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('eco_credits, waste_processed, co2_saved')
+                        .eq('id', session.user.id)
+                        .single()
+
+                      if (profile) {
+                        const earned = 15 // Mock points for scan
+                        const { error } = await supabase
+                          .from('profiles')
+                          .update({ 
+                            eco_credits: profile.eco_credits + earned,
+                            waste_processed: profile.waste_processed + 0.5,
+                            co2_saved: profile.co2_saved + 0.2
+                          })
+                          .eq('id', session.user.id)
+
+                        if (!error) {
+                          toast.success(`+${earned} Eco Credits earned!`)
+                          await supabase.from('activity_log').insert({
+                            user_id: session.user.id,
+                            action: "Waste Scanned",
+                            description: `Identified ${wasteResult.type}`,
+                            points_earned: earned
+                          })
+                        }
+                      }
+                      reset()
+                    }}
+                    className="w-full bg-primary text-primary-foreground py-3 rounded-2xl text-xs font-bold hover:opacity-90 transition-all"
+                  >
+                    Claim Credits & Finish
                   </button>
                 </div>
               )}
@@ -432,11 +503,11 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-foreground">Report Submitted</h3>
-                    <p className="text-xs text-muted-foreground mt-1">Reference: RPT-2024-05-09-001</p>
+                    <p className="text-xs text-muted-foreground mt-1">Reference: CMP-{Math.floor(Math.random() * 9000) + 1000}</p>
                   </div>
                   <div className="w-full p-4 bg-muted border border-border rounded-2xl text-left space-y-1">
                     <p className="text-xs font-semibold text-foreground">What happens next?</p>
-                    <p className="text-xs text-muted-foreground">Your report will be AI-validated and assigned to the nearest response team within 2 hours. Track progress in the Complaint Center.</p>
+                    <p className="text-xs text-muted-foreground">Your report has been logged in our system. It will be AI-validated and assigned to the nearest response team. You can track this in the Complaint Center.</p>
                   </div>
                   <button onClick={() => { reset(); toast.success("Report submitted — tracking in Complaint Center") }} className="w-full bg-primary text-primary-foreground py-3 rounded-2xl text-xs font-bold hover:opacity-90 transition-all focus-ring">
                     Track in Complaint Center →
@@ -508,8 +579,28 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                     <button onClick={reset} className="flex-1 py-3 bg-muted border border-border rounded-2xl text-xs font-bold text-foreground hover:bg-muted/80 transition-all">
                       Cancel
                     </button>
-                    <button onClick={() => setView("pickup")} className="flex-1 py-3 bg-blue-500 text-white rounded-2xl text-xs font-bold hover:bg-blue-600 transition-all">
-                      Request Pickup
+                    <button 
+                      onClick={async () => {
+                        const { data: { session } } = await supabase.auth.getSession()
+                        if (session) {
+                          const earned = 250 // Higher value for agri waste
+                          const { data: profile } = await supabase.from('profiles').select('eco_credits').eq('id', session.user.id).single()
+                          if (profile) {
+                            await supabase.from('profiles').update({ eco_credits: profile.eco_credits + earned }).eq('id', session.user.id)
+                            await supabase.from('activity_log').insert({
+                              user_id: session.user.id,
+                              action: "Agri Waste Identified",
+                              description: "Rice Straw (Prali) classified",
+                              points_earned: earned
+                            })
+                            toast.success(`+${earned} Credits for Agri-Waste!`)
+                          }
+                        }
+                        setView("pickup")
+                      }}
+                      className="flex-1 py-3 bg-blue-500 text-white rounded-2xl text-xs font-bold hover:bg-blue-600 transition-all"
+                    >
+                      Claim & Request Pickup
                     </button>
                   </div>
                 </div>

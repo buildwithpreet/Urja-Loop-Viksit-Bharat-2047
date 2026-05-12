@@ -6,19 +6,88 @@ import Link from "next/link"
 import { Leaf, ArrowRight, ShieldCheck, Phone } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
+
 export default function LoginScreen() {
   const router = useRouter()
   const [phone, setPhone] = useState("")
   const [agreed, setAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+    if (error) {
+      console.warn("Google OAuth not fully configured, simulating...")
+      toast.info("Simulating Google Login...")
+      localStorage.setItem("urjaloop_demo_session", "true")
+      setTimeout(() => router.push("/onboarding"), 1000)
+    }
+  }
+
+  const handleFacebookLogin = async () => {
+    toast.info("Simulating Facebook Login...")
+    localStorage.setItem("urjaloop_demo_session", "true")
+    setTimeout(() => router.push("/onboarding"), 1000)
+  }
+
+  const handleAppleLogin = async () => {
+    toast.info("Simulating Apple Login...")
+    localStorage.setItem("urjaloop_demo_session", "true")
+    setTimeout(() => router.push("/onboarding"), 1000)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (phone.length >= 10 && agreed) {
-      setIsSubmitting(true)
-      setTimeout(() => {
-        router.push("/verify-otp")
-      }, 1000)
+    if (phone.length < 10) {
+      toast.error("Please enter a valid phone number")
+      return
+    }
+    if (!agreed) {
+      toast.error("Please agree to the terms and conditions")
+      return
+    }
+
+    setIsSubmitting(true)
+    const fullPhone = phone.startsWith("+91") ? phone : `+91${phone}`
+    
+    try {
+      // --- HACKATHON DEMO BYPASS ---
+      // Allow specific demo numbers or any number starting with 00 to bypass SMS
+      if (phone === "0000000000" || phone === "9999999999" || phone.startsWith("00")) {
+        toast.success("Demo Mode: OTP Bypassed")
+        router.push(`/verify-otp?phone=${encodeURIComponent(fullPhone)}&demo=true`)
+        return
+      }
+      // -----------------------------
+
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: fullPhone,
+      })
+
+      if (error) {
+        console.error("Supabase Auth Error:", error)
+        
+        if (error.message.includes("provider") || error.status === 400) {
+          toast.error("SMS Provider not configured in Supabase.")
+          toast.info("Try 'Quick Demo Access' to skip SMS verification.")
+        } else {
+          toast.error(error.message || "Failed to send verification code")
+        }
+      } else {
+        toast.success("Verification code sent!")
+        router.push(`/verify-otp?phone=${encodeURIComponent(fullPhone)}`)
+      }
+    } catch (err) {
+      console.error("Unexpected Login Error:", err)
+      toast.error("Connection failed. Check console or use Demo Mode.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -106,6 +175,55 @@ export default function LoginScreen() {
                 </>
               )}
             </button>
+
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-neutral-200 dark:border-white/10"></div>
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest">
+                <span className="bg-white dark:bg-[#121413] px-4 text-neutral-400">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full h-14 bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 rounded-full flex items-center justify-center gap-3 font-semibold text-sm text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-all"
+              >
+                <img src="https://www.gstatic.com/lamda/images/google_signin_buttons/google_icon.svg" className="w-5 h-5" alt="Google" />
+                Continue with Google
+              </button>
+
+              <button
+                type="button"
+                onClick={handleFacebookLogin}
+                className="w-full h-14 bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 rounded-full flex items-center justify-center gap-3 font-semibold text-sm text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-all"
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" className="w-5 h-5" alt="Facebook" />
+                Continue with Facebook
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAppleLogin}
+                className="w-full h-14 bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 rounded-full flex items-center justify-center gap-3 font-semibold text-sm text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-all"
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" className="w-5 h-5 dark:invert" alt="Apple" />
+                Continue with Apple
+              </button>
+            </div>
+
+            <div className="text-center pt-2 flex flex-col gap-4">
+              <button 
+                type="button" 
+                onClick={() => { setPhone("9999999999"); setAgreed(true) }}
+                className="text-xs font-bold text-primary hover:underline"
+              >
+                Quick Demo Access (Bypass SMS)
+              </button>
+              <button type="button" className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest hover:text-muted-foreground transition-colors">View more</button>
+            </div>
           </form>
         </div>
 

@@ -15,7 +15,7 @@ import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useUser } from "@/components/shared/UserContext"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralProfile } from "@/components/rural/RuralProfile"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -37,15 +37,77 @@ export default function Profile() {
   const { mode, setMode } = useMode()
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [name, setName] = useState("Alex Harrison")
-  const [isFarmer, setIsFarmer] = useState(mode === "rural")
+  const [profile, setProfile] = useState<any>(null)
+  const [activities, setActivities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const handleSaveProfile = () => {
-    setIsEditing(false)
-    if (isFarmer) {
-      setMode("rural")
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        // Fetch Profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (profileData) setProfile(profileData)
+
+        // Fetch Activities
+        const { data: logData } = await supabase
+          .from('activity_log')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false })
+          .limit(10)
+        
+        if (logData) {
+          setActivities(logData.map(l => ({
+            id: l.id,
+            action: l.action,
+            detail: l.description,
+            time: new Date(l.created_at).toLocaleDateString() === new Date().toLocaleDateString() ? "Today" : new Date(l.created_at).toLocaleDateString(),
+            icon: l.action.includes("Scan") ? Zap : l.action.includes("Purchase") ? Recycle : Activity,
+            credit: (l.points_earned > 0 ? "+ " : "- ") + Math.abs(l.points_earned) + " credits",
+            positive: l.points_earned >= 0
+          })))
+        }
+      }
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      toast.error(error.message)
     } else {
-      setMode("urban")
+      toast.success("Logged out successfully")
+      window.location.href = "/login"
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    setIsEditing(false)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profile.full_name,
+          role: profile.role
+        })
+        .eq('id', session.user.id)
+      
+      if (error) {
+        toast.error(error.message)
+      } else {
+        toast.success("Profile updated")
+        if (profile.role === "rural") setMode("rural")
+        else setMode("urban")
+      }
     }
   }
 
@@ -100,8 +162,8 @@ export default function Profile() {
                       <label htmlFor="name" className="text-sm font-medium">Full Name</label>
                       <input 
                         id="name" 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)}
+                        value={profile?.full_name || ""} 
+                        onChange={(e) => setProfile({...profile, full_name: e.target.value})}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       />
                     </div>
@@ -111,10 +173,10 @@ export default function Profile() {
                         <p className="text-[10px] text-muted-foreground">Switch to rural farm management mode.</p>
                       </div>
                       <button 
-                        onClick={() => setIsFarmer(!isFarmer)}
-                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isFarmer ? 'bg-primary' : 'bg-input'}`}
+                        onClick={() => setProfile({...profile, role: profile.role === "rural" ? "citizen" : "rural"})}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${profile?.role === "rural" ? 'bg-primary' : 'bg-input'}`}
                       >
-                        <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${isFarmer ? 'translate-x-5' : 'translate-x-0'}`} />
+                        <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${profile?.role === "rural" ? 'translate-x-5' : 'translate-x-0'}`} />
                       </button>
                     </div>
                   </div>
@@ -146,9 +208,9 @@ export default function Profile() {
       {/* Impact Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: t("profile_total_waste"), value: "248kg", icon: Recycle, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: t("profile_carbon"), value: "84kg", icon: Leaf, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: t("profile_credits"), value: "1,240", icon: Trophy, color: "text-amber-500", bg: "bg-amber-500/10" },
+          { label: t("profile_total_waste"), value: (profile?.waste_processed || 0) + "kg", icon: Recycle, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: t("profile_carbon"), value: (profile?.co2_saved || 0) + "kg", icon: Leaf, color: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: t("profile_credits"), value: profile?.eco_credits?.toLocaleString() || "0", icon: Trophy, color: "text-amber-500", bg: "bg-amber-500/10" },
         ].map((stat) => (
           <div key={stat.label} className="p-4 bg-card border border-border rounded-2xl shadow-sm">
             <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center mb-2", stat.bg)}>
@@ -208,7 +270,7 @@ export default function Profile() {
           </div>
         </div>
         <div className="divide-y divide-border">
-          {userActivity.map((item) => (
+          {(activities.length > 0 ? activities : userActivity).map((item) => (
             <div key={item.id} className="p-4 flex items-center gap-3 hover:bg-muted/30 transition-all">
               <div className={cn("w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0",
                 item.positive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
@@ -259,7 +321,10 @@ export default function Profile() {
         >
           <History size={14} /> Reset Onboarding (Demo)
         </button>
-        <button className="w-full py-3 rounded-2xl border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-500/10 transition-all flex items-center justify-center gap-2">
+        <button 
+          onClick={handleLogout}
+          className="w-full py-3 rounded-2xl border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
+        >
           <LogOut size={14} /> {t("profile_logout")}
         </button>
       </div>

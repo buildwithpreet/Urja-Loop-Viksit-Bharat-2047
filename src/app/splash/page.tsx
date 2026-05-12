@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Globe, Zap, ShieldCheck } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 export default function SplashScreen() {
   const router = useRouter()
@@ -12,8 +13,20 @@ export default function SplashScreen() {
     const t1 = setTimeout(() => setPhase(1), 300)
     const t2 = setTimeout(() => setPhase(2), 1000)
     const t3 = setTimeout(() => setPhase(3), 1800)
-    const t4 = setTimeout(() => router.push("/onboarding"), 3200)
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
+    
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setTimeout(() => {
+        if (session) {
+          router.push("/dashboard")
+        } else {
+          router.push("/onboarding")
+        }
+      }, 3200)
+    }
+    
+    checkSession()
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
   }, [router])
 
   return (

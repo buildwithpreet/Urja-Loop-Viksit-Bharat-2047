@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
   AlertTriangle, MapPin, Camera, CheckCircle2, Clock,
   Upload, ShieldCheck, AlertCircle, ChevronRight,
@@ -13,31 +13,10 @@ import NextImage from "next/image"
 import { toast } from "sonner"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 
-const STATUS_STEPS = ["Submitted", "Under Review", "Assigned", "In Progress", "Resolved"]
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
-const myComplaints = [
-  { 
-    id: "CMP-001", type: "Overflowing Bin", location: "Sector 14 Market",
-    time: "2 hours ago", status: "In Progress", statusIdx: 3,
-    assignedTo: "Team Alpha — Truck #402", expectedResolution: "Today, 4:00 PM",
-    severity: "High", aiValidated: true,
-    image: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?auto=format&fit=crop&q=80&w=400"
-  },
-  { 
-    id: "CMP-002", type: "Illegal Dumping", location: "Behind Metro Station",
-    time: "Yesterday", status: "Resolved", statusIdx: 4,
-    assignedTo: "Rapid Response Team", expectedResolution: "Resolved 10:30 AM",
-    severity: "High", aiValidated: true,
-    image: "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=400"
-  },
-  { 
-    id: "CMP-003", type: "Damaged Bin Cover", location: "Park Entrance",
-    time: "10 mins ago", status: "Submitted", statusIdx: 0,
-    assignedTo: "Awaiting Assignment", expectedResolution: "To be determined",
-    severity: "Low", aiValidated: false,
-    image: null
-  },
-]
+const STATUS_STEPS = ["Submitted", "Under Review", "Assigned", "In Progress", "Resolved"]
 
 export default function Complaints() {
   const [activeTab, setActiveTab] = useState<"new" | "history">("history")
@@ -119,9 +98,8 @@ export default function Complaints() {
                     aria-label="Complaint location"
                     className="bg-transparent border-none outline-none text-sm text-foreground flex-1 focus-ring" />
                 </div>
-                <button className="w-12 h-12 bg-muted/40 border border-border rounded-2xl flex items-center justify-center text-primary hover:bg-primary/10 transition-all">
-                  <Target size={18} />
-                </button>
+                <p className="text-sm font-semibold text-foreground">Capture or Upload Photo</p>
+                <p className="text-xs text-muted-foreground mt-1">Evidence helps faster resolution</p>
               </div>
               <p className="text-[10px] text-muted-foreground px-1">{t("complaints_gps_note")}</p>
             </div>
@@ -153,9 +131,9 @@ export default function Complaints() {
                   )}>
                     {level}
                   </button>
-                ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground px-1">📍 GPS location captured automatically</p>
               </div>
-            </div>
 
             {/* Description */}
             <div className="space-y-2">
@@ -184,11 +162,24 @@ export default function Complaints() {
       ) : (
         /* --- COMPLAINT HISTORY --- */
         <div className="space-y-4">
-          {myComplaints.map((complaint) => (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 space-y-4">
+              <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+              <p className="text-xs text-muted-foreground">Fetching your reports...</p>
+            </div>
+          ) : complaints.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle size={24} className="text-muted-foreground/40" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">No reports found</p>
+              <p className="text-xs text-muted-foreground">File a new report to see it here.</p>
+            </div>
+          ) : complaints.map((complaint) => (
             <Card key={complaint.id}
               onClick={() => setSelectedComplaint(complaint)}
               className={cn("border bg-card shadow-sm rounded-3xl cursor-pointer transition-all hover:shadow-md",
-                selectedComplaint.id === complaint.id ? "border-primary/40" : "border-border"
+                selectedComplaint?.id === complaint.id ? "border-primary/40" : "border-border"
               )}>
               <CardContent className="p-0">
                 <div className="flex">
@@ -221,20 +212,20 @@ export default function Complaints() {
                     
                     <div className="flex items-center gap-1.5 mb-3">
                       <MapPin size={10} className="text-muted-foreground" />
-                      <p className="text-[11px] text-muted-foreground">{complaint.location}</p>
+                      <p className="text-[11px] text-muted-foreground">{complaint.location_name}</p>
                     </div>
 
                     {/* Progress Bar */}
                     <div className="flex gap-1">
                       {STATUS_STEPS.map((_, i) => (
                         <div key={i} className={cn("flex-1 h-1 rounded-full transition-all",
-                          i <= complaint.statusIdx ? "bg-primary" : "bg-muted"
+                          i <= (complaint.status_idx || 0) ? "bg-primary" : "bg-muted"
                         )} />
                       ))}
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-[10px] text-muted-foreground">{STATUS_STEPS[complaint.statusIdx]}</span>
-                      {complaint.aiValidated && (
+                      <span className="text-[10px] text-muted-foreground">{STATUS_STEPS[complaint.status_idx || 0]}</span>
+                      {complaint.ai_validated && (
                         <div className="flex items-center gap-1">
                           <ShieldCheck size={10} className="text-primary" />
                           <span className="text-[10px] text-primary font-semibold">AI Verified</span>
@@ -245,23 +236,23 @@ export default function Complaints() {
                 </div>
 
                 {/* Expanded Detail */}
-                {selectedComplaint.id === complaint.id && (
+                {selectedComplaint?.id === complaint.id && (
                   <div className="border-t border-border mx-4 pt-4 pb-4 space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="p-3 bg-muted/40 rounded-2xl">
                         <p className="text-[10px] text-muted-foreground">Assigned To</p>
-                        <p className="text-xs font-semibold text-foreground mt-1">{complaint.assignedTo}</p>
+                        <p className="text-xs font-semibold text-foreground mt-1">{complaint.assigned_to || "Awaiting Assignment"}</p>
                       </div>
                       <div className="p-3 bg-muted/40 rounded-2xl">
                         <p className="text-[10px] text-muted-foreground">Resolution ETA</p>
-                        <p className="text-xs font-semibold text-foreground mt-1">{complaint.expectedResolution}</p>
+                        <p className="text-xs font-semibold text-foreground mt-1">{complaint.expected_resolution || "Pending Review"}</p>
                       </div>
                     </div>
                     
                     {/* Timeline */}
                     <div className="space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Timeline</p>
-                      {STATUS_STEPS.slice(0, complaint.statusIdx + 1).map((step, i) => (
+                      {STATUS_STEPS.slice(0, (complaint.status_idx || 0) + 1).map((step, i) => (
                         <div key={i} className="flex items-center gap-3">
                           <div className="w-5 h-5 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
                             <CheckCircle2 size={11} className="text-primary" />
@@ -269,7 +260,7 @@ export default function Complaints() {
                           <p className="text-xs text-foreground font-medium">{step}</p>
                         </div>
                       ))}
-                      {STATUS_STEPS.slice(complaint.statusIdx + 1).map((step, i) => (
+                      {STATUS_STEPS.slice((complaint.status_idx || 0) + 1).map((step, i) => (
                         <div key={i} className="flex items-center gap-3 opacity-40">
                           <div className="w-5 h-5 rounded-full border border-border flex-shrink-0" />
                           <p className="text-xs text-muted-foreground">{step}</p>

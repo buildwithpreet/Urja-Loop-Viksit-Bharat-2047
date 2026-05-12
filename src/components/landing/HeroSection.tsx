@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Play, ShieldCheck, Activity, Cpu, Globe, MousePointer2 } from "lucide-react"
+import { ArrowRight, Play, ShieldCheck, Activity, Cpu, Globe, MousePointer2, ChevronDown } from "lucide-react"
 import { SmartBinAnimation } from "@/components/shared/SmartBinAnimation"
 
 export function HeroSection() {
@@ -121,9 +121,13 @@ export function HeroSection() {
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-           <div className="w-px h-12 bg-gradient-to-b from-transparent via-[#1F7A3D]/50 dark:via-[#34D399]/50 to-transparent" />
-           <span className="text-[9px] uppercase tracking-[0.3em] text-neutral-400 dark:text-[#666666]">Scroll to Explore</span>
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 group cursor-pointer animate-bounce [animation-duration:3s]">
+           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-400 dark:text-[#666666] group-hover:text-primary transition-colors">
+              Explore
+           </span>
+           <div className="text-neutral-300 dark:text-white/20 group-hover:text-primary transition-colors">
+              <ChevronDown size={20} strokeWidth={1} />
+           </div>
         </div>
 
       </div>

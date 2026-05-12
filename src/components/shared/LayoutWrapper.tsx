@@ -23,12 +23,15 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // eslint-disable-next-line
     setMounted(true)
-    if (!isAuthRoute) {
-      const hasOnboarded = localStorage.getItem("urjaloop_onboarded")
-      if (!hasOnboarded) {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      const isDemoSession = localStorage.getItem("urjaloop_demo_session") === "true"
+      
+      if (!isAuthRoute && !session && !isDemoSession) {
         router.push("/login")
       }
     }
+    checkAuth()
   }, [isAuthRoute, pathname, router])
 
   if (!mounted) return <div className="min-h-screen bg-background" />

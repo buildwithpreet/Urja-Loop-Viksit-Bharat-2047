@@ -4,12 +4,13 @@ import { useState, useEffect, useRef } from "react"
 import { 
   Bot, Send, Mic, Sparkles, User, 
   Leaf, MapPin, AlertCircle, Search, Recycle,
-  BrainCircuit
+  BrainCircuit, Camera, CheckCircle2
 } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
+import { toast } from "sonner"
 
 const suggestedPrompts = [
   { icon: Recycle, text: "How do I segregate plastic waste?", tag: "Segregation" },
@@ -18,11 +19,27 @@ const suggestedPrompts = [
   { icon: Leaf, text: "What are Eco Credits and how do I earn them?", tag: "Credits" },
 ]
 
-const botResponses: Record<string, string> = {
-  "default": "That's a great question! I'm analyzing your request using my sustainability knowledge base. Based on current data in your area, I'd suggest checking the Transparency Map for real-time information. 🌍",
-  "segregate": "Plastic waste should be divided into: **Hard Plastics** (bottles, containers), **Soft Plastics** (bags, wrappers), and **Composite** (multi-layer packaging). Rinse containers before disposal. In Sector 14, the nearest segregation facility is at the Main Gate smart bin. Your submission earns Eco Credits after AI + weight verification! ♻️",
-  "report": "To report illegal dumping: 1️⃣ Open the Scan Center and select **Report Open Dumping** 2️⃣ Take a photo as evidence 3️⃣ Your GPS location is auto-captured 4️⃣ Select severity level 5️⃣ Submit. Your complaint will receive an AI validation tag and be assigned within 2 hours. You can track progress in the Complaint Center.",
-  "credits": "**Eco Credits** are earned after verified waste submission. Here's how: 🔁 Show your Smart QR to the bin → Waste is weighed → AI camera identifies type → Cloud verification → Credits added. Current rate: ~₹0.50 per 100g verified plastic. Credits can be redeemed in the Marketplace for compost, recycled products, and more!",
+import { useMode } from "@/components/shared/ModeProvider"
+import { supabase } from "@/lib/supabase"
+
+const botResponses: Record<string, (context: any) => string> = {
+  "default": () => "That's a great question! I'm analyzing your request using my sustainability knowledge base. Based on current data in your area, I'd suggest checking the Transparency Map for real-time information. 🌍",
+  
+  "segregate": () => "Plastic waste should be divided into: **Hard Plastics** (bottles, containers), **Soft Plastics** (bags, wrappers), and **Composite** (multi-layer packaging). Rinse containers before disposal. In Sector 14, the nearest segregation facility is at the Main Gate smart bin. Your submission earns Eco Credits after AI + weight verification! ♻️",
+  
+  "report": () => "To report illegal dumping: 1️⃣ Open the Scan Center and select **Report Open Dumping** 2️⃣ Take a photo as evidence 3️⃣ Your GPS location is auto-captured 4️⃣ Select severity level 5️⃣ Submit. Your complaint will receive an AI validation tag and be assigned within 2 hours. You can track progress in the Complaint Center.",
+  
+  "credits": (ctx) => `You currently have **${ctx.credits} Eco Credits**. You can earn more by submitting verified recyclables at the nearest Smart Bin. Current rate: ~₹0.50 per 100g verified plastic. Your recent contribution saved **4.2kg of CO2**! 💎`,
+
+  "bins": (ctx) => {
+    const fullBins = ctx.bins.filter((b: any) => b.fill > 80).length
+    if (fullBins > 0) {
+      return `Warning: **${fullBins} bins** in your area are nearing capacity. Our collection team (Truck #402) has been notified and is 1.2km away. I recommend using the **Park Entrance** bin which is only 67% full. 🚛`
+    }
+    return `All bins in your vicinity are currently available. The cleanest one is at **Main Gate** (18% full). Happy recycling! ✅`
+  },
+
+  "rural": () => "As your Agri-Waste Assistant, I recommend checking the **Marketplace** for the latest Bio-fuel prices. Current demand for **Rice Straw (Prali)** is high in Ludhiana. Selling now can earn you up to **₹1,500/ton** plus 500 Urja Credits! 🌾"
 }
 
 interface Message {
@@ -33,12 +50,28 @@ interface Message {
 
 export default function UrjaBot() {
   const { t } = useLanguage()
+  const { mode } = useMode()
   const [messages, setMessages] = useState<Message[]>([
     { role: "bot", content: t("bot_greeting"), timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }
   ])
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
+  const [bins, setBins] = useState<any[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data: p } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+        if (p) setProfile(p)
+      }
+      const { data } = await supabase.from('smart_bins').select('*')
+      if (data) setBins(data)
+    }
+    fetchData()
+  }, [])
 
   const handleSend = (text?: string) => {
     const msg = text || input
@@ -50,15 +83,71 @@ export default function UrjaBot() {
     setIsTyping(true)
 
     const lowerMsg = msg.toLowerCase()
-    let response = botResponses.default
-    if (lowerMsg.includes("segregat") || lowerMsg.includes("plastic") || lowerMsg.includes("separate")) response = botResponses.segregate
-    else if (lowerMsg.includes("report") || lowerMsg.includes("dump") || lowerMsg.includes("illegal")) response = botResponses.report
-    else if (lowerMsg.includes("credit") || lowerMsg.includes("earn") || lowerMsg.includes("reward")) response = botResponses.credits
+    const context = { credits: profile?.eco_credits || 0, bins: bins }
+    
+    let responseFn = botResponses.default
+    if (lowerMsg.includes("segregat") || lowerMsg.includes("plastic") || lowerMsg.includes("separate")) responseFn = botResponses.segregate
+    else if (lowerMsg.includes("report") || lowerMsg.includes("dump") || lowerMsg.includes("illegal")) responseFn = botResponses.report
+    else if (lowerMsg.includes("credit") || lowerMsg.includes("earn") || lowerMsg.includes("reward")) responseFn = botResponses.credits
+    else if (lowerMsg.includes("bin") || lowerMsg.includes("fill") || lowerMsg.includes("full") || lowerMsg.includes("near")) responseFn = botResponses.bins
+    
+    if (mode === "rural" && (lowerMsg.includes("farm") || lowerMsg.includes("agri") || lowerMsg.includes("prali") || lowerMsg.includes("straw"))) {
+      responseFn = botResponses.rural
+    }
+
+    const response = responseFn(context)
 
     setTimeout(() => {
       setIsTyping(false)
       setMessages(prev => [...prev, { role: "bot", content: response, timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }])
     }, 1400)
+  }
+
+  const handleScan = async () => {
+    setIsTyping(true)
+    const userMsg: Message = { role: "user", content: "[Photo Uploaded: Plastic Bottle]", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }
+    setMessages(prev => [...prev, userMsg])
+    
+    setTimeout(async () => {
+      const reward = 50
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session) {
+        // 1. Get current credits
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('eco_credits')
+          .eq('id', session.user.id)
+          .single()
+        
+        const newCredits = (profile?.eco_credits || 0) + reward
+
+        // 2. Update credits
+        await supabase
+          .from('profiles')
+          .update({ eco_credits: newCredits })
+          .eq('id', session.user.id)
+        
+        // 3. Log activity
+        await supabase.from('activity_log').insert({
+          user_id: session.user.id,
+          action: "Scanned Waste",
+          description: "Identified PET Plastic Bottle via AI Scan",
+          points_earned: reward
+        })
+
+        setIsTyping(false)
+        setMessages(prev => [...prev, { 
+          role: "bot", 
+          content: `AI Scan Complete! ✅\n\nItem: **PET Plastic Bottle**\nStatus: **Verified**\nReward: **+${reward} Eco Credits**\n\nYour contribution has been logged. Thank you for keeping India clean! 🌍`, 
+          timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) 
+        }])
+        toast.success(`Reward Earned: +${reward} Credits!`)
+      } else {
+        setIsTyping(false)
+        setMessages(prev => [...prev, { role: "bot", content: "AI Scan Complete! Identified a **Plastic Bottle**. Please login to earn Eco Credits for your contribution! ♻️", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }])
+      }
+    }, 2000)
   }
 
   useEffect(() => {

@@ -6,11 +6,9 @@ import { Home, MapPin, QrCode, ShoppingBag, User, AlertCircle } from "lucide-rea
 import { cn } from "@/lib/utils"
 import { useLanguage } from "./LanguageProvider"
 
-interface BottomNavProps {
-  onScanClick: () => void
-}
+interface BottomNavProps {}
 
-export function BottomNav({ onScanClick }: BottomNavProps) {
+export function BottomNav({}: BottomNavProps) {
   const pathname = usePathname()
   const { t } = useLanguage()
 
@@ -24,28 +22,34 @@ export function BottomNav({ onScanClick }: BottomNavProps) {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden" aria-label="Main Navigation">
       {/* Blur background */}
-      <div className="absolute inset-0 bg-card/80 backdrop-blur-2xl border-t border-border" />
+      <div className="absolute inset-0 bg-card/80 backdrop-blur-2xl border-t border-border/50 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-none" />
       
-      <div className="relative flex items-center justify-around px-2 h-[72px]">
+      <div className="relative flex items-center justify-between px-4 h-[84px] pb-4">
         {navItems.map((item) => {
-          if (item.isScan) {
+          const isActive = item.href && pathname === item.href
+          
+          if (item.isPrimary) {
             return (
-              <button
-                key="scan"
-                onClick={onScanClick}
-                className="relative -mt-6 flex flex-col items-center gap-1"
+              <Link
+                key={item.name}
+                href={item.href!}
+                aria-label="Scan waste or QR code"
+                className="relative -top-8 flex flex-col items-center group"
               >
-                {/* Central scan button */}
-                <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/30 hover:opacity-90 active:scale-95 transition-all">
-                  <item.icon size={26} className="text-primary-foreground" strokeWidth={2} />
+                {/* Outer Glow */}
+                <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-150 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                {/* Main Circle */}
+                <div className="relative w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center shadow-xl shadow-primary/30 border-4 border-background transform transition-all active:scale-90 group-hover:scale-110">
+                   <item.icon size={28} strokeWidth={2.5} />
                 </div>
                 <span className="text-[10px] font-semibold text-primary">{item.label}</span>
               </button>
             )
           }
-          const isActive = item.href && pathname === item.href
+
           return (
             <Link
               key={item.name}

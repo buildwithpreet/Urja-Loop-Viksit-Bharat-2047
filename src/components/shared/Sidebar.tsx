@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
@@ -14,11 +15,29 @@ import { LanguageToggle } from "./LanguageToggle"
 import { ThemeToggle } from "./ThemeToggle"
 import { useLanguage } from "./LanguageProvider"
 
+import { AccessibilityMenu } from "./AccessibilityMenu"
+
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
   const pathname = usePathname()
   const user = useUser()
   const { t } = useLanguage()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (data) setProfile(data)
+      }
+    }
+    fetchProfile()
+  }, [])
 
   const navItems = [
     { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },

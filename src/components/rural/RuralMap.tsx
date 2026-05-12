@@ -1,113 +1,203 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { 
   MapPin, Search, Navigation, Filter, 
-  Tractor, Wheat, Factory, Sprout, ChevronUp, Leaf
+  Tractor, Wheat, Factory, Sprout, ChevronUp, Leaf, X
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { GoogleMap, useJsApiLoader, MarkerF } from "@react-google-maps/api"
 
+// Real Coordinates near Ludhiana, Punjab
 const locations = [
-  { id: 1, type: "center", lat: "38%", lng: "28%", capacity: "Available", status: "open", name: "Kisan Bio-Hub", dist: "2.4 km" },
-  { id: 2, type: "plant", lat: "52%", lng: "48%", capacity: "Full", status: "closed", name: "Agri-Waste Processor A", dist: "5.1 km" },
-  { id: 3, type: "compost", lat: "22%", lng: "62%", capacity: "Available", status: "open", name: "Village Compost Unit", dist: "1.2 km" },
-  { id: 4, type: "vehicle", lat: "58%", lng: "33%", name: "Transport Tractor #12", route: "Farm Route 4", eta: "~18 min away" },
+  { id: 1, type: "center", lat: 30.915, lng: 75.845, capacity: "Available", status: "open", name: "Kisan Bio-Hub", dist: "2.4 km" },
+  { id: 2, type: "plant", lat: 30.925, lng: 75.875, capacity: "Full", status: "closed", name: "Agri-Waste Processor A", dist: "5.1 km" },
+  { id: 3, type: "compost", lat: 30.890, lng: 75.860, capacity: "Available", status: "open", name: "Village Compost Unit", dist: "1.2 km" },
+  { id: 4, type: "vehicle", lat: 30.905, lng: 75.830, name: "Transport Tractor #12", route: "Farm Route 4", eta: "~18 min away" },
 ]
 
+const mapContainerStyle = {
+  width: '100%',
+  height: '100vh',
+};
+
+const center = {
+  lat: 30.9010,
+  lng: 75.8573,
+};
+
+// Custom Eco-Agri Map Style
+const mapOptions = {
+  disableDefaultUI: true,
+  zoomControl: false,
+  styles: [
+    { elementType: "geometry", stylers: [{ color: "#ebe3cd" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#523735" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#f5f1e6" }] },
+    {
+      featureType: "administrative",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#c9b2a6" }],
+    },
+    {
+      featureType: "administrative.land_parcel",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#dcd2be" }],
+    },
+    {
+      featureType: "administrative.land_parcel",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#ae9e90" }],
+    },
+    {
+      featureType: "landscape.natural",
+      elementType: "geometry",
+      stylers: [{ color: "#dfd2ae" }],
+    },
+    {
+      featureType: "poi",
+      elementType: "geometry",
+      stylers: [{ color: "#dfd2ae" }],
+    },
+    {
+      featureType: "poi",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#93817c" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "geometry.fill",
+      stylers: [{ color: "#a5b076" }],
+    },
+    {
+      featureType: "poi.park",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#447530" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#f5f1e6" }],
+    },
+    {
+      featureType: "road.arterial",
+      elementType: "geometry",
+      stylers: [{ color: "#fdfcf8" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: "#f8c967" }],
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#e9bc62" }],
+    },
+    {
+      featureType: "road.highway.controlled_access",
+      elementType: "geometry",
+      stylers: [{ color: "#e98d58" }],
+    },
+    {
+      featureType: "road.highway.controlled_access",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#db854f" }],
+    },
+    {
+      featureType: "road.local",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#806b63" }],
+    },
+    {
+      featureType: "transit.line",
+      elementType: "geometry",
+      stylers: [{ color: "#dfd2ae" }],
+    },
+    {
+      featureType: "transit.line",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#8f7d77" }],
+    },
+    {
+      featureType: "transit.line",
+      elementType: "labels.text.stroke",
+      stylers: [{ color: "#ebe3cd" }],
+    },
+    {
+      featureType: "transit.station",
+      elementType: "geometry",
+      stylers: [{ color: "#dfd2ae" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry.fill",
+      stylers: [{ color: "#b9d3c2" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#92998d" }],
+    },
+  ],
+};
+
 export function RuralMap() {
-  const [selectedEntity, setSelectedEntity] = useState<typeof locations[0]>(locations[0])
+  const [selectedEntity, setSelectedEntity] = useState<any>(locations[0])
   const [showRoutes, setShowRoutes] = useState(true)
   const [isSheetExpanded, setIsSheetExpanded] = useState(false)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: "AIzaSyAaoPl-hmbJyViPAY02ktYEIkVTDV_HVq4"
+  })
+
+  const onLoad = useCallback(function callback(map: google.maps.Map) {
+    setMap(map)
+  }, [])
+
+  if (!isLoaded) {
+    return (
+      <div className="w-full h-full bg-card flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+        <p className="text-sm font-bold text-amber-600 uppercase tracking-widest">Initializing Kisan Matrix...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="h-[calc(100vh-0rem)] w-full relative overflow-hidden bg-background animate-in fade-in duration-700">
       
-      {/* Map Simulation Background */}
+      {/* Real Google Map Integration */}
       <div className="absolute inset-0 z-0">
-        {/* Rural grid simulation */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(245, 158, 11, 0.05) 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px"
-        }} />
-        {/* Farm & road lines simulation */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-15 text-amber-500">
-          <line x1="0" y1="40%" x2="100%" y2="40%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" />
-          <line x1="0" y1="65%" x2="100%" y2="65%" stroke="currentColor" strokeWidth="1" />
-          <line x1="35%" y1="0" x2="35%" y2="100%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" />
-          <line x1="68%" y1="0" x2="68%" y2="100%" stroke="currentColor" strokeWidth="1" />
-          {/* Farm plots */}
-          <rect x="10%" y="10%" width="20%" height="25%" fill="rgba(16, 185, 129, 0.1)" stroke="currentColor" strokeWidth="1" />
-          <rect x="70%" y="20%" width="25%" height="30%" fill="rgba(16, 185, 129, 0.1)" stroke="currentColor" strokeWidth="1" />
-          <rect x="40%" y="70%" width="20%" height="20%" fill="rgba(16, 185, 129, 0.1)" stroke="currentColor" strokeWidth="1" />
-          
-          {/* Aggregation Routes */}
-          {showRoutes && (
-            <>
-              <path d="M 28% 38% C 35% 30%, 45% 40%, 48% 52%" fill="none" stroke="#10b981" strokeWidth="2" strokeDasharray="4 4" className="animate-[dash_3s_linear_infinite]" />
-              <path d="M 62% 22% C 55% 35%, 50% 45%, 48% 52%" fill="none" stroke="#10b981" strokeWidth="2" strokeDasharray="4 4" className="animate-[dash_3s_linear_infinite]" />
-            </>
-          )}
-        </svg>
-
-        {/* Entities (Markers) */}
-        {locations.map((loc) => (
-          <button
-            key={loc.id}
-            onClick={() => {
-              setSelectedEntity(loc)
-              setIsSheetExpanded(true)
-            }}
-            className={cn(
-              "absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300",
-              selectedEntity.id === loc.id ? "scale-125 z-20" : "scale-100 hover:scale-110 z-10"
-            )}
-            style={{ top: loc.lat, left: loc.lng }}
-          >
-            {loc.type === "center" && (
-              <div className="relative">
-                <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/30 border-2 border-background text-white">
-                  <Wheat size={20} />
-                </div>
-              </div>
-            )}
-            {loc.type === "plant" && (
-              <div className="relative">
-                <div className="w-10 h-10 bg-rose-500 rounded-lg flex items-center justify-center shadow-lg shadow-rose-500/30 border-2 border-background text-white">
-                  <Factory size={20} />
-                </div>
-              </div>
-            )}
-            {loc.type === "compost" && (
-              <div className="relative">
-                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 border-2 border-background text-white">
-                  <Sprout size={20} />
-                </div>
-              </div>
-            )}
-            {loc.type === "vehicle" && (
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 border-2 border-background text-white">
-                <Tractor size={20} />
-              </div>
-            )}
-            
-            {/* Active Indicator */}
-            {selectedEntity.id === loc.id && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full border-2 border-background" />
-            )}
-          </button>
-        ))}
-        
-        {/* User Location */}
-        <div className="absolute top-[65%] left-[45%] -translate-x-1/2 -translate-y-1/2 z-10">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-blue-500/20 rounded-full animate-ping" />
-            <div className="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg" />
-          </div>
-        </div>
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={center}
+          zoom={13}
+          onLoad={onLoad}
+          options={mapOptions}
+        >
+          {locations.map((loc) => (
+            <MarkerF
+              key={loc.id}
+              position={{ lat: loc.lat, lng: loc.lng }}
+              onClick={() => {
+                setSelectedEntity(loc)
+                setIsSheetExpanded(true)
+              }}
+              icon={{
+                path: loc.type === "plant" ? "M3 21h18V8H3v13zm7-11h4v3h-4v-3zm0 5h4v3h-4v-3z" : google.maps.SymbolPath.CIRCLE,
+                scale: loc.type === "plant" ? 1.5 : 10,
+                fillColor: loc.type === "center" ? "#f59e0b" : loc.type === "plant" ? "#f43f5e" : loc.type === "compost" ? "#10b981" : "#3b82f6",
+                fillOpacity: 1,
+                strokeWeight: 2,
+                strokeColor: "#ffffff",
+              }}
+            />
+          ))}
+        </GoogleMap>
       </div>
 
       {/* Top Controls */}
@@ -179,7 +269,13 @@ export function RuralMap() {
                 {selectedEntity.dist && <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1"><MapPin size={12}/> {selectedEntity.dist}</p>}
                 {selectedEntity.eta && <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1"><Tractor size={12}/> ETA: {selectedEntity.eta}</p>}
               </div>
-              <button className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+              <button 
+                onClick={() => {
+                  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEntity.name)}`
+                  window.open(url, '_blank')
+                }}
+                className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+              >
                 <Navigation size={18} className="fill-white" />
               </button>
             </div>

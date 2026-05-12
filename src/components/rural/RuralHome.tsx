@@ -5,6 +5,8 @@ import {
   TrendingUp, Calendar, AlertTriangle, Truck, Eye, ArrowRight,
   Flame, CloudRain, Sun, BrainCircuit, ChevronRight
 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -20,12 +22,31 @@ const NEARBY_CENTERS = [
 
 export function RuralHome() {
   const { t } = useLanguage()
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (data) setProfile(data)
+      }
+      setLoading(false)
+    }
+    fetchProfile()
+  }, [])
 
   const RURAL_METRICS = [
-    { label: t("rural_waste_sold"), value: "1,240 kg", icon: Wheat, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: t("rural_waste_sold"), value: `${profile?.waste_processed || "0"} kg`, icon: Wheat, color: "text-amber-500", bg: "bg-amber-500/10" },
     { label: t("rural_pickups"), value: "2", icon: Tractor, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { label: t("rural_shop_verified"), value: "14", icon: Sprout, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-    { label: "CO₂ Impact", value: "-2.4 T", icon: Wind, color: "text-cyan-500", bg: "bg-cyan-500/10" },
+    { label: "Eco Credits", value: profile?.eco_credits?.toLocaleString() || "0", icon: Sprout, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { label: "CO₂ Impact", value: `-${profile?.co2_saved || "0"} kg`, icon: Wind, color: "text-cyan-500", bg: "bg-cyan-500/10" },
   ]
 
   const AI_INSIGHTS = [
@@ -42,8 +63,8 @@ export function RuralHome() {
             <Wheat size={14} />
             <span>{t("rural_dashboard")}</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Ram Singh</h1>
-          <p className="text-sm text-muted-foreground mt-1">Ludhiana, Punjab · Farm ID: #PB-4029</p>
+          <h1 className="text-3xl font-bold tracking-tight">{profile?.full_name || "Alex"}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{profile?.location || "Ludhiana, Punjab"} · Farm ID: #PB-{profile?.id?.slice(0, 4) || "4029"}</p>
         </div>
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-card border border-border shadow-sm">
           <Sun className="text-amber-500" size={24} />

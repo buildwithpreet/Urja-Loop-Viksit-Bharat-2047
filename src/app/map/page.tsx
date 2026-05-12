@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralMap } from "@/components/rural/RuralMap"
+import { supabase } from "@/lib/supabase"
+import { useEffect } from "react"
+import dynamic from "next/dynamic"
 
 // Dynamic import — Leaflet must NOT run on server
 const LeafletMap = dynamic(
@@ -63,6 +66,57 @@ export default function MapPage() {
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [showTransparency, setShowTransparency] = useState(true)
   const [isSheetExpanded, setIsSheetExpanded] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchBins()
+  }, [])
+
+  const fetchBins = async () => {
+    setLoading(true)
+    try {
+      const { data: bins } = await supabase.from('smart_bins').select('*')
+      
+      const mappedBins = (bins || []).map(b => ({
+        id: b.id,
+        type: "bin",
+        // Convert mock percentage to relative lat/lng around center for demo
+        lat: b.lat_geo || BHARAT_CENTER[0] + (Math.random() - 0.5) * 0.05,
+        lng: b.lng_geo || BHARAT_CENTER[1] + (Math.random() - 0.5) * 0.05,
+        fill: b.fill_level || Math.floor(Math.random() * 100),
+        status: (b.fill_level || 0) > 80 ? "high" : (b.fill_level || 0) > 50 ? "medium" : "low",
+        address: b.location_name || "Smart Bin Station",
+        lastCleaned: "2h ago",
+        nextPickup: (b.fill_level || 0) > 80 ? "ASAP" : "Scheduled",
+        capacity: "120L"
+      }))
+
+      if (mappedBins.length === 0) {
+        // Add spread out mock bins
+        for(let i=0; i<5; i++) {
+          mappedBins.push({
+            id: `m${i}`,
+            type: 'bin',
+            lat: BHARAT_CENTER[0] + (Math.random() - 0.5) * 0.04,
+            lng: BHARAT_CENTER[1] + (Math.random() - 0.5) * 0.04,
+            fill: Math.floor(Math.random() * 100),
+            status: 'medium',
+            address: `Zone ${i+1} Collection Point`,
+            lastCleaned: '2h ago',
+            nextPickup: 'Daily',
+            capacity: '120L'
+          })
+        }
+      }
+
+      setLocations([...mappedBins])
+      if (mappedBins.length > 0) setSelectedEntity(mappedBins[0])
+    } catch (err) {
+      console.error("Map Data Error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (mode === "rural") {
     return <RuralMap />

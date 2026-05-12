@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, CheckCircle2, ShieldCheck, Timer, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import { useSearchParams } from "next/navigation"
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
+
 export default function VerifyOtpScreen() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const phone = searchParams.get("phone") || "+91 98765 43210"
+  
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [timer, setTimer] = useState(30)
   const [isVerifying, setIsVerifying] = useState(false)
@@ -24,6 +31,10 @@ export default function VerifyOtpScreen() {
   useEffect(() => {
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus()
+    }
+    if (!searchParams.get("phone")) {
+      toast.error("No phone number provided")
+      router.push("/login")
     }
   }, [])
 
@@ -60,17 +71,67 @@ export default function VerifyOtpScreen() {
     }
   }
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const otpValue = otp.join("")
-    if (otpValue.length === 6) {
+    const isDemo = searchParams.get("demo") === "true"
+
+    if (otpValue.length === 6 && phone) {
       setIsVerifying(true)
-      setTimeout(() => {
+      
+      let user = null
+      let error = null
+
+      if (isDemo) {
+        // --- HACKATHON DEMO BYPASS ---
+        // Simulate successful login for any OTP in demo mode
+        await new Promise(r => setTimeout(r, 1000))
+        const { data: demoData } = await supabase.auth.getSession()
+        user = demoData.session?.user || { id: "demo-user-id", email: "demo@urjaloop.com" }
+        localStorage.setItem("urjaloop_demo_session", "true")
+      } else {
+        const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+          phone,
+          token: otpValue,
+          type: 'sms'
+        })
+        user = authData?.user
+        error = authError
+      }
+
+      if (error) {
+        toast.error(error.message)
+        setIsVerifying(false)
+      } else {
+        // Successfully verified
+        
+        // Check if user has a profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user?.id)
+          .single()
+
         setIsVerifying(false)
         setIsSuccess(true)
+        
         setTimeout(() => {
-          router.push("/onboarding")
+          if (profile && profile.full_name) {
+            router.push("/dashboard")
+          } else {
+            router.push("/onboarding")
+          }
         }, 1500)
-      }, 1500)
+      }
+    }
+  }
+
+  const handleResend = async () => {
+    if (timer > 0) return
+    const { error } = await supabase.auth.signInWithOtp({ phone })
+    if (error) toast.error(error.message)
+    else {
+      toast.success("Code resent!")
+      setTimer(30)
     }
   }
 
@@ -114,7 +175,7 @@ export default function VerifyOtpScreen() {
         <div className="text-center space-y-4 w-full">
            <h1 className="text-3xl font-medium text-foreground tracking-tight">Enter Verification Code</h1>
            <div className="flex flex-col items-center gap-2">
-              <p className="text-sm text-muted-foreground font-medium">Sent to +91 98765 43210</p>
+               <p className="text-sm text-muted-foreground font-medium">Sent to {phone}</p>
               <button onClick={() => router.back()} className="text-xs text-primary hover:underline font-semibold transition-colors">
                 Change Number
               </button>

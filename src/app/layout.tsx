@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider"
 import { LanguageProvider } from "@/components/shared/LanguageProvider"
 import { UserProvider } from "@/components/shared/UserContext"
 import { ModeProvider } from "@/components/shared/ModeProvider"
+import { AccessibilityProvider } from "@/components/shared/AccessibilityProvider"
 import { PwaRegister } from "@/components/shared/PwaRegister"
 import { Toaster } from "@/components/ui/sonner"
 
@@ -41,6 +42,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
+}
+
+export const viewport = {
+  themeColor: "#10b981",
 }
 
 export default function RootLayout({

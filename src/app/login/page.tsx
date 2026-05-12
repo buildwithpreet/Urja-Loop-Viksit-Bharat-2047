@@ -5,12 +5,16 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Leaf, ArrowRight, ShieldCheck, Phone } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { LanguageToggle } from "@/components/shared/LanguageToggle"
+import { useLanguage } from "@/components/shared/LanguageProvider"
 
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
 export default function LoginScreen() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [phone, setPhone] = useState("")
   const [agreed, setAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -98,6 +102,12 @@ export default function LoginScreen() {
       <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#1F7A3D]/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#34D399]/5 blur-[100px] rounded-full pointer-events-none" />
 
+      {/* Toggles */}
+      <div className="absolute top-6 right-6 flex items-center gap-4 z-50">
+        <ThemeToggle />
+        <LanguageToggle />
+      </div>
+
       <div className="w-full max-w-md space-y-12 z-10">
 
         {/* Branding */}
@@ -109,8 +119,8 @@ export default function LoginScreen() {
             <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl -z-10 scale-125 animate-pulse"></div>
           </Link>
           <div className="space-y-1">
-            <h1 className="text-4xl font-black text-foreground tracking-tighter uppercase">Access Terminal</h1>
-            <p className="text-[10px] text-primary font-black uppercase tracking-[0.3em] opacity-80">UrjaLoop Network Authentication</p>
+            <h1 className="text-4xl font-black text-foreground tracking-tighter uppercase">{t("login_title")}</h1>
+            <p className="text-[10px] text-primary font-black uppercase tracking-[0.3em] opacity-80">{t("login_subtitle")}</p>
           </div>
         </div>
 
@@ -121,7 +131,7 @@ export default function LoginScreen() {
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
                 <label htmlFor="phone" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                  Mobile Identifier
+                  {t("login_phone_label")}
                 </label>
                 <Phone size={14} className="text-primary opacity-40" />
               </div>
@@ -136,7 +146,7 @@ export default function LoginScreen() {
                   maxLength={10}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                  placeholder="X XXXX XXXX"
+                  placeholder={t("login_phone_placeholder")}
                   className="w-full h-20 ultra-glass border border-foreground/10 rounded-2xl pl-24 pr-8 text-xl font-black tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 bg-foreground/5"
                 />
               </div>
@@ -153,7 +163,7 @@ export default function LoginScreen() {
                 </div>
               </div>
               <p className="text-[11px] font-black text-muted-foreground leading-relaxed uppercase tracking-widest opacity-60 group-hover/terms:opacity-100 transition-opacity">
-                I accept the <span className="text-primary hover:underline">Network Protocols</span> and <span className="text-primary hover:underline">Privacy Matrix</span>.
+                {t("login_terms_accept")} <span className="text-primary hover:underline">{t("login_terms_1")}</span> {t("login_terms_and")} <span className="text-primary hover:underline">{t("login_terms_2")}</span>.
               </p>
             </div>
 
@@ -171,7 +181,7 @@ export default function LoginScreen() {
                 <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  Continue <ArrowRight size={18} />
+                  {t("login_btn")} <ArrowRight size={18} />
                 </>
               )}
             </button>

@@ -22,6 +22,12 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const isAuthRoute = AUTH_ROUTES.includes(pathname)
 
   useEffect(() => {
+    const handleOpenScan = () => setIsScanModalOpen(true)
+    window.addEventListener("open-scan-modal", handleOpenScan)
+    return () => window.removeEventListener("open-scan-modal", handleOpenScan)
+  }, [])
+
+  useEffect(() => {
     // eslint-disable-next-line
     setMounted(true)
     const checkAuth = async () => {

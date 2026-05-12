@@ -6,9 +6,13 @@ import { Camera, User, Building2, MapPin, Briefcase, Zap, ShieldCheck } from "lu
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { LanguageToggle } from "@/components/shared/LanguageToggle"
+import { useLanguage } from "@/components/shared/LanguageProvider"
 
 export default function SetupProfileScreen() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [formData, setFormData] = useState({
     name: "",
     role: "Citizen",
@@ -84,17 +88,16 @@ export default function SetupProfileScreen() {
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
-      {/* Header Strategy */}
-      <div className="w-full max-w-lg mx-auto pt-10 pb-6 z-10 animate-in slide-in-from-top-6 fade-in duration-1000">
-        <div className="flex items-center gap-4 mb-4">
-           <div className="w-10 h-10 ultra-glass rounded-xl flex items-center justify-center text-primary shadow-xl">
-              <User size={20} strokeWidth={2.5} />
-           </div>
-           <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80">Profile Manifest</span>
-        </div>
-        <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Initialize Identity</h1>
-        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40 mt-2">Configure your node parameters for network access</p>
-      </div>
+      <header className="relative z-20 w-full p-8 flex justify-between items-start max-w-lg mx-auto pb-10">
+         <div className="flex flex-col">
+            <h1 className="text-2xl font-black uppercase tracking-tighter">{t("setup_title")}</h1>
+            <p className="text-[10px] text-primary font-bold uppercase tracking-[0.3em]">{t("setup_subtitle")}</p>
+         </div>
+         <div className="flex items-center gap-3 mt-1">
+           <ThemeToggle />
+           <LanguageToggle />
+         </div>
+      </header>
 
       {/* Main Tactical Deck */}
       <div className="flex-1 flex flex-col z-10 w-full max-w-lg mx-auto animate-in slide-in-from-bottom-10 fade-in duration-1000 fill-mode-both pb-24">
@@ -121,7 +124,7 @@ export default function SetupProfileScreen() {
             {/* Operator Designation */}
             <div className="space-y-4 relative z-10">
               <label htmlFor="name" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
-                <User size={14} className="text-primary" strokeWidth={2.5} /> Primary Identifier
+                <User size={14} className="text-primary" strokeWidth={2.5} /> {t("setup_name_label")}
               </label>
               <div className="relative group/input">
                  <input
@@ -129,7 +132,7 @@ export default function SetupProfileScreen() {
                    type="text"
                    value={formData.name}
                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                   placeholder="ENTER FULL NAME"
+                   placeholder={t("setup_name_placeholder")}
                    className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
                  />
               </div>
@@ -192,14 +195,14 @@ export default function SetupProfileScreen() {
             {/* Geographical Anchor */}
             <div className="space-y-4 relative z-10">
               <label htmlFor="location" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
-                <MapPin size={14} className="text-primary" strokeWidth={2.5} /> Deployment Zone
+                <MapPin size={14} className="text-primary" strokeWidth={2.5} /> {t("setup_loc_label")}
               </label>
               <input
                 id="location"
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData({...formData, location: e.target.value})}
-                placeholder="CITY / VILLAGE NAME"
+                placeholder={t("setup_loc_placeholder")}
                 className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
               />
             </div>

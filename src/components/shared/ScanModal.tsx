@@ -111,11 +111,14 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
   const startCamera = useCallback(async () => {
     setCameraError(null)
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported or blocked by browser.")
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
       streamRef.current = stream
       if (videoRef.current) videoRef.current.srcObject = stream
     } catch {
-      setCameraError("Camera access denied. Please enable camera permissions.")
+      setCameraError("Camera access denied or unavailable in this browser.")
     }
   }, [])
 

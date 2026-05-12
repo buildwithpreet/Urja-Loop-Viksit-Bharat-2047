@@ -18,6 +18,9 @@ import {
   RefreshCw
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/components/shared/LanguageProvider"
+import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { LanguageToggle } from "@/components/shared/LanguageToggle"
 
 const steps = [
   {
@@ -173,6 +176,7 @@ const steps = [
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const router = useRouter()
+  const { t } = useLanguage()
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -208,12 +212,16 @@ export default function OnboardingPage() {
             <span className="font-bold tracking-tight text-lg">UrjaLoop</span>
          </div>
          
-         <button 
-           onClick={() => router.push("/setup-profile")}
-           className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-         >
-           Skip
-         </button>
+         <div className="flex items-center gap-4">
+           <ThemeToggle />
+           <LanguageToggle />
+           <button 
+             onClick={() => router.push("/setup-profile")}
+             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+           >
+             {t("auth_skip")}
+           </button>
+         </div>
       </header>
 
       {/* Main Content Area */}
@@ -229,10 +237,10 @@ export default function OnboardingPage() {
             <div className="space-y-6 text-center lg:text-left">
                <div className="min-h-[280px] lg:min-h-[320px] flex flex-col justify-center">
                   <h1 className="text-4xl md:text-5xl lg:text-7xl font-medium tracking-tight leading-[1.1] text-foreground mb-8">
-                     {step.headline}
+                     {t(`onboarding_${currentStep + 1}_title`) !== `onboarding_${currentStep + 1}_title` ? t(`onboarding_${currentStep + 1}_title`) : step.headline}
                   </h1>
                   <p className="text-xl text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
-                     {step.subtext}
+                     {t(`onboarding_${currentStep + 1}_desc`) !== `onboarding_${currentStep + 1}_desc` ? t(`onboarding_${currentStep + 1}_desc`) : step.subtext}
                   </p>
                </div>
             </div>
@@ -263,7 +271,7 @@ export default function OnboardingPage() {
                  onClick={handleNext}
                  className="h-16 px-10 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 min-w-[180px]"
                >
-                 <span>{currentStep === steps.length - 1 ? "Get Started" : "Continue"}</span>
+                 <span>{currentStep === steps.length - 1 ? t("auth_finish") : t("auth_next")}</span>
                  <ArrowRight size={20} />
                </button>
             </div>

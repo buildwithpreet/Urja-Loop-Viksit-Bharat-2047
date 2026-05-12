@@ -8,9 +8,14 @@ import { cn } from "@/lib/utils"
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { LanguageToggle } from "@/components/shared/LanguageToggle"
+
+import { useLanguage } from "@/components/shared/LanguageProvider"
 
 export default function VerifyOtpScreen() {
   const router = useRouter()
+  const { t } = useLanguage()
   const searchParams = useSearchParams()
   const phone = searchParams.get("phone") || "+91 98765 43210"
   
@@ -161,23 +166,27 @@ export default function VerifyOtpScreen() {
       <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Header */}
-      <div className="w-full max-w-md mx-auto py-8 z-10">
+      <div className="w-full max-w-md mx-auto py-8 z-10 flex justify-between items-center">
         <button 
           onClick={() => router.back()}
           className="w-12 h-12 bg-muted/50 border border-border rounded-xl flex items-center justify-center text-foreground hover:bg-muted transition-all"
         >
           <ArrowLeft size={20} strokeWidth={2} />
         </button>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <LanguageToggle />
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center z-10 w-full max-w-md mx-auto space-y-12">
         <div className="text-center space-y-4 w-full">
-           <h1 className="text-3xl font-medium text-foreground tracking-tight">Enter Verification Code</h1>
+           <h1 className="text-3xl font-medium text-foreground tracking-tight">{t("otp_title")}</h1>
            <div className="flex flex-col items-center gap-2">
-               <p className="text-sm text-muted-foreground font-medium">Sent to {phone}</p>
+               <p className="text-sm text-muted-foreground font-medium">{t("otp_sent_to")} {phone}</p>
               <button onClick={() => router.back()} className="text-xs text-primary hover:underline font-semibold transition-colors">
-                Change Number
+                {t("otp_change")}
               </button>
            </div>
         </div>
@@ -212,14 +221,14 @@ export default function VerifyOtpScreen() {
               <Timer size={14} className={cn("text-primary", timer < 10 && "text-red-500 animate-pulse")} />
               {timer > 0 ? (
                 <p className="text-muted-foreground">
-                  Expires in <span className="text-foreground tabular-nums font-bold">{timer}s</span>
+                  {t("otp_expires")} <span className="text-foreground tabular-nums font-bold">{timer}s</span>
                 </p>
               ) : (
                 <button 
                   onClick={() => setTimer(30)}
                   className="text-primary hover:underline font-semibold"
                 >
-                  Resend Code
+                  {t("otp_resend")}
                 </button>
               )}
             </div>
@@ -238,7 +247,7 @@ export default function VerifyOtpScreen() {
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
                 <>
-                  Authorize Session <ArrowRight size={18} />
+                  {t("otp_btn")} <ArrowRight size={18} />
                 </>
               )}
             </button>
@@ -246,7 +255,7 @@ export default function VerifyOtpScreen() {
 
           <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/40 uppercase font-bold tracking-[0.2em]">
             <ShieldCheck size={14} className="text-primary/40" />
-            End-to-End Encrypted
+            {t("otp_encrypted")}
           </div>
         </div>
       </div>

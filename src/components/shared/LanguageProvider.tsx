@@ -193,6 +193,35 @@ const translations: Translations = {
     auth_next: "Deploy Next Module",
     auth_finish: "Initialize Neural Sync",
     
+    // Setup Profile
+    setup_title: "Initialize Profile",
+    setup_subtitle: "Network Node Setup",
+    setup_name_label: "Primary Identifier",
+    setup_name_placeholder: "ENTER FULL NAME",
+    setup_zone_label: "Operational Zone",
+    setup_urban: "Urban",
+    setup_rural: "Rural",
+    setup_loc_label: "Sector Designation",
+    setup_loc_placeholder: "e.g. Sector 14, New Delhi",
+    setup_btn: "Establish Node",
+    setup_btn_loading: "Initializing...",
+
+    // Verify OTP
+    otp_title: "Enter Verification Code",
+    otp_sent_to: "Sent to",
+    otp_change: "Change Number",
+    otp_expires: "Expires in",
+    otp_resend: "Resend Code",
+    otp_btn: "Authorize Session",
+    otp_encrypted: "End-to-End Encrypted",
+    
+    // Landing Header
+    landing_nav_bin: "The Smart Bin",
+    landing_nav_app: "The App",
+    landing_nav_rewards: "Rewards",
+    landing_login: "Log In",
+    landing_start: "Get Started",
+
     // Common
     common_loading: "Synchronizing Network...",
     common_status: "Status",
@@ -351,6 +380,35 @@ const translations: Translations = {
     auth_skip: "प्रोटोकॉल छोड़ें",
     auth_next: "अगला मॉड्यूल",
     auth_finish: "तंत्रिका सिंक प्रारंभ करें",
+
+    // Setup Profile
+    setup_title: "प्रोफ़ाइल प्रारंभ करें",
+    setup_subtitle: "नेटवर्क नोड सेटअप",
+    setup_name_label: "प्राथमिक पहचानकर्ता",
+    setup_name_placeholder: "पूरा नाम दर्ज करें",
+    setup_zone_label: "परिचालन क्षेत्र",
+    setup_urban: "शहरी",
+    setup_rural: "ग्रामीण",
+    setup_loc_label: "सेक्टर पदनाम",
+    setup_loc_placeholder: "उदा. सेक्टर 14, नई दिल्ली",
+    setup_btn: "नोड स्थापित करें",
+    setup_btn_loading: "प्रारंभ हो रहा है...",
+
+    // Verify OTP
+    otp_title: "सत्यापन कोड दर्ज करें",
+    otp_sent_to: "को भेजा गया",
+    otp_change: "नंबर बदलें",
+    otp_expires: "समाप्त होता है",
+    otp_resend: "कोड फिर से भेजें",
+    otp_btn: "सत्र अधिकृत करें",
+    otp_encrypted: "एंड-टू-एंड एन्क्रिप्टेड",
+    
+    // Landing Header
+    landing_nav_bin: "स्मार्ट बिन",
+    landing_nav_app: "ऐप",
+    landing_nav_rewards: "पुरस्कार",
+    landing_login: "लॉग इन करें",
+    landing_start: "शुरू करें",
     
     // Common
     common_loading: "नेटवर्क सिंक्रनाइज़ हो रहा है...",

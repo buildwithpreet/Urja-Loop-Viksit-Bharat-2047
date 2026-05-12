@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
   Home, MapPin, ShoppingBag, User, BrainCircuit,
-  AlertCircle, Leaf, ChevronLeft, ChevronRight
+  AlertCircle, Leaf, ChevronLeft, ChevronRight, ScanLine
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -42,6 +42,7 @@ export function Sidebar() {
   const navItems = [
     { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },
     { name: "Live Map", label: t("nav_map"), href: "/map", icon: MapPin },
+    { name: "Scan", label: t("nav_scan") || "Scan", onClick: () => window.dispatchEvent(new CustomEvent("open-scan-modal")), icon: ScanLine },
     { name: "Marketplace", label: t("nav_shop"), href: "/shop", icon: ShoppingBag },
     { name: "Complaints", label: t("nav_complaints"), href: "/complaints", icon: AlertCircle },
     { name: "Urja AI", label: t("nav_bot"), href: "/bot", icon: BrainCircuit },
@@ -91,20 +92,10 @@ export function Sidebar() {
           </p>
         )}
         {navItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              title={isCollapsed ? item.name : undefined}
-              className={cn(
-                "flex items-center rounded-xl text-sm font-medium transition-all duration-200 group relative",
-                isCollapsed ? "p-2.5 justify-center" : "px-3 py-2.5 gap-3",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
+          const isActive = item.href && pathname === item.href
+          
+          const innerContent = (
+            <>
               {/* Active indicator */}
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
@@ -117,6 +108,38 @@ export function Sidebar() {
               {!isCollapsed && (
                 <span className="animate-in fade-in duration-200 text-[13px]">{item.label}</span>
               )}
+            </>
+          )
+
+          const className = cn(
+            "flex items-center rounded-xl text-sm font-medium transition-all duration-200 group relative w-full text-left",
+            isCollapsed ? "p-2.5 justify-center" : "px-3 py-2.5 gap-3",
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          )
+
+          if (item.onClick) {
+            return (
+              <button
+                key={item.name}
+                onClick={item.onClick}
+                title={isCollapsed ? item.name : undefined}
+                className={className}
+              >
+                {innerContent}
+              </button>
+            )
+          }
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href!}
+              title={isCollapsed ? item.name : undefined}
+              className={className}
+            >
+              {innerContent}
             </Link>
           )
         })}

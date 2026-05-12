@@ -18,6 +18,9 @@ import {
   RefreshCw
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/components/shared/LanguageProvider"
+import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { LanguageToggle } from "@/components/shared/LanguageToggle"
 
 const steps = [
   {
@@ -173,6 +176,7 @@ const steps = [
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const router = useRouter()
+  const { t } = useLanguage()
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -199,21 +203,25 @@ export default function OnboardingPage() {
         step.color.split(' ')[0]
       )} />
 
-      {/* Header / Progress */}
-      <header className="relative z-20 w-full max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+      {/* Header */}
+      <header className="relative z-10 w-full p-6 flex justify-between items-center max-w-6xl mx-auto">
          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
-               <Leaf size={16} strokeWidth={3} />
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+               <Leaf size={16} />
             </div>
             <span className="font-bold tracking-tight text-lg">UrjaLoop</span>
          </div>
          
-         <button 
-           onClick={() => router.push("/setup-profile")}
-           className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-         >
-           Skip
-         </button>
+         <div className="flex items-center gap-4">
+           <ThemeToggle />
+           <LanguageToggle />
+           <button 
+             onClick={() => router.push("/setup-profile")}
+             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+           >
+             {t("auth_skip")}
+           </button>
+         </div>
       </header>
 
       {/* Main Content Area */}
@@ -229,10 +237,10 @@ export default function OnboardingPage() {
             <div className="space-y-6 text-center lg:text-left">
                <div className="min-h-[280px] lg:min-h-[320px] flex flex-col justify-center">
                   <h1 className="text-4xl md:text-5xl lg:text-7xl font-medium tracking-tight leading-[1.1] text-foreground mb-8">
-                     {step.headline}
+                     {t(`onboarding_${currentStep + 1}_title`) !== `onboarding_${currentStep + 1}_title` ? t(`onboarding_${currentStep + 1}_title`) : step.headline}
                   </h1>
                   <p className="text-xl text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
-                     {step.subtext}
+                     {t(`onboarding_${currentStep + 1}_desc`) !== `onboarding_${currentStep + 1}_desc` ? t(`onboarding_${currentStep + 1}_desc`) : step.subtext}
                   </p>
                </div>
             </div>
@@ -240,7 +248,7 @@ export default function OnboardingPage() {
 
       </main>
 
-      {/* FIXED BOTTOM NAVIGATION - Ensures buttons NEVER move */}
+      {/* FIXED BOTTOM NAVIGATION */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-t border-border/50">
          <div className="max-w-6xl mx-auto px-6 h-32 flex items-center justify-between gap-4">
             
@@ -257,27 +265,13 @@ export default function OnboardingPage() {
                )}
             </div>
 
-            {/* Progress Indicators */}
-            <div className="flex gap-2.5">
-               {steps.map((_, i) => (
-                 <div 
-                   key={i} 
-                   className={cn(
-                     "h-1.5 rounded-full transition-all duration-500",
-                     i === currentStep ? "w-10 bg-primary shadow-[0_0_10px_rgba(41,195,106,0.3)]" : "w-3 bg-muted hover:bg-muted-foreground/30 cursor-pointer"
-                   )}
-                   onClick={() => setCurrentStep(i)}
-                 />
-               ))}
-            </div>
-
-            {/* Continue Button Slot - FIXED POSITION */}
+            {/* Continue Button Slot */}
             <div className="flex-1 flex justify-end">
                <button 
                  onClick={handleNext}
                  className="h-16 px-10 bg-primary text-primary-foreground font-bold rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 min-w-[180px]"
                >
-                 <span>{currentStep === steps.length - 1 ? "Get Started" : "Continue"}</span>
+                 <span>{currentStep === steps.length - 1 ? t("auth_finish") : t("auth_next")}</span>
                  <ArrowRight size={20} />
                </button>
             </div>
@@ -285,7 +279,7 @@ export default function OnboardingPage() {
          </div>
       </nav>
 
-      {/* Footer Branding - Hidden on small screens to save space for the nav */}
+      {/* Footer Branding */}
       <footer className="relative z-10 w-full max-w-6xl mx-auto px-6 h-20 hidden lg:flex items-center justify-start border-t border-border/50 mb-32">
          <div className="flex items-center gap-6 opacity-30 grayscale hover:grayscale-0 transition-all">
             <span className="text-[10px] font-black uppercase tracking-[0.3em]">AI Verified</span>
@@ -300,8 +294,8 @@ export default function OnboardingPage() {
           100% { transform: translateY(12px); opacity: 0; }
         }
       `}} />
-
     </div>
   )
 }
+
 

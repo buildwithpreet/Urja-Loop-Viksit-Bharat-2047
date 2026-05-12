@@ -308,7 +308,7 @@ function AccessibilityToggle({
   active, 
   onClick 
 }: { 
-  icon: any, 
+  icon: React.ElementType, 
   label: string, 
   active: boolean, 
   onClick: () => void 

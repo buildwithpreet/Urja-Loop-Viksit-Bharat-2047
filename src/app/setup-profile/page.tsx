@@ -6,9 +6,13 @@ import { Camera, User, Building2, MapPin, Briefcase, Zap, ShieldCheck } from "lu
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { LanguageToggle } from "@/components/shared/LanguageToggle"
+import { useLanguage } from "@/components/shared/LanguageProvider"
 
 export default function SetupProfileScreen() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [formData, setFormData] = useState({
     name: "",
     role: "Citizen",
@@ -54,12 +58,12 @@ export default function SetupProfileScreen() {
         const { error } = await supabase
           .from('profiles')
           .upsert({
-            id: user.id,
+            id: user!.id,
             full_name: formData.name,
             role: formData.areaType, // Use urban/rural as primary role for mode
             user_type: formData.role.toLowerCase(), // Collector/Admin/Citizen
             location: formData.location,
-            phone: user.phone,
+            phone: user!.phone,
             eco_credits: 500, // Welcome bonus
             waste_processed: 0,
             co2_saved: 0
@@ -95,16 +99,20 @@ export default function SetupProfileScreen() {
             </div>
             <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80">Profile Manifest</span>
           </div>
-          <button 
-            type="button"
-            onClick={() => setFormData({...formData, name: "Alex Harrison", location: "Sector 14 · New Delhi"})}
-            className="text-[10px] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
-          >
-            Quick Fill Demo
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button"
+              onClick={() => setFormData({...formData, name: "Alex Harrison", location: "Sector 14 · New Delhi"})}
+              className="text-[10px] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+            >
+              Quick Fill Demo
+            </button>
+            <ThemeToggle />
+            <LanguageToggle />
+          </div>
         </div>
-        <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Initialize Identity</h1>
-        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40 mt-2">Configure your node parameters for network access</p>
+        <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">{t("setup_title")}</h1>
+        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40 mt-2">{t("setup_subtitle")}</p>
       </div>
 
       {/* Main Tactical Deck */}
@@ -132,7 +140,7 @@ export default function SetupProfileScreen() {
             {/* Operator Designation */}
             <div className="space-y-4 relative z-10">
               <label htmlFor="name" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
-                <User size={14} className="text-primary" strokeWidth={2.5} /> Primary Identifier
+                <User size={14} className="text-primary" strokeWidth={2.5} /> {t("setup_name_label")}
               </label>
               <div className="relative group/input">
                  <input
@@ -140,7 +148,7 @@ export default function SetupProfileScreen() {
                    type="text"
                    value={formData.name}
                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                   placeholder="ENTER FULL NAME"
+                   placeholder={t("setup_name_placeholder")}
                    className={cn(
                      "w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase",
                      !formData.name && "animate-pulse border-primary/30"
@@ -206,14 +214,14 @@ export default function SetupProfileScreen() {
             {/* Geographical Anchor */}
             <div className="space-y-4 relative z-10">
               <label htmlFor="location" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
-                <MapPin size={14} className="text-primary" strokeWidth={2.5} /> Deployment Zone
+                <MapPin size={14} className="text-primary" strokeWidth={2.5} /> {t("setup_loc_label")}
               </label>
               <input
                 id="location"
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData({...formData, location: e.target.value})}
-                placeholder="CITY / VILLAGE NAME"
+                placeholder={t("setup_loc_placeholder")}
                 className={cn(
                   "w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase",
                   !formData.location && "animate-pulse border-primary/30"

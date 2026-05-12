@@ -6,9 +6,14 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
   Home, MapPin, ShoppingBag, User, BrainCircuit,
-  AlertCircle, Leaf, ChevronLeft, ChevronRight
+  AlertCircle, Leaf, ChevronLeft, ChevronRight, ScanLine
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
+import { useUser } from "./UserContext"
+import { LanguageToggle } from "./LanguageToggle"
+import { ThemeToggle } from "./ThemeToggle"
+import { useLanguage } from "./LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
 import { AccessibilityMenu } from "./AccessibilityMenu"
 
@@ -17,6 +22,8 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [profile, setProfile] = useState<any>(null)
   const pathname = usePathname()
+  const user = useUser()
+  const { t } = useLanguage()
 
   const isFarmer = mode === "rural"
 
@@ -36,12 +43,13 @@ export function Sidebar() {
   }, [])
 
   const navItems = [
-    { name: "Home", href: "/dashboard", icon: Home },
-    { name: "Live Map", href: "/map", icon: MapPin },
-    { name: "Marketplace", href: "/shop", icon: ShoppingBag },
-    { name: "Complaints", href: "/complaints", icon: AlertCircle },
-    { name: "Urja AI", href: "/bot", icon: BrainCircuit },
-    { name: "Profile", href: "/profile", icon: User },
+    { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },
+    { name: "Live Map", label: t("nav_map"), href: "/map", icon: MapPin },
+    { name: "Scan", label: t("nav_scan") || "Scan", onClick: () => window.dispatchEvent(new CustomEvent("open-scan-modal")), icon: ScanLine },
+    { name: "Marketplace", label: t("nav_shop"), href: "/shop", icon: ShoppingBag },
+    { name: "Complaints", label: t("nav_complaints"), href: "/complaints", icon: AlertCircle },
+    { name: "Urja AI", label: t("nav_bot"), href: "/bot", icon: BrainCircuit },
+    { name: "Profile", label: t("nav_profile"), href: "/profile", icon: User },
   ]
 
   return (
@@ -73,7 +81,7 @@ export function Sidebar() {
           {!isCollapsed && (
             <div className="animate-in fade-in slide-in-from-left-2 duration-200">
               <span className="text-sm font-semibold tracking-tight">Urja<span className="text-primary">Loop</span></span>
-              <p className="text-[9px] text-muted-foreground font-medium leading-none mt-0.5">Smart Infrastructure</p>
+              <p className="text-[9px] text-muted-foreground font-medium leading-none mt-0.5">Smart Waste Platform</p>
             </div>
           )}
         </Link>
@@ -87,20 +95,18 @@ export function Sidebar() {
           </p>
         )}
         {navItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              title={isCollapsed ? item.name : undefined}
-              className={cn(
-                "flex items-center rounded-xl text-sm font-medium transition-all duration-200 group relative",
-                isCollapsed ? "p-2.5 justify-center" : "px-3 py-2.5 gap-3",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
+          const isActive = item.href && pathname === item.href
+          
+          const className = cn(
+            "flex items-center rounded-xl text-sm font-medium transition-all duration-200 group relative w-full text-left",
+            isCollapsed ? "p-2.5 justify-center" : "px-3 py-2.5 gap-3",
+            isActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          )
+
+          const innerContent = (
+            <>
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
               )}
@@ -110,8 +116,32 @@ export function Sidebar() {
                 strokeWidth={isActive ? 2 : 1.75}
               />
               {!isCollapsed && (
-                <span className="animate-in fade-in duration-200 text-[13px]">{item.name}</span>
+                <span className="animate-in fade-in duration-200 text-[13px]">{item.label}</span>
               )}
+            </>
+          )
+
+          if (item.onClick) {
+            return (
+              <button
+                key={item.name}
+                onClick={item.onClick}
+                title={isCollapsed ? item.name : undefined}
+                className={className}
+              >
+                {innerContent}
+              </button>
+            )
+          }
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href!}
+              title={isCollapsed ? item.name : undefined}
+              className={className}
+            >
+              {innerContent}
             </Link>
           )
         })}
@@ -121,23 +151,36 @@ export function Sidebar() {
       <div className={cn(
         "p-3 border-t border-border space-y-2 transition-all duration-300",
       )}>
+        {!isCollapsed && (
+          <div className="space-y-2 px-1 pb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground font-medium">Language</span>
+              <LanguageToggle />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground font-medium">Theme</span>
+              <ThemeToggle />
+            </div>
+          </div>
+        )}
+        
         <AccessibilityMenu isCollapsed={isCollapsed} />
 
         {/* User */}
-        <div className="pt-2">
+        <div className="pt-2 border-t border-border">
           <Link href="/profile" className={cn(
             "flex items-center gap-2.5 p-2 rounded-xl hover:bg-muted transition-all cursor-pointer",
             isCollapsed ? "justify-center" : ""
           )}>
             <img 
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || (isFarmer ? 'Ram' : 'Alex')}`} 
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.full_name || user.name || (isFarmer ? 'Ram' : 'Alex')}`} 
               alt="Avatar" 
               className="w-7 h-7 rounded-lg border border-border shrink-0 bg-white" 
             />
             {!isCollapsed && (
               <div className="flex-1 min-w-0 animate-in fade-in duration-200 text-left">
-                <p className="text-xs font-semibold truncate">{profile?.full_name || (isFarmer ? "Ram Singh" : "Alex Harrison")}</p>
-                <p className="text-[9px] text-muted-foreground truncate">{profile?.location || (isFarmer ? "Ludhiana · Punjab" : "Sector 14 · New Delhi")}</p>
+                <p className="text-xs font-semibold truncate">{profile?.full_name || user.name || (isFarmer ? "Ram Singh" : "Alex Harrison")}</p>
+                <p className="text-[9px] text-muted-foreground truncate">{profile?.location || user.location || (isFarmer ? "Ludhiana · Punjab" : "Sector 14 · New Delhi")}</p>
               </div>
             )}
           </Link>

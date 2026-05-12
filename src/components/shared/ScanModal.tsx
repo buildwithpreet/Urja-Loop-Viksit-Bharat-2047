@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { 
   QrCode, Search, AlertCircle, Camera, MapPin,
@@ -105,17 +105,22 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
   const streamRef = useRef<MediaStream | null>(null)
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [wasteResult, setWasteResult] = useState<any>(null)
+  const [selectedSeverity, setSelectedSeverity] = useState<string>("Medium")
 
-  const startCamera = async () => {
+
+  const startCamera = useCallback(async () => {
     setCameraError(null)
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported or blocked by browser.")
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
       streamRef.current = stream
       if (videoRef.current) videoRef.current.srcObject = stream
     } catch {
-      setCameraError("Camera access denied. Please enable camera permissions.")
+      setCameraError("Camera access denied or unavailable in this browser.")
     }
-  }
+  }, [])
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach(t => t.stop())
@@ -129,7 +134,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
       stopCamera()
     }
     return () => stopCamera()
-  }, [isOpen, view, status])
+  }, [isOpen, view, status, startCamera])
 
   const handleCapture = async () => {
     setStatus("loading")
@@ -268,10 +273,10 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                     <rect x="150" y="20" width="30" height="30" fill="#111" rx="2" />
                     <rect x="10" y="140" width="50" height="50" fill="none" stroke="#111" strokeWidth="8" rx="4" />
                     <rect x="20" y="150" width="30" height="30" fill="#111" rx="2" />
-                    {/* Data dots pattern */}
-                    {[70,80,90,100,110,120,130].map((x) =>
-                      [70,80,90,100,110,120,130].map((y) =>
-                        Math.random() > 0.5 ? <rect key={`${x}-${y}`} x={x} y={y} width="8" height="8" fill="#111" rx="1" /> : null
+                    {/* Data dots pattern — deterministic */}
+                    {[70,80,90,100,110,120,130].map((x, xi) =>
+                      [70,80,90,100,110,120,130].map((y, yi) =>
+                        (xi + yi) % 2 === 0 || (xi * yi) % 3 === 1 ? <rect key={`${x}-${y}`} x={x} y={y} width="8" height="8" fill="#111" rx="1" /> : null
                       )
                     )}
                     {/* Center logo */}
@@ -340,7 +345,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="w-40 h-40 border-2 border-primary rounded-2xl relative">
                         {/* Corner accents */}
-                        {[["top-0 left-0", "-translate-x-1 -translate-y-1"], ["top-0 right-0", "translate-x-1 -translate-y-1"], ["bottom-0 left-0", "-translate-x-1 translate-y-1"], ["bottom-0 right-0", "translate-x-1 translate-y-1"]].map(([pos, tr], i) => (
+                        {[["top-0 left-0", "-translate-x-1 -translate-y-1"], ["top-0 right-0", "translate-x-1 -translate-y-1"], ["bottom-0 left-0", "-translate-x-1 translate-y-1"], ["bottom-0 right-0", "translate-x-1 translate-y-1"]].map(([pos, _tr], i) => (
                           <div key={i} className={cn("absolute w-4 h-4 border-t-2 border-l-2 border-primary", pos)} />
                         ))}
                         <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/60 animate-[scan_2s_ease-in-out_infinite]" />
@@ -445,9 +450,12 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                   {/* Severity */}
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-muted-foreground">Severity Level</p>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2" role="radiogroup" aria-label="Severity level">
                       {["Low", "Medium", "High"].map((l) => (
-                        <button key={l} className={cn("flex-1 py-2 rounded-xl text-xs font-bold border",
+                        <button key={l} role="radio" aria-checked={selectedSeverity === l} onClick={() => setSelectedSeverity(l)} className={cn("flex-1 py-2 rounded-xl text-xs font-bold border transition-all",
+                          selectedSeverity === l && l === "High" ? "border-red-500 bg-red-500/20 text-red-600 dark:text-red-400 ring-2 ring-red-500/30" :
+                          selectedSeverity === l && l === "Medium" ? "border-amber-500 bg-amber-500/20 text-amber-600 dark:text-amber-400 ring-2 ring-amber-500/30" :
+                          selectedSeverity === l && l === "Low" ? "border-emerald-500 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/30" :
                           l === "High" ? "border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400" :
                           l === "Medium" ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400" :
                           "border-border bg-muted text-muted-foreground"
@@ -483,7 +491,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                     <p className="text-xs font-semibold text-foreground">What happens next?</p>
                     <p className="text-xs text-muted-foreground">Your report has been logged in our system. It will be AI-validated and assigned to the nearest response team. You can track this in the Complaint Center.</p>
                   </div>
-                  <button onClick={reset} className="w-full bg-primary text-primary-foreground py-3 rounded-2xl text-xs font-bold hover:opacity-90 transition-all">
+                  <button onClick={() => { reset(); toast.success("Report submitted — tracking in Complaint Center") }} className="w-full bg-primary text-primary-foreground py-3 rounded-2xl text-xs font-bold hover:opacity-90 transition-all focus-ring">
                     Track in Complaint Center →
                   </button>
                 </div>
@@ -681,7 +689,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                 ))}
               </div>
 
-              <button onClick={reset} className="w-full bg-primary text-primary-foreground py-3 rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2">
+              <button onClick={() => { reset(); toast.info("Opening directions to nearest collection center") }} className="w-full bg-primary text-primary-foreground py-3 rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 focus-ring">
                 <Navigation size={14} /> Get Directions
               </button>
             </div>

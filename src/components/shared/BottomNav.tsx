@@ -9,19 +9,21 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
-
-const navItems = [
-  { name: "Home", href: "/dashboard", icon: Home },
-  { name: "Map", href: "/map", icon: MapPin },
-  { name: "Scanner", icon: Scan, isPrimary: true },
-  { name: "Market", href: "/shop", icon: Store },
-  { name: "Profile", href: "/profile", icon: User },
-]
+import { useLanguage } from "./LanguageProvider"
 
 export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
   const { mode } = useMode()
   const pathname = usePathname()
+  const { t } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const navItems = [
+    { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },
+    { name: "Map", label: t("nav_map"), href: "/map", icon: MapPin },
+    { name: "Scanner", label: t("nav_scan"), icon: Scan, isPrimary: true },
+    { name: "Market", label: t("nav_shop"), href: "/shop", icon: Store },
+    { name: "Profile", label: t("nav_profile"), href: "/profile", icon: User },
+  ]
 
   const menuOptions = [
     { 
@@ -121,7 +123,7 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
 
                   {/* Subtext */}
                   <span className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.2em] mt-3 drop-shadow-xl">
-                    {isMenuOpen ? "Close" : "Scanner"}
+                    {isMenuOpen ? "Close" : item.label}
                   </span>
                 </button>
               )
@@ -153,7 +155,7 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
                   <item.icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
                 )}
                 <span className={cn("text-[10px] font-black uppercase tracking-widest", isActive ? "opacity-100" : "opacity-40")}>
-                  {item.name}
+                  {item.label}
                 </span>
               </Link>
             )

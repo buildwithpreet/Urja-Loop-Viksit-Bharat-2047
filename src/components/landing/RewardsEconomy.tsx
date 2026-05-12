@@ -42,7 +42,7 @@ export function RewardsEconomy() {
                <div className="flex-1 order-1 lg:order-2">
                   <p className="text-primary font-semibold tracking-wide uppercase text-sm mb-4">Urja Economy</p>
                   <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-foreground mb-6">
-                     Waste isn't trash. <br /> It's a currency.
+                     Waste isn&apos;t trash. <br /> It&apos;s a currency.
                   </h2>
                   <p className="text-muted-foreground leading-relaxed mb-8">
                      Every item you dispose of correctly at an UrjaLoop bin generates digital value. Our blockchain-verified economy ensures that your contribution to a cleaner India translates into real-world purchasing power.

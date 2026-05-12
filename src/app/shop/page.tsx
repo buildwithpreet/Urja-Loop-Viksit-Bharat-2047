@@ -7,8 +7,11 @@ import {
   ArrowRight
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
+import Image from "next/image"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralShop } from "@/components/rural/RuralShop"
 import { toast } from "sonner"
@@ -20,47 +23,28 @@ const demandColor = {
   "Medium": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
 }
 
+const processedProducts = [
+  { id: 1, name: "Premium Organic Compost", type: "Fertilizer", price: "250 Credits", weight: "25 kg bag", desc: "High-yield organic compost made from certified city bio-waste.", seller: "UrjaLoop Processing", quality: "Grade A+", verified: true, demand: "High", image: "https://images.unsplash.com/photo-1590682680695-43b964a3ae17?auto=format&fit=crop&q=80&w=400" },
+  { id: 2, name: "Recycled Plastic Pellets", type: "Raw Material", price: "400 Credits", weight: "50 kg sack", desc: "Washed and processed PET plastic pellets ready for manufacturing.", seller: "City Recycling Co.", quality: "Industrial Grade", verified: true, demand: "Very High", image: "https://images.unsplash.com/photo-1605600659873-d808a1d8508a?auto=format&fit=crop&q=80&w=400" },
+  { id: 3, name: "Bio-Gas Energy Token", type: "Energy", price: "100 Credits", weight: "1 Token (10 kWh)", desc: "Redeemable energy token generated from municipal solid waste.", seller: "Waste-to-Energy Plant A", quality: "Renewable", verified: true, demand: "High", image: "https://images.unsplash.com/photo-1473649085228-583485e6e4d7?auto=format&fit=crop&q=80&w=400" },
+]
+
+const rawMaterials = [
+  { id: 4, name: "Sorted PET Bottles", type: "Plastic", price: "150 Credits", weight: "100 kg bale", seller: "Sector 14 Collection", quality: "Unwashed", verified: false, demand: "Medium", image: "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=400" },
+  { id: 5, name: "Mixed E-Waste", type: "Electronic", price: "800 Credits", weight: "50 kg lot", seller: "Tech Park Bin Hub", quality: "Mixed", verified: true, demand: "Very High", image: "https://images.unsplash.com/photo-1550005973-58721c56b02a?auto=format&fit=crop&q=80&w=400" },
+]
+
 export default function Shop() {
   const { t } = useLanguage()
   const { mode } = useMode()
   const [activeTab, setActiveTab] = useState<"raw" | "processed">("processed")
   const [search, setSearch] = useState("")
-  const [profile, setProfile] = useState<any>(null)
-  const [rawMaterials, setRawMaterials] = useState<any[]>([])
-  const [processedProducts, setProcessedProducts] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        if (data) setProfile(data)
-      }
-
-      // Fetch Marketplace Items
-      const { data: items } = await supabase
-        .from('marketplace_items')
-        .select('*')
-        .eq('type', 'urban')
-      
-      if (items) {
-        setRawMaterials(items.filter(i => i.category === 'Raw Material' || i.category === 'Waste'))
-        setProcessedProducts(items.filter(i => i.category !== 'Raw Material' && i.category !== 'Waste'))
-      }
-      setLoading(false)
-    }
-    fetchData()
-  }, [])
+  const [profile, setProfile] = useState<any>({ eco_credits: 500 }) // mock profile for now
 
   if (mode === "rural") {
     return <RuralShop />
   }
+
 
   const products = activeTab === "raw" ? rawMaterials : processedProducts
 
@@ -120,8 +104,8 @@ export default function Shop() {
               <Recycle size={18} className="text-primary" />
               <span className="text-xs font-semibold text-primary uppercase tracking-wider">Circular Economy</span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Eco Marketplace</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Waste → Processing → Circular Wealth</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("shop_title")}</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("shop_subtitle")}</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Eco Credits</p>
@@ -161,8 +145,9 @@ export default function Shop() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search materials, products..."
-          className="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-2xl text-sm text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/60 shadow-sm"
+          placeholder={t("shop_search")}
+          aria-label="Search marketplace"
+          className="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-2xl text-sm text-foreground focus-ring focus:border-primary/50 transition-all placeholder:text-muted-foreground/60 shadow-sm"
         />
       </div>
 
@@ -172,13 +157,13 @@ export default function Shop() {
           className={cn("flex-1 py-2 rounded-xl text-xs font-bold transition-all",
             activeTab === "processed" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           )}>
-          🌱 Processed Products
+          🌱 {t("shop_tab_processed")}
         </button>
         <button onClick={() => setActiveTab("raw")}
           className={cn("flex-1 py-2 rounded-xl text-xs font-bold transition-all",
             activeTab === "raw" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           )}>
-          ♻️ Raw Materials
+          ♻️ {t("shop_tab_raw")}
         </button>
       </div>
 
@@ -187,7 +172,7 @@ export default function Shop() {
         {products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())).map((product) => (
           <div key={product.id} className="bg-card border border-border rounded-3xl overflow-hidden hover:shadow-md hover:border-primary/30 transition-all group">
             <div className="aspect-[16/7] overflow-hidden relative">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <Image src={product.image} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 50vw" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-3 left-3 flex items-center gap-2">
                 {product.verified && (

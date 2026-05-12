@@ -15,11 +15,12 @@ import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/components/shared/LanguageProvider"
+import { useUser } from "@/components/shared/UserContext"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralProfile } from "@/components/rural/RuralProfile"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase"
+import { supabase, getSessionUser } from "@/lib/supabase"
 import { toast } from "sonner"
 import { seedDatabase } from "@/lib/seed"
 
@@ -31,6 +32,7 @@ const userActivityFallback = [
 
 export default function Profile() {
   const { t } = useLanguage()
+  const user = useUser()
   const { mode, setMode } = useMode()
   
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -43,13 +45,13 @@ export default function Profile() {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const user = await getSessionUser()
-        if (user) {
-          if (!user.isDemo) {
+        const userSession = await getSessionUser()
+        if (userSession) {
+          if (!userSession.isDemo) {
             const { data: profileData } = await supabase
               .from('profiles')
               .select('*')
-              .eq('id', user.id)
+              .eq('id', userSession.id)
               .single()
             if (profileData) setProfile(profileData)
           } else {
@@ -58,11 +60,11 @@ export default function Profile() {
             if (demoProfile) setProfile(JSON.parse(demoProfile))
           }
 
-          if (!user.isDemo) {
+          if (!userSession.isDemo) {
             const { data: logData } = await supabase
               .from('activity_log')
               .select('*')
-              .eq('user_id', user.id)
+              .eq('user_id', userSession.id)
               .order('created_at', { ascending: false })
               .limit(10)
             
@@ -156,9 +158,11 @@ export default function Profile() {
             
             <div className="absolute right-0 top-0 md:static md:ml-auto">
               <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                <DialogTrigger render={<button className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground" />}>
-                  <Edit2 size={16} />
-                </DialogTrigger>
+                <DialogTrigger render={
+                  <button className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground">
+                    <Edit2 size={16} />
+                  </button>
+                } />
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>Edit Profile</DialogTitle>

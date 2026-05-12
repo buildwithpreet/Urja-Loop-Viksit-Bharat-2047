@@ -6,7 +6,7 @@ export function ProblemSection() {
       <div className="max-w-6xl mx-auto px-6 md:px-10">
         
         <div className="mb-20">
-          <p className="text-primary font-semibold tracking-wide uppercase text-sm mb-4">India's Hidden Crisis</p>
+          <p className="text-primary font-semibold tracking-wide uppercase text-sm mb-4">India&apos;s Hidden Crisis</p>
           <h2 className="text-4xl md:text-5xl font-medium tracking-tight text-foreground max-w-3xl leading-[1.1]">
             150,000 tonnes of waste daily. <br />
             <span className="text-muted-foreground">Most of it never reaches a recycling plant.</span>

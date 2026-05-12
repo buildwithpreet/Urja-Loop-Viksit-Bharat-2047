@@ -1,5 +1,6 @@
 "use client"
 
+import { useLanguage } from "@/components/shared/LanguageProvider"
 import { HeroSection } from "@/components/landing/HeroSection"
 import { ProblemSection } from "@/components/landing/ProblemSection"
 import { HowItWorks } from "@/components/landing/HowItWorks"
@@ -15,6 +16,8 @@ import { ArchitectureSection } from "@/components/landing/ArchitectureSection"
 import { ImpactMetrics } from "@/components/landing/ImpactMetrics"
 
 export default function LandingPage() {
+  const { t } = useLanguage()
+  
   return (
     <div className="relative min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       

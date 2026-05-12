@@ -268,20 +268,34 @@ export default function DashboardPage() {
       {/* ── QUICK ACTIONS ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "Scan & Dispose", icon: ScanLine, href: "/bot", color: "text-primary", bg: "bg-primary/10 border-primary/10" },
+            { label: "Scan & Dispose", icon: ScanLine, onClick: () => window.dispatchEvent(new CustomEvent("open-scan-modal")), color: "text-primary", bg: "bg-primary/10 border-primary/10" },
             { label: "Report Issue", icon: AlertTriangle, href: "/complaints", color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/10" },
             { label: "Find Stations", icon: MapIcon, href: "/map", color: "text-blue-500", bg: "bg-blue-500/10 border-blue-500/10" },
             { label: "Ask Urja AI", icon: Leaf, href: "/bot", color: "text-emerald-500", bg: "bg-emerald-500/10 border-emerald-500/10" },
-          ].map((action) => (
-            <Link key={action.label} href={action.href} className="group">
+          ].map((action) => {
+            const innerContent = (
               <div className={cn("flex items-center gap-4 p-4 rounded-2xl border transition-all hover:bg-muted/50", action.bg)}>
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110", action.bg)}>
                   <action.icon size={20} className={action.color} />
                 </div>
                 <span className="text-[13px] font-semibold leading-tight">{action.label}</span>
               </div>
-            </Link>
-          ))}
+            )
+
+            if (action.onClick) {
+              return (
+                <button key={action.label} onClick={action.onClick} className="group text-left">
+                  {innerContent}
+                </button>
+              )
+            }
+
+            return (
+              <Link key={action.label} href={action.href!} className="group">
+                {innerContent}
+              </Link>
+            )
+          })}
       </div>
 
       {/* ── COMMUNITY TRANSPARENCY ── */}
@@ -452,7 +466,7 @@ export default function DashboardPage() {
                     {act.location}
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed italic">
-                    "{act.description}"
+                    &quot;{act.description}&quot;
                   </p>
                 </div>
               </div>

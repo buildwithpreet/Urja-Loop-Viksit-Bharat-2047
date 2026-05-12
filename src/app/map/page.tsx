@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralMap } from "@/components/rural/RuralMap"
 import { GoogleMap, useJsApiLoader, OverlayViewF, PolylineF } from "@react-google-maps/api"
@@ -97,6 +98,7 @@ function FillRing({ fill = 0, status }: { fill?: number; status: string }) {
 export default function MapPage() {
    const router = useRouter()
    const { mode } = useMode()
+   const { t } = useLanguage()
    const [mapState, setMapState] = useState<MapState>("browsing")
    const [selected, setSelected] = useState<Node | null>(null)
    const [query, setQuery] = useState("")
@@ -237,7 +239,7 @@ export default function MapPage() {
                   <Search size={18} className="text-white/20 shrink-0" />
                   <input type="text" value={query} onChange={e => setQuery(e.target.value)}
                      onFocus={() => setMapState("browsing")}
-                     placeholder="plastic station · e-waste · nearest bin..."
+                     placeholder={t("map_search_placeholder") || "plastic station · e-waste · nearest bin..."}
                      className="bg-transparent border-none outline-none text-sm w-full text-white placeholder:text-white/20" />
                   {query && <button onClick={() => setQuery("")}><X size={16} className="text-white/30" /></button>}
                </div>
@@ -270,7 +272,7 @@ export default function MapPage() {
                            {filtered.filter(n => n.kind !== "van" && n.kind !== "complaint").length} nodes nearby · {filtered.some(n => n.status === "urgent") ? "1 urgent" : "Clear"}
                         </p>
                      </div>
-                     <button onClick={() => router.push("/scanner?mode=waste")}
+                     <button onClick={() => window.dispatchEvent(new CustomEvent("open-scan-modal"))}
                         className="w-14 h-14 bg-emerald-500 text-black rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 active:scale-95 transition-transform">
                         <Scan size={22} />
                      </button>
@@ -327,7 +329,7 @@ export default function MapPage() {
                         }} className="flex-[3] h-14 bg-emerald-500 text-black font-bold rounded-2xl flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all text-sm shadow-lg shadow-emerald-500/10">
                            <Navigation2 size={18} />Navigate via Eco-Path
                         </button>
-                        <button onClick={() => router.push("/scanner?mode=waste")}
+                        <button onClick={() => window.dispatchEvent(new CustomEvent("open-scan-modal"))}
                            className="flex-1 h-14 bg-white/5 border border-white/8 text-white rounded-2xl flex items-center justify-center hover:bg-white/10 active:scale-[0.98] transition-all">
                            <Scan size={18} />
                         </button>
@@ -342,7 +344,7 @@ export default function MapPage() {
                         <h2 className="text-xl font-semibold">Report Illegal Dumping</h2>
                         <button onClick={() => setMapState("browsing")} className="p-2.5 bg-white/5 rounded-full"><X size={18} /></button>
                      </div>
-                     <div onClick={() => router.push("/scanner?mode=complaint")} className="w-full h-32 bg-white/[0.03] border border-white/8 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 text-white/20 cursor-pointer">
+                     <div onClick={() => window.dispatchEvent(new CustomEvent("open-scan-modal"))} className="w-full h-32 bg-white/[0.03] border border-white/8 border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 text-white/20 cursor-pointer">
                         <Camera size={24} /><p className="text-xs">Tap to open camera</p>
                      </div>
                      <textarea className="w-full h-24 bg-white/[0.03] border border-white/8 rounded-2xl p-4 text-sm text-white placeholder:text-white/20 outline-none resize-none" placeholder="Describe the issue..." />

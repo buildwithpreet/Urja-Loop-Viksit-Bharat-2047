@@ -2,12 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
-import { ScanModal } from "./ScanModal"
-import { Sidebar } from "./Sidebar"
+import { AnimatePresence } from "framer-motion"
 import { BottomNav } from "./BottomNav"
+import { Sidebar } from "./Sidebar"
+import { ScanModal } from "./ScanModal"
+import { Footer } from "./Footer"
+import { PageTransition } from "./PageTransition"
+import { AccessibilityProvider } from "./AccessibilityProvider"
+import { supabase } from "@/lib/supabase"
 import { ProfileSettingsMenu } from "./ProfileSettingsMenu"
-import { Loader2 } from "lucide-react"
+import { Leaf } from "lucide-react"
+
 const AUTH_ROUTES = ["/", "/splash", "/onboarding", "/login", "/verify-otp", "/setup-profile", "/permissions"]
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -19,6 +24,13 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const isAuthRoute = AUTH_ROUTES.includes(pathname)
 
   useEffect(() => {
+    const handleOpenScan = () => setIsScanModalOpen(true)
+    window.addEventListener("open-scan-modal", handleOpenScan)
+    return () => window.removeEventListener("open-scan-modal", handleOpenScan)
+  }, [])
+
+  useEffect(() => {
+    // eslint-disable-next-line
     setMounted(true)
     const checkAuth = async () => {
       try {
@@ -44,40 +56,56 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   if (isAuthRoute) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
-        {children}
-      </div>
+      <AccessibilityProvider>
+        <div className="min-h-screen bg-background text-foreground">
+          <AnimatePresence mode="wait">
+            <PageTransition key={pathname}>
+              {children}
+            </PageTransition>
+          </AnimatePresence>
+        </div>
+      </AccessibilityProvider>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary transition-colors duration-300">
-      
-      <Sidebar />
-      
-      <main id="main-content" className="flex-1 w-full overflow-x-hidden flex flex-col outline-none relative" tabIndex={-1}>
-        {/* Premium Header */}
-        <header className="sticky top-0 z-30 w-full backdrop-blur-xl bg-background/60 border-b border-border/50 px-6 py-3 flex items-center justify-between md:hidden">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white text-lg font-bold">U</span>
+    <AccessibilityProvider>
+      <div className="flex min-h-screen bg-background text-foreground">
+        <Sidebar />
+        <main id="main-content" className="flex-1 w-full overflow-x-hidden flex flex-col outline-none relative" tabIndex={-1}>
+          {/* Top Header */}
+          <header className="h-20 flex items-center justify-between px-6 md:px-12 sticky top-0 z-[60] bg-background/80 backdrop-blur-md border-b border-border/50">
+            <div className="flex items-center gap-4">
+               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                  <Leaf className="text-primary-foreground w-6 h-6" strokeWidth={2.5} />
+               </div>
+               <div>
+                  <h1 className="text-xl font-black uppercase tracking-tighter">UrjaLoop</h1>
+                  <p className="text-[8px] text-primary font-bold uppercase tracking-[0.3em]">Neural Network</p>
+               </div>
             </div>
-            <span className="text-sm font-bold tracking-tight">Urja<span className="text-primary">Loop</span></span>
+            <ProfileSettingsMenu />
+          </header>
+
+          {/* Main Content Area */}
+          <div className="flex-1 w-full max-w-5xl mx-auto p-4 md:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AnimatePresence mode="wait">
+              <PageTransition key={pathname}>
+                {children}
+              </PageTransition>
+            </AnimatePresence>
           </div>
-          <ProfileSettingsMenu />
-        </header>
+          
+          <Footer />
+        </main>
 
-        <div className="flex-1 w-full max-w-5xl mx-auto p-4 md:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          {children}
-        </div>
-      </main>
-
-      <BottomNav onScanClick={() => setIsScanModalOpen(true)} />
-      
-      <ScanModal
-        isOpen={isScanModalOpen}
-        onClose={() => setIsScanModalOpen(false)}
-      />
-    </div>
+        <BottomNav onScanClick={() => setIsScanModalOpen(true)} />
+        
+        <ScanModal
+          isOpen={isScanModalOpen}
+          onClose={() => setIsScanModalOpen(false)}
+        />
+      </div>
+    </AccessibilityProvider>
   )
 }

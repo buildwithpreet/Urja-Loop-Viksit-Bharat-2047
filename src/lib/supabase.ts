@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Robust initialization to prevent crashes during build or if environment variables are missing
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 

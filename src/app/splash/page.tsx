@@ -66,7 +66,7 @@ export default function SplashScreen() {
             <h1 className="text-6xl font-black text-foreground tracking-tighter sm:text-7xl">
               Urja<span className="text-primary">Loop</span>
             </h1>
-            <p className="text-[10px] font-black text-primary uppercase tracking-[0.5em] opacity-80">
+            <p className="text-[11px] font-bold text-primary uppercase tracking-[0.4em] opacity-80">
               Neural Waste Intelligence Platform
             </p>
           </div>
@@ -76,7 +76,7 @@ export default function SplashScreen() {
             <div className="h-px flex-1 bg-foreground/5"></div>
             <div className="flex items-center gap-2 text-muted-foreground/30">
               <ShieldCheck size={12} strokeWidth={2.5} />
-              <span className="text-[9px] font-black uppercase tracking-[0.4em]">Viksit Bharat 2047</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.3em]">Viksit Bharat 2047</span>
             </div>
             <div className="h-px flex-1 bg-foreground/5"></div>
           </div>
@@ -92,13 +92,13 @@ export default function SplashScreen() {
                 className="flex-1 h-1 rounded-full bg-primary/20 overflow-hidden"
               >
                 <div
-                  className="h-full bg-primary rounded-full animate-[grow_0.6s_ease-out_forwards]"
-                  style={{ animationDelay: `${i * 120}ms`, width: '0%' }}
+                  className="h-full bg-primary rounded-full animate-[grow_2.4s_ease-out_forwards]"
+                  style={{ animationDelay: `${i * 200}ms`, width: '0%' }}
                 ></div>
               </div>
             ))}
           </div>
-          <p className="text-center text-[9px] font-black text-muted-foreground uppercase tracking-[0.4em] opacity-40 animate-pulse">
+          <p className="text-center text-[11px] font-bold text-muted-foreground uppercase tracking-[0.3em] opacity-40 animate-pulse">
             Synchronizing Network...
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function SplashScreen() {
       {/* Footer Mission Statement */}
       <div className={`absolute bottom-16 text-center transition-all duration-1000 delay-700 ${phase >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         <div className="ultra-glass px-8 py-3 rounded-full border border-foreground/10 shadow-xl">
-          <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.35em]">
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.25em]">
             Powered by AI • Built for Bharat
           </p>
         </div>

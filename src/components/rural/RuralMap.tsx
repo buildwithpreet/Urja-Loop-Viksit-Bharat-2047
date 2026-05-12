@@ -151,7 +151,7 @@ export function RuralMap() {
 
   const { isLoaded } = useJsApiLoader({
     id: 'urjaloop-google-maps',
-    googleMapsApiKey: "AIzaSyAaoPl-hmbJyViPAY02ktYEIkVTDV_HVq4",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries: []
   })
 

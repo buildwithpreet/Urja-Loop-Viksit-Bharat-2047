@@ -183,7 +183,7 @@ export default function LoginScreen() {
                 onClick={handleGoogleLogin}
                 className="w-full h-14 bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 rounded-full flex items-center justify-center gap-3 font-semibold text-sm text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-all"
               >
-                <img src="https://www.gstatic.com/lamda/images/google_signin_buttons/google_icon.svg" className="w-5 h-5" alt="Google" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" className="w-5 h-5" alt="Google" />
                 Continue with Google
               </button>
 

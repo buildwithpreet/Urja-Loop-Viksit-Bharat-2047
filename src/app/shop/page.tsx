@@ -12,7 +12,7 @@ import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
 import { RuralShop } from "@/components/rural/RuralShop"
 import { toast } from "sonner"
-import { supabase } from "@/lib/supabase"
+import { supabase, getSessionUser } from "@/lib/supabase"
 
 const demandColor = {
   "Very High": "bg-red-500/10 text-red-600 dark:text-red-400",
@@ -65,9 +65,9 @@ export default function Shop() {
   const products = activeTab === "raw" ? rawMaterials : processedProducts
 
   const handlePurchase = async (item: any) => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      toast.error("Please login to make a purchase")
+    const user = await getSessionUser()
+    if (!user) {
+      toast.error("Please login or setup a demo profile to make a purchase")
       return
     }
 

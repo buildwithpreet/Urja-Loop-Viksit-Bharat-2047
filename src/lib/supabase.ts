@@ -10,3 +10,28 @@ const finalUrl = (!supabaseUrl || supabaseUrl === 'undefined') ? 'https://projec
 const finalKey = (!supabaseAnonKey || supabaseAnonKey === 'undefined') ? 'placeholder-key' : supabaseAnonKey
 
 export const supabase = createClient(finalUrl, finalKey)
+
+export const getSessionUser = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) return { 
+      id: session.user.id, 
+      email: session.user.email, 
+      isDemo: false 
+    }
+
+    const demoProfile = localStorage.getItem("urjaloop_profile")
+    if (demoProfile) {
+      const parsed = JSON.parse(demoProfile)
+      return { 
+        id: "00000000-0000-0000-0000-000000000000", // Constant demo UUID
+        email: "demo@urjaloop.com",
+        full_name: parsed.full_name,
+        isDemo: true 
+      }
+    }
+    return null
+  } catch (e) {
+    return null
+  }
+}

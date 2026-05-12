@@ -88,11 +88,20 @@ export default function SetupProfileScreen() {
 
       {/* Header Strategy */}
       <div className="w-full max-w-lg mx-auto pt-10 pb-6 z-10 animate-in slide-in-from-top-6 fade-in duration-1000">
-        <div className="flex items-center gap-4 mb-4">
-           <div className="w-10 h-10 ultra-glass rounded-xl flex items-center justify-center text-primary shadow-xl">
-              <User size={20} strokeWidth={2.5} />
-           </div>
-           <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80">Profile Manifest</span>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 ultra-glass rounded-xl flex items-center justify-center text-primary shadow-xl">
+                <User size={20} strokeWidth={2.5} />
+            </div>
+            <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] opacity-80">Profile Manifest</span>
+          </div>
+          <button 
+            type="button"
+            onClick={() => setFormData({...formData, name: "Alex Harrison", location: "Sector 14 · New Delhi"})}
+            className="text-[10px] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+          >
+            Quick Fill Demo
+          </button>
         </div>
         <h1 className="text-4xl font-black text-foreground uppercase tracking-tighter">Initialize Identity</h1>
         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40 mt-2">Configure your node parameters for network access</p>
@@ -132,7 +141,10 @@ export default function SetupProfileScreen() {
                    value={formData.name}
                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                    placeholder="ENTER FULL NAME"
-                   className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
+                   className={cn(
+                     "w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase",
+                     !formData.name && "animate-pulse border-primary/30"
+                   )}
                  />
               </div>
             </div>
@@ -202,7 +214,10 @@ export default function SetupProfileScreen() {
                 value={formData.location}
                 onChange={(e) => setFormData({...formData, location: e.target.value})}
                 placeholder="CITY / VILLAGE NAME"
-                className="w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase"
+                className={cn(
+                  "w-full bg-foreground/5 border border-border rounded-2xl h-16 px-6 font-black text-[13px] tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 uppercase",
+                  !formData.location && "animate-pulse border-primary/30"
+                )}
               />
             </div>
 

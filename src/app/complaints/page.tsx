@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-import { supabase } from "@/lib/supabase"
+import { supabase, getSessionUser } from "@/lib/supabase"
 import { toast } from "sonner"
 
 const STATUS_STEPS = ["Submitted", "Under Review", "Assigned", "In Progress", "Resolved"]
@@ -29,6 +29,8 @@ export default function Complaints() {
     severity: "Medium",
     description: ""
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   useEffect(() => {
     fetchComplaints()
@@ -50,6 +52,14 @@ export default function Complaints() {
 
     return () => { supabase.removeChannel(channel) }
   }, [])
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setSelectedFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
 
   const fetchComplaints = async () => {
     setIsLoading(true)
@@ -77,11 +87,37 @@ export default function Complaints() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      toast.error("Please login to submit a report")
+    const user = await getSessionUser()
+    if (!user) {
+      toast.error("Please login or setup a demo profile to submit a report")
       setIsSubmitting(false)
       return
+    }
+
+    let uploadedImageUrl = null
+
+    // 1. Upload Image to Supabase Storage
+    if (selectedFile && !user.isDemo) {
+      const fileExt = selectedFile.name.split('.').pop()
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`
+      const filePath = `complaints/${fileName}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('complaints')
+        .upload(filePath, selectedFile)
+
+      if (uploadError) {
+        toast.error("Failed to upload image: " + uploadError.message)
+        setIsSubmitting(false)
+        return
+      }
+
+      // Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('complaints')
+        .getPublicUrl(filePath)
+      
+      uploadedImageUrl = publicUrl
     }
 
     const newComplaint = {
@@ -93,6 +129,7 @@ export default function Complaints() {
       description: formData.description,
       status: "Submitted",
       status_idx: 0,
+      image_url: uploadedImageUrl,
       ai_validated: true,
       created_at: new Date().toISOString()
     }
@@ -102,15 +139,9 @@ export default function Complaints() {
     if (error) {
       toast.error(error.message)
     } else {
-      // 1. Log activity
-      await supabase.from('activity_log').insert({
-        user_id: session.user.id,
-        action: "Filed Complaint",
-        description: `Reported ${formData.type} at ${formData.location}`,
-        points_earned: 0
-      })
-
       toast.success("Complaint submitted successfully!")
+      setSelectedFile(null)
+      setImagePreview(null)
       setActiveTab("history")
       fetchComplaints()
     }
@@ -172,12 +203,28 @@ export default function Complaints() {
               <h2 className="text-base font-bold text-foreground">File a New Complaint</h2>
               
               {/* Photo Upload */}
-              <div className="w-full aspect-video border-2 border-dashed border-border rounded-2xl bg-muted/40 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 hover:bg-muted/60 transition-all cursor-pointer group">
-                <div className="w-12 h-12 bg-card rounded-2xl border border-border flex items-center justify-center mb-3 group-hover:border-primary/40 transition-all">
-                  <Camera size={20} className="text-primary" />
-                </div>
-                <p className="text-sm font-semibold text-foreground">Capture or Upload Photo</p>
-                <p className="text-xs text-muted-foreground mt-1">Evidence helps faster resolution</p>
+              <div 
+                onClick={() => document.getElementById('photo-upload')?.click()}
+                className="w-full aspect-video border-2 border-dashed border-border rounded-2xl bg-muted/40 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 hover:bg-muted/60 transition-all cursor-pointer group relative overflow-hidden"
+              >
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <div className="w-12 h-12 bg-card rounded-2xl border border-border flex items-center justify-center mb-3 group-hover:border-primary/40 transition-all">
+                      <Camera size={20} className="text-primary" />
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">Capture or Upload Photo</p>
+                    <p className="text-xs text-muted-foreground mt-1">Evidence helps faster resolution</p>
+                  </>
+                )}
+                <input 
+                  id="photo-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleImageSelect}
+                />
               </div>
 
               {/* Location */}

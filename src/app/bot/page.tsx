@@ -105,49 +105,39 @@ export default function UrjaBot() {
 
   const handleScan = async () => {
     setIsTyping(true)
-    const userMsg: Message = { role: "user", content: "[Photo Uploaded: Plastic Bottle]", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }
+    const userMsg: Message = { role: "user", content: "[Photo Uploaded: Waste Item]", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }
     setMessages(prev => [...prev, userMsg])
     
-    setTimeout(async () => {
-      const reward = 50
+    try {
       const { data: { session } } = await supabase.auth.getSession()
       
-      if (session) {
-        // 1. Get current credits
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('eco_credits')
-          .eq('id', session.user.id)
-          .single()
-        
-        const newCredits = (profile?.eco_credits || 0) + reward
-
-        // 2. Update credits
-        await supabase
-          .from('profiles')
-          .update({ eco_credits: newCredits })
-          .eq('id', session.user.id)
-        
-        // 3. Log activity
-        await supabase.from('activity_log').insert({
-          user_id: session.user.id,
-          action: "Scanned Waste",
-          description: "Identified PET Plastic Bottle via AI Scan",
-          points_earned: reward
+      const response = await fetch('/api/ai/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          imageUrl: "mock-bot-scan", 
+          userId: session?.user.id || 'demo-user' 
         })
+      })
+      const result = await response.json()
 
+      if (result.success) {
+        const { type, credits, message, category } = result.data
         setIsTyping(false)
         setMessages(prev => [...prev, { 
           role: "bot", 
-          content: `AI Scan Complete! ✅\n\nItem: **PET Plastic Bottle**\nStatus: **Verified**\nReward: **+${reward} Eco Credits**\n\nYour contribution has been logged. Thank you for keeping India clean! 🌍`, 
+          content: `AI Analysis Complete! ✅\n\nItem: **${type}** (${category})\nReward: **+${credits} Eco Credits**\n\n${message}\n\nYour credits have been added to your wallet automatically.`, 
           timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) 
         }])
-        toast.success(`Reward Earned: +${reward} Credits!`)
+        toast.success(`Reward Earned: +${credits} Credits!`)
       } else {
         setIsTyping(false)
-        setMessages(prev => [...prev, { role: "bot", content: "AI Scan Complete! Identified a **Plastic Bottle**. Please login to earn Eco Credits for your contribution! ♻️", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }])
+        setMessages(prev => [...prev, { role: "bot", content: "I encountered an error while analyzing the image. Please try again.", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }])
       }
-    }, 2000)
+    } catch (err) {
+      setIsTyping(false)
+      toast.error("Connection error")
+    }
   }
 
   useEffect(() => {

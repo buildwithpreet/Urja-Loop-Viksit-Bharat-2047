@@ -104,7 +104,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const [cameraError, setCameraError] = useState<string | null>(null)
-  const [wasteResult] = useState(WASTE_RESULTS[0])
+  const [wasteResult, setWasteResult] = useState<any>(null)
 
   const startCamera = async () => {
     setCameraError(null)
@@ -123,7 +123,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
   }
 
   useEffect(() => {
-    if (isOpen && (view === "identify" || view === "report") && status === "idle") {
+    if (isOpen && (view === "identify" || view === "report" || view === "agri") && status === "idle") {
       startCamera()
     } else {
       stopCamera()
@@ -133,10 +133,34 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
 
   const handleCapture = async () => {
     setStatus("loading")
-    stopCamera()
     
-    if (view === "report") {
-      const { data: { session } } = await supabase.auth.getSession()
+    // For Demo: Capture a frame (simulate)
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (view === "identify" || view === "agri") {
+      try {
+        const response = await fetch('/api/ai/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            imageUrl: "mock-capture-url", 
+            userId: session?.user.id || 'demo-user' 
+          })
+        })
+        const result = await response.json()
+        if (result.success) {
+          setWasteResult(result.data)
+          setStatus("success")
+        } else {
+          toast.error("AI Analysis failed")
+          setStatus("idle")
+        }
+      } catch (err) {
+        toast.error("Connection error")
+        setStatus("idle")
+      }
+    } else if (view === "report") {
+      // Existing report logic...
       if (session) {
         await supabase.from('complaints').insert({
           id: `CMP-${Math.floor(Math.random() * 9000) + 1000}`,
@@ -149,29 +173,18 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
           status_idx: 0,
           ai_validated: true
         })
-        
-        await supabase.from('activity_log').insert({
-          user_id: session.user.id,
-          action: "Report Filed",
-          description: "Illegal Dumping Reported",
-          points_earned: 50 // Bonus for reporting
-        })
-        
-        // Update credits
-        const { data: profile } = await supabase.from('profiles').select('eco_credits').eq('id', session.user.id).single()
-        if (profile) {
-          await supabase.from('profiles').update({ eco_credits: profile.eco_credits + 50 }).eq('id', session.user.id)
-        }
       }
+      setTimeout(() => setStatus("success"), 2000)
     }
     
-    setTimeout(() => setStatus("success"), 2000)
+    stopCamera()
   }
 
   const reset = () => {
     setView("main")
     setStatus("idle")
     setCameraError(null)
+    setWasteResult(null)
     onClose()
   }
 
@@ -179,6 +192,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
     setView("main")
     setStatus("idle")
     setCameraError(null)
+    setWasteResult(null)
   }
 
   const titles: Record<ScanView, string> = {
@@ -333,7 +347,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                       </div>
                     </div>
                     <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                      <Badge className="bg-primary/90 text-primary-foreground text-[10px] border-none">AI-Assisted Classification · Not 100% accurate</Badge>
+                      <Badge className="bg-primary/90 text-primary-foreground text-[10px] border-none">AI-Assisted Classification · Real-time Analysis</Badge>
                     </div>
                   </div>
                   
@@ -350,12 +364,12 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                     <div className="w-14 h-14 border-3 border-primary border-t-transparent rounded-full animate-spin border-[3px]" />
                     <Search size={20} className="absolute inset-0 m-auto text-primary" />
                   </div>
-                  <p className="text-sm font-semibold text-muted-foreground animate-pulse">AI analyzing material...</p>
-                  <p className="text-xs text-muted-foreground text-center">Using computer vision to classify waste type. Results are AI-assisted estimates.</p>
+                  <p className="text-sm font-semibold text-muted-foreground animate-pulse">Neural processing...</p>
+                  <p className="text-xs text-muted-foreground text-center">Classifying material and calculating circular value.</p>
                 </div>
               )}
 
-              {status === "success" && (
+              {status === "success" && wasteResult && (
                 <div className="space-y-4">
                   {/* Result Card */}
                   <div className="p-5 bg-primary/5 border border-primary/20 rounded-3xl">
@@ -363,72 +377,38 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                       <div>
                         <p className="text-xs text-muted-foreground">Detected Material</p>
                         <p className="text-xl font-bold text-foreground">{wasteResult.type}</p>
-                        <p className="text-xs text-muted-foreground">{wasteResult.subtype}</p>
+                        <p className="text-xs text-muted-foreground">{wasteResult.category}</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-primary">{wasteResult.confidence}%</div>
+                        <div className="text-2xl font-bold text-primary">{Math.round(wasteResult.confidence * 100)}%</div>
                         <p className="text-[10px] text-muted-foreground">AI Confidence</p>
                       </div>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${wasteResult.confidence}%` }} />
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${wasteResult.confidence * 100}%` }} />
                     </div>
                   </div>
 
                   {/* Disposal guidance */}
                   <div className="p-4 bg-muted border border-border rounded-2xl space-y-2">
-                    <p className="text-xs font-bold text-foreground">Disposal Guidance</p>
-                    <p className="text-sm font-semibold text-primary">{wasteResult.disposal}</p>
-                    <p className="text-xs text-muted-foreground">{wasteResult.tip}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-foreground">Economic Impact</p>
+                      <Badge className="bg-emerald-500 text-white border-none text-[10px]">+ {wasteResult.credits} Credits</Badge>
+                    </div>
+                    <p className="text-sm font-semibold text-primary">{wasteResult.message}</p>
+                    <p className="text-xs text-muted-foreground">CO2 Offset: {wasteResult.co2}kg · Value Verified</p>
                   </div>
 
-                  <p className="text-[10px] text-muted-foreground text-center">AI-assisted result · Verify with local guidelines · Not guaranteed accurate</p>
+                  <p className="text-[10px] text-muted-foreground text-center italic">Rewards have been automatically added to your wallet.</p>
                   
                   <button onClick={() => { setStatus("idle"); startCamera() }}
                     className="w-full border border-border py-3 rounded-2xl text-xs font-bold text-foreground hover:bg-muted transition-all">
                     Scan Another Item
                   </button>
-                  <button 
-                    onClick={async () => {
-                      const { data: { session } } = await supabase.auth.getSession()
-                      if (!session) {
-                        toast.error("Login to earn credits!")
-                        return
-                      }
-
-                      // 1. Get current stats
-                      const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('eco_credits, waste_processed, co2_saved')
-                        .eq('id', session.user.id)
-                        .single()
-
-                      if (profile) {
-                        const earned = 15 // Mock points for scan
-                        const { error } = await supabase
-                          .from('profiles')
-                          .update({ 
-                            eco_credits: profile.eco_credits + earned,
-                            waste_processed: profile.waste_processed + 0.5,
-                            co2_saved: profile.co2_saved + 0.2
-                          })
-                          .eq('id', session.user.id)
-
-                        if (!error) {
-                          toast.success(`+${earned} Eco Credits earned!`)
-                          await supabase.from('activity_log').insert({
-                            user_id: session.user.id,
-                            action: "Waste Scanned",
-                            description: `Identified ${wasteResult.type}`,
-                            points_earned: earned
-                          })
-                        }
-                      }
-                      reset()
-                    }}
+                  <button onClick={reset}
                     className="w-full bg-primary text-primary-foreground py-3 rounded-2xl text-xs font-bold hover:opacity-90 transition-all"
                   >
-                    Claim Credits & Finish
+                    Finish & View Wallet
                   </button>
                 </div>
               )}

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase"
+import { supabase, getSessionUser } from "@/lib/supabase"
 
 const communityMetrics = [
   { label: "Complaints Resolved", value: "14", sub: "This week in Sector 14", color: "text-primary", icon: CheckCircle2 },
@@ -25,12 +25,6 @@ const communityActivity = [
   { id: 1, item: "Area Cleanup Completed", location: "Sector 14 Central Park", time: "Morning", date: "Today", icon: Sparkles, status: "success", type: "Cleanup", description: "The community park is now trash-free. Great job everyone!" },
   { id: 2, item: "Dumping Area Resolved", location: "Market Area Lane 4", time: "2h ago", date: "Today", icon: CheckCircle2, status: "success", type: "Resolved", description: "Reported waste has been successfully cleared by the municipal team." },
   { id: 3, item: "New Loop Station Active", location: "Metro Station Exit 2", time: "Yesterday", date: "9 May", icon: Zap, status: "info", type: "Update", description: "A new smart bin is now available for dry waste collection." },
-]
-
-const impactOutcomes = [
-  { label: "Landfill Avoided", value: "18.4", unit: "kg", color: "var(--primary)", pct: 82, sub: "Direct contribution" },
-  { label: "Energy Generated", value: "2.1", unit: "kWh", color: "var(--color-amber-500)", pct: 65, sub: "From organic waste" },
-  { label: "CO₂ Offset", value: "4.2", unit: "kg", color: "var(--color-blue-500)", pct: 48, sub: "Community impact" },
 ]
 
 const INITIAL_BINS = [
@@ -47,6 +41,8 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null)
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [communityStats, setCommunityStats] = useState<any>(null)
+  const [infraStats, setInfraStats] = useState<any>(null)
 
   useEffect(() => {
     const now = new Date()
@@ -56,7 +52,7 @@ export default function DashboardPage() {
     else setGreeting("Good Evening")
     setCurrentTime(now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }))
 
-    const DEMO_PROFILE = {
+    const DEMO_PROFILE_FALLBACK = {
       full_name: "Demo User",
       location: "Sector 14 · New Delhi",
       eco_credits: 1240,
@@ -66,16 +62,23 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       setLoading(true)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        const { data: userData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        setProfile(userData || DEMO_PROFILE)
+      const user = await getSessionUser()
+      
+      // 1. Fetch Profile
+      if (user) {
+        if (!user.isDemo) {
+          const { data: userData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single()
+          setProfile(userData || DEMO_PROFILE_FALLBACK)
+        } else {
+          const localProfile = localStorage.getItem("urjaloop_profile")
+          setProfile(localProfile ? JSON.parse(localProfile) : DEMO_PROFILE_FALLBACK)
+        }
       } else {
-        setProfile(DEMO_PROFILE)
+        setProfile(DEMO_PROFILE_FALLBACK)
       }
 
       // 2. Fetch Bins
@@ -91,12 +94,20 @@ export default function DashboardPage() {
         })))
       }
 
-      // 3. Fetch Activity Log
-      if (session) {
+      // 3. Fetch Community Stats
+      const { data: cStats } = await supabase.from('community_stats').select('*').single()
+      if (cStats) setCommunityStats(cStats)
+
+      // 4. Fetch Infrastructure Stats
+      const { data: iStats } = await supabase.from('infrastructure_stats').select('*').single()
+      if (iStats) setInfraStats(iStats)
+
+      // 5. Fetch Activity Log
+      if (user && !user.isDemo) {
         const { data: logData } = await supabase
           .from('activity_log')
           .select('*')
-          .eq('user_id', session.user.id)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(5)
         
@@ -286,7 +297,30 @@ export default function DashboardPage() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {communityMetrics.map((item) => (
+          {[
+            { label: "Complaints Resolved", value: "14", sub: "This week in Sector 14", color: "text-primary", icon: CheckCircle2 },
+            { 
+              label: "Waste Recycled", 
+              value: `${communityStats?.total_waste_kg || 842}kg`, 
+              sub: "Community total", 
+              color: "text-blue-500", 
+              icon: Recycle 
+            },
+            { 
+              label: "Participation", 
+              value: `${communityStats?.total_users || 12}`, 
+              sub: "Active citizens", 
+              color: "text-purple-500", 
+              icon: Users 
+            },
+            { 
+              label: "Loop Stations", 
+              value: `${infraStats?.total_bins || 4}`, 
+              sub: "Smart bin network", 
+              color: "text-amber-500", 
+              icon: MapIcon 
+            },
+          ].map((item) => (
             <div key={item.label} className="p-6 bg-card border border-border rounded-[2rem] relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
                 <item.icon size={64} />

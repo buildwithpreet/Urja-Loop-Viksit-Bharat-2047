@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { LanguageToggle } from "@/components/shared/LanguageToggle"
 import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import Link from "next/link"
 import { useMode } from "@/components/shared/ModeProvider"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
@@ -187,10 +188,10 @@ export function RuralProfile() {
           </div>
         </div>
 
-        <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors shrink-0 z-10 active:scale-95 transition-all">
+        <Link href="/profile/qr" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 transition-colors shrink-0 z-10 active:scale-95 transition-all">
           <QrCode size={32} className="mb-2" />
           <span className="text-[10px] font-bold uppercase tracking-wider">My Farm QR</span>
-        </button>
+        </Link>
       </div>
 
       {/* Stats Grid */}

@@ -1,10 +1,40 @@
+import { useState, useEffect } from "react"
 import { Activity, Flame, Users, Leaf } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 export function ImpactMetrics() {
+  const [stats, setStats] = useState<any>(null)
+
+  useEffect(() => {
+    async function fetchStats() {
+      const { data } = await supabase.from('community_stats').select('*').single()
+      if (data) setStats(data)
+    }
+    fetchStats()
+  }, [])
+
   const metrics = [
-    { value: "4.8M", label: "Tonnes Processed", icon: Activity, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10" },
-    { value: "125K+", label: "Active Citizens", icon: Users, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10" },
-    { value: "1.2M", label: "CO₂ Prevented", icon: Leaf, color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10" },
+    { 
+      value: stats ? `${(stats.total_waste_kg / 1000).toFixed(1)}K` : "4.8M", 
+      label: "Tonnes Processed", 
+      icon: Activity, 
+      color: "text-emerald-600 dark:text-emerald-400", 
+      bg: "bg-emerald-500/10" 
+    },
+    { 
+      value: stats ? `${stats.total_users}+` : "125K+", 
+      label: "Active Citizens", 
+      icon: Users, 
+      color: "text-blue-600 dark:text-blue-400", 
+      bg: "bg-blue-500/10" 
+    },
+    { 
+      value: stats ? `${(stats.total_co2_kg / 1000).toFixed(1)}K` : "1.2M", 
+      label: "CO₂ Prevented", 
+      icon: Leaf, 
+      color: "text-green-600 dark:text-green-400", 
+      bg: "bg-green-500/10" 
+    },
     { value: "850K", label: "kWh Energy Saved", icon: Flame, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-500/10" },
   ]
 

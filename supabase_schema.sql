@@ -80,3 +80,57 @@ ALTER TABLE public.activity_log ENABLE ROW LEVEL SECURITY;
 -- Public read access for Bins and Marketplace
 CREATE POLICY "Public Bins Read" ON public.smart_bins FOR SELECT USING (true);
 CREATE POLICY "Public Marketplace Read" ON public.marketplace_items FOR SELECT USING (true);
+
+-- 6. FUNCTIONS & TRIGGERS
+
+-- A. AUTO-CREATE PROFILE ON SIGNUP
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, role)
+  VALUES (new.id, new.raw_user_meta_data->>'full_name', 'citizen');
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- B. AUTO-LOG COMPLAINTS
+CREATE OR REPLACE FUNCTION public.log_new_complaint()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.activity_log (user_id, action, description, points_earned)
+  VALUES (new.user_id, 'Filed Complaint', 'Reported ' || new.type || ' at ' || new.location_name, 0);
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_complaint_filed
+  AFTER INSERT ON public.complaints
+  FOR EACH ROW EXECUTE FUNCTION public.log_new_complaint();
+
+-- 7. COMMUNITY METRICS & VIEWS
+
+-- A. GLOBAL IMPACT VIEW
+CREATE OR REPLACE VIEW public.community_stats AS
+SELECT 
+  COALESCE(SUM(waste_processed), 0) as total_waste_kg,
+  COALESCE(SUM(co2_saved), 0) as total_co2_kg,
+  COALESCE(SUM(eco_credits), 0) as total_community_credits,
+  COUNT(id) as total_users
+FROM public.profiles;
+
+-- B. INFRASTRUCTURE HEALTH VIEW
+CREATE OR REPLACE VIEW public.infrastructure_stats AS
+SELECT 
+  COUNT(id) as total_bins,
+  COALESCE(AVG(fill_level), 0) as avg_fill_level,
+  COUNT(id) FILTER (WHERE status = 'active') as active_bins,
+  COUNT(id) FILTER (WHERE fill_level > 80) as critical_bins
+FROM public.smart_bins;
+
+-- Grant access to the views
+GRANT SELECT ON public.community_stats TO anon, authenticated;
+GRANT SELECT ON public.infrastructure_stats TO anon, authenticated;

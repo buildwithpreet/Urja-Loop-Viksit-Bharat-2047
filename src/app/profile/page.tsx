@@ -21,6 +21,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { seedDatabase } from "@/lib/seed"
 
 const userActivityFallback = [
   { id: 1, action: "Waste Submitted", detail: "Smart Bin — Sector 14 Main Gate · 2.4kg Plastic", time: "2 hours ago", icon: Zap, credit: "+ 24 credits", positive: true },
@@ -42,32 +43,40 @@ export default function Profile() {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-          if (profileData) setProfile(profileData)
+        const user = await getSessionUser()
+        if (user) {
+          if (!user.isDemo) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .single()
+            if (profileData) setProfile(profileData)
+          } else {
+            // Handle Demo Profile
+            const demoProfile = localStorage.getItem("urjaloop_profile")
+            if (demoProfile) setProfile(JSON.parse(demoProfile))
+          }
 
-          const { data: logData } = await supabase
-            .from('activity_log')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .order('created_at', { ascending: false })
-            .limit(10)
-          
-          if (logData && logData.length > 0) {
-            setActivities(logData.map(l => ({
-              id: l.id,
-              action: l.action,
-              detail: l.description,
-              time: new Date(l.created_at).toLocaleDateString() === new Date().toLocaleDateString() ? "Today" : new Date(l.created_at).toLocaleDateString(),
-              icon: l.action.includes("Scan") ? Zap : l.action.includes("Purchase") ? Recycle : ActivityIcon,
-              credit: (l.points_earned > 0 ? "+ " : "- ") + Math.abs(l.points_earned) + " credits",
-              positive: l.points_earned >= 0
-            })))
+          if (!user.isDemo) {
+            const { data: logData } = await supabase
+              .from('activity_log')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false })
+              .limit(10)
+            
+            if (logData && logData.length > 0) {
+              setActivities(logData.map(l => ({
+                id: l.id,
+                action: l.action,
+                detail: l.description,
+                time: new Date(l.created_at).toLocaleDateString() === new Date().toLocaleDateString() ? "Today" : new Date(l.created_at).toLocaleDateString(),
+                icon: l.action.includes("Scan") ? Zap : l.action.includes("Purchase") ? Recycle : ActivityIcon,
+                credit: (l.points_earned > 0 ? "+ " : "- ") + Math.abs(l.points_earned) + " credits",
+                positive: l.points_earned >= 0
+              })))
+            }
           }
         }
       } catch (e) {
@@ -323,6 +332,37 @@ export default function Profile() {
           >
             <LogOut size={16} /> Terminate Session
           </button>
+        </div>
+      </div>
+
+      {/* Developer Tools (Hidden / Admin) */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 px-2">
+          <Settings size={14} className="text-muted-foreground" />
+          <h2 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Internal Tools</h2>
+        </div>
+        <div className="premium-card p-6 border-dashed border-border bg-muted/30">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <h3 className="text-sm font-bold flex items-center gap-2 justify-center md:justify-start">
+                <ActivityIcon size={16} className="text-primary" />
+                Initialize Demo Environment
+              </h3>
+              <p className="text-[10px] text-muted-foreground mt-1">Populate bins, products, and activity logs with realistic hackathon data.</p>
+            </div>
+            <button 
+              onClick={async () => {
+                toast.loading("Seeding environment...")
+                await seedDatabase()
+                toast.dismiss()
+                toast.success("Ecosystem initialized! Refreshing dashboard...")
+                setTimeout(() => window.location.reload(), 1500)
+              }}
+              className="px-6 py-2.5 bg-primary/10 border border-primary/20 text-primary rounded-xl text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-all active:scale-95"
+            >
+              Seed Data
+            </button>
+          </div>
         </div>
       </div>
 

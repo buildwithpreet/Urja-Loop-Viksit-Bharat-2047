@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Leaf, Menu, X, ChevronRight, Globe, ShieldCheck, Zap } from "lucide-react"
+import { Leaf, Menu, X, ChevronRight, ChevronDown, Globe, ShieldCheck, Zap, Cpu, Network, Smartphone, Building2, Layout, Wheat } from "lucide-react"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { cn } from "@/lib/utils"
 

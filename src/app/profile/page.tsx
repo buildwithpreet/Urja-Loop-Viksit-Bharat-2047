@@ -158,11 +158,11 @@ export default function Profile() {
             
             <div className="absolute right-0 top-0 md:static md:ml-auto">
               <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                <DialogTrigger asChild>
+                <DialogTrigger render={
                   <button className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground">
                     <Edit2 size={16} />
                   </button>
-                </DialogTrigger>
+                } />
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>Edit Profile</DialogTitle>

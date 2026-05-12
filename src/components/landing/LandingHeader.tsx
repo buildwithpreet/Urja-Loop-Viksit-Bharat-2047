@@ -2,20 +2,23 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Leaf, Menu, X, ChevronRight, ChevronDown, Globe, ShieldCheck, Zap, Cpu, Network, Smartphone, Building2, Layout, Wheat } from "lucide-react"
+import { Leaf, Menu, X, ChevronRight, Zap } from "lucide-react"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
+import { LanguageToggle } from "@/components/shared/LanguageToggle"
+import { useLanguage } from "@/components/shared/LanguageProvider"
 import { cn } from "@/lib/utils"
-
-const NAV_LINKS = [
-  { label: "Hardware", href: "#hardware", desc: "The Smart Bin Engine" },
-  { label: "Software", href: "#software", desc: "The Citizen Dashboard" },
-  { label: "Economy", href: "#economy", desc: "Urja Credits & Marketplace" },
-  { label: "Vision", href: "#vision", desc: "Viksit Bharat 2047" },
-]
 
 export function LandingHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { t } = useLanguage()
+
+  const NAV_LINKS = [
+    { label: t("landing_nav_bin") || "Hardware", href: "#hardware", desc: "The Smart Bin Engine" },
+    { label: t("landing_nav_app") || "Software", href: "#software", desc: "The Citizen Dashboard" },
+    { label: t("landing_nav_rewards") || "Economy", href: "#economy", desc: "Urja Credits & Marketplace" },
+    { label: "Vision", href: "#vision", desc: "Viksit Bharat 2047" },
+  ]
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)
@@ -56,17 +59,18 @@ export function LandingHeader() {
         <div className="flex items-center gap-3">
            <div className="hidden sm:flex items-center gap-3 mr-2">
               <ThemeToggle />
+              <LanguageToggle />
            </div>
            
            <Link href="/login" className="hidden sm:block">
              <button className="text-xs font-black uppercase tracking-widest px-6 py-3 hover:text-primary transition-colors">
-               Log In
+               {t("landing_login")}
              </button>
            </Link>
            
            <Link href="/login">
              <button className="bg-foreground text-background text-xs font-black uppercase tracking-widest px-8 py-3 rounded-full hover:bg-foreground/90 transition-all shadow-xl shadow-foreground/10 active:scale-95">
-               Get Started
+               {t("landing_start")}
              </button>
            </Link>
 
@@ -125,7 +129,10 @@ export function LandingHeader() {
           <div className="pt-8 border-t border-border space-y-4">
             <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl">
               <span className="text-xs font-bold uppercase tracking-widest">Interface Mode</span>
-              <ThemeToggle />
+              <div className="flex gap-2">
+                <ThemeToggle />
+                <LanguageToggle />
+              </div>
             </div>
             <Link href="/login" className="block w-full">
               <button className="w-full bg-foreground text-background font-black text-xs uppercase tracking-[0.2em] py-4 rounded-2xl shadow-xl active:scale-95 transition-all">

@@ -44,7 +44,6 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
       }
     }
     initMode()
-    }
   }, [])
 
   const setMode = (newMode: AppMode) => {

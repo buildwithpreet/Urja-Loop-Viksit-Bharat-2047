@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { MapPin, Camera, Bell, ShieldCheck, Check, Zap, Eye, Navigation } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useMode } from "@/components/shared/ModeProvider"
 
 const PERMISSIONS = [
   {
@@ -33,9 +34,11 @@ const PERMISSIONS = [
 
 export default function PermissionsScreen() {
   const router = useRouter()
+  const { refreshMode } = useMode()
 
   const handleAllowAll = () => {
     localStorage.setItem("urjaloop_onboarded", "true")
+    refreshMode()
     const mode = localStorage.getItem("urjaloop_mode")
     if (mode === "collector") {
       router.push("/collector")
@@ -46,6 +49,7 @@ export default function PermissionsScreen() {
 
   const handleSkip = () => {
     localStorage.setItem("urjaloop_onboarded", "true")
+    refreshMode()
     const mode = localStorage.getItem("urjaloop_mode")
     if (mode === "collector") {
       router.push("/collector")

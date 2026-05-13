@@ -37,17 +37,18 @@ const INITIAL_BINS = [
 
 export default function DashboardPage() {
   const { t } = useLanguage()
-  const { mode } = useMode()
+  const { mode, isLoaded } = useMode()
   const router = useRouter()
   const [currentTime, setCurrentTime] = useState("")
   const [greeting, setGreeting] = useState("")
   const [bins, setBins] = useState(INITIAL_BINS)
 
   useEffect(() => {
+    if (!isLoaded) return
     if (mode === "collector") {
       router.push("/collector")
     }
-  }, [mode, router])
+  }, [mode, isLoaded, router])
   const [profile, setProfile] = useState<any>(null)
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

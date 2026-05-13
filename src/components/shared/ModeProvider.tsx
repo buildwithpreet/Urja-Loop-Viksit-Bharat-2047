@@ -11,6 +11,7 @@ interface ModeContextType {
   isLoaded: boolean
   toggleMode: () => void
   setMode: (mode: AppMode) => void
+  refreshMode: () => void
 }
 
 const ModeContext = createContext<ModeContextType | undefined>(undefined)
@@ -51,6 +52,13 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
     initMode()
   }, [])
 
+  const refreshMode = () => {
+    const savedMode = localStorage.getItem("urjaloop_mode") as AppMode
+    if (savedMode && (savedMode === "urban" || savedMode === "rural" || savedMode === "collector")) {
+      setModeState(savedMode)
+    }
+  }
+
   const setMode = (newMode: AppMode) => {
     setModeState(newMode)
     localStorage.setItem("urjaloop_mode", newMode)
@@ -67,7 +75,7 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ModeContext.Provider value={{ mode, isLoaded, toggleMode, setMode }}>
+    <ModeContext.Provider value={{ mode, isLoaded, toggleMode, setMode, refreshMode }}>
       {children}
     </ModeContext.Provider>
   )

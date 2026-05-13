@@ -6,7 +6,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
   Home, MapPin, ShoppingBag, User, BrainCircuit,
-  AlertCircle, Leaf, ChevronLeft, ChevronRight, ScanLine
+  AlertCircle, Leaf, ChevronLeft, ChevronRight, ScanLine,
+  LayoutDashboard, Map, CheckSquare, QrCode, FileText, Truck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -26,6 +27,7 @@ export function Sidebar() {
   const { t } = useLanguage()
 
   const isFarmer = mode === "rural"
+  const isCollector = mode === "collector"
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -42,7 +44,7 @@ export function Sidebar() {
     fetchProfile()
   }, [])
 
-  const navItems = [
+  const defaultNavItems = [
     { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },
     { name: "Live Map", label: t("nav_map"), href: "/map", icon: MapPin },
     { name: "Scan", label: t("nav_scan") || "Scan", onClick: () => window.dispatchEvent(new CustomEvent("open-scan-modal")), icon: ScanLine },
@@ -51,6 +53,17 @@ export function Sidebar() {
     { name: "Urja AI", label: t("nav_bot"), href: "/bot", icon: BrainCircuit },
     { name: "Profile", label: t("nav_profile"), href: "/profile", icon: User },
   ]
+
+  const collectorNavItems = [
+    { name: "Collector Dashboard", label: "Dashboard", href: "/collector", icon: LayoutDashboard },
+    { name: "Assigned Routes", label: "Routes", href: "/collector/routes", icon: Map },
+    { name: "Pickup Tasks", label: "Tasks", href: "/collector/tasks", icon: CheckSquare },
+    { name: "Verification", label: "Verify", href: "/collector/verification", icon: QrCode },
+    { name: "Reports", label: "Reports", href: "/collector/reports", icon: FileText },
+    { name: "Vehicle Status", label: "Vehicle", href: "/collector/vehicle", icon: Truck },
+  ]
+
+  const navItems = isCollector ? collectorNavItems : defaultNavItems
 
   return (
     <aside 

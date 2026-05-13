@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 
-export type AppMode = "urban" | "rural"
+export type AppMode = "urban" | "rural" | "collector"
 
 interface ModeContextType {
   mode: AppMode
@@ -15,11 +16,12 @@ const ModeContext = createContext<ModeContextType | undefined>(undefined)
 
 export function ModeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<AppMode>("urban")
+  const router = useRouter()
 
   useEffect(() => {
     const initMode = async () => {
       const savedMode = localStorage.getItem("urjaloop_mode") as AppMode
-      if (savedMode && (savedMode === "urban" || savedMode === "rural")) {
+      if (savedMode && (savedMode === "urban" || savedMode === "rural" || savedMode === "collector")) {
         setModeState(savedMode)
       } else {
         try {
@@ -49,6 +51,12 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
   const setMode = (newMode: AppMode) => {
     setModeState(newMode)
     localStorage.setItem("urjaloop_mode", newMode)
+    
+    if (newMode === "collector") {
+      router.push("/collector")
+    } else {
+      router.push("/dashboard")
+    }
   }
 
   const toggleMode = () => {

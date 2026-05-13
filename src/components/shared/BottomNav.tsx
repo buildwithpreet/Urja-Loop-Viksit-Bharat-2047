@@ -5,7 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
   Home, MapPin, User, Scan, 
-  Store, QrCode, AlertCircle, X, ChevronRight
+  Store, QrCode, AlertCircle, X, ChevronRight,
+  LayoutDashboard, Map, CheckSquare
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
@@ -16,14 +17,25 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
   const pathname = usePathname()
   const { t } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const isCollector = mode === "collector"
 
-  const navItems = [
+  const defaultNavItems = [
     { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },
     { name: "Map", label: t("nav_map"), href: "/map", icon: MapPin },
     { name: "Scanner", label: t("nav_scan"), icon: Scan, isPrimary: true },
     { name: "Market", label: t("nav_shop"), href: "/shop", icon: Store },
     { name: "Profile", label: t("nav_profile"), href: "/profile", icon: User },
   ]
+
+  const collectorNavItems = [
+    { name: "Dashboard", label: "Home", href: "/collector", icon: LayoutDashboard },
+    { name: "Routes", label: "Routes", href: "/collector/routes", icon: Map },
+    { name: "Verification", label: "Verify", href: "/collector/verification", icon: QrCode, isPrimary: true },
+    { name: "Tasks", label: "Tasks", href: "/collector/tasks", icon: CheckSquare },
+    { name: "Profile", label: "Profile", href: "/profile", icon: User },
+  ]
+
+  const navItems = isCollector ? collectorNavItems : defaultNavItems
 
   const menuOptions = [
     { 

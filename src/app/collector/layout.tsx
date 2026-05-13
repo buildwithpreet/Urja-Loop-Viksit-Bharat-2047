@@ -10,18 +10,28 @@ export default function CollectorLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { mode } = useMode()
+  const { mode, isLoaded } = useMode()
   const router = useRouter()
   const [isAuthorized, setIsAuthorized] = useState(false)
 
   useEffect(() => {
+    if (!isLoaded) return
+
     // If not in collector mode, redirect back to dashboard
     if (mode !== "collector") {
       router.replace("/dashboard")
     } else {
       setIsAuthorized(true)
     }
-  }, [mode, router])
+  }, [mode, isLoaded, router])
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   if (!isAuthorized) {
     return (

@@ -12,6 +12,14 @@ import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
 import { useLanguage } from "./LanguageProvider"
 
+interface NavItem {
+  name: string
+  label: string
+  href?: string
+  icon: any
+  isPrimary?: boolean
+}
+
 export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
   const { mode } = useMode()
   const pathname = usePathname()
@@ -19,15 +27,15 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const isCollector = mode === "collector"
 
-  const defaultNavItems = [
+  const defaultNavItems: NavItem[] = [
     { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },
     { name: "Map", label: t("nav_map"), href: "/map", icon: MapPin },
     { name: "Scanner", label: t("nav_scan"), icon: Scan, isPrimary: true },
     { name: "Market", label: t("nav_shop"), href: "/shop", icon: Store },
     { name: "Profile", label: t("nav_profile"), href: "/profile", icon: User },
   ]
-
-  const collectorNavItems = [
+  
+  const collectorNavItems: NavItem[] = [
     { name: "Dashboard", label: "Home", href: "/collector", icon: LayoutDashboard },
     { name: "Routes", label: "Routes", href: "/collector/routes", icon: Map },
     { name: "Verification", label: "Verify", href: "/collector/verification", icon: QrCode, isPrimary: true },

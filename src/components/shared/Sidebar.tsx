@@ -18,6 +18,14 @@ import { useLanguage } from "./LanguageProvider"
 import { useMode } from "@/components/shared/ModeProvider"
 import { AccessibilityMenu } from "./AccessibilityMenu"
 
+interface NavItem {
+  name: string
+  label: string
+  href?: string
+  onClick?: () => void
+  icon: any
+}
+
 export function Sidebar() {
   const { mode } = useMode()
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -44,7 +52,7 @@ export function Sidebar() {
     fetchProfile()
   }, [])
 
-  const defaultNavItems = [
+  const defaultNavItems: NavItem[] = [
     { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },
     { name: "Live Map", label: t("nav_map"), href: "/map", icon: MapPin },
     { name: "Scan", label: t("nav_scan") || "Scan", onClick: () => window.dispatchEvent(new CustomEvent("open-scan-modal")), icon: ScanLine },
@@ -54,7 +62,7 @@ export function Sidebar() {
     { name: "Profile", label: t("nav_profile"), href: "/profile", icon: User },
   ]
 
-  const collectorNavItems = [
+  const collectorNavItems: NavItem[] = [
     { name: "Collector Dashboard", label: "Dashboard", href: "/collector", icon: LayoutDashboard },
     { name: "Assigned Routes", label: "Routes", href: "/collector/routes", icon: Map },
     { name: "Pickup Tasks", label: "Tasks", href: "/collector/tasks", icon: CheckSquare },

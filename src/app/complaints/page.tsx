@@ -60,7 +60,11 @@ export default function Complaints() {
   }
 
   useEffect(() => {
-    fetchComplaints()
+    // Use timeout to ensure this runs after the initial render cycle
+    // as per strict mode/cascading render rules in this environment
+    const timer = setTimeout(() => {
+      fetchComplaints()
+    }, 0)
 
     // Real-time Subscription for Complaints
     const channel = supabase
@@ -75,7 +79,10 @@ export default function Complaints() {
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    return () => { 
+      clearTimeout(timer)
+      supabase.removeChannel(channel) 
+    }
   }, [])
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

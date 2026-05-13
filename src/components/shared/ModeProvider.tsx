@@ -8,6 +8,7 @@ export type AppMode = "urban" | "rural" | "collector"
 
 interface ModeContextType {
   mode: AppMode
+  isLoaded: boolean
   toggleMode: () => void
   setMode: (mode: AppMode) => void
 }
@@ -16,6 +17,7 @@ const ModeContext = createContext<ModeContextType | undefined>(undefined)
 
 export function ModeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<AppMode>("urban")
+  const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
           setModeState("urban")
         }
       }
+      setIsLoaded(true)
     }
     initMode()
   }, [])
@@ -64,7 +67,7 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ModeContext.Provider value={{ mode, toggleMode, setMode }}>
+    <ModeContext.Provider value={{ mode, isLoaded, toggleMode, setMode }}>
       {children}
     </ModeContext.Provider>
   )

@@ -12,6 +12,8 @@ import { AccessibilityProvider } from "./AccessibilityProvider"
 import { supabase } from "@/lib/supabase"
 import { ProfileSettingsMenu } from "./ProfileSettingsMenu"
 import { Leaf } from "lucide-react"
+import { useAccessibility } from "./AccessibilityProvider"
+import { Toaster } from "@/components/ui/sonner"
 
 const AUTH_ROUTES = ["/", "/splash", "/onboarding", "/login", "/verify-otp", "/setup-profile", "/permissions"]
 
@@ -20,6 +22,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const { notificationsEnabled } = useAccessibility()
 
   const isAuthRoute = AUTH_ROUTES.includes(pathname)
 
@@ -56,15 +59,14 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   if (isAuthRoute) {
     return (
-      <AccessibilityProvider>
-        <div className="min-h-screen bg-background text-foreground">
-          <AnimatePresence mode="wait">
-            <PageTransition key={pathname}>
-              {children}
-            </PageTransition>
-          </AnimatePresence>
-        </div>
-      </AccessibilityProvider>
+      <div className="min-h-screen bg-background text-foreground">
+        {notificationsEnabled && <Toaster position="top-center" richColors theme="system" />}
+        <AnimatePresence mode="wait">
+          <PageTransition key={pathname}>
+            {children}
+          </PageTransition>
+        </AnimatePresence>
+      </div>
     )
   }
 
@@ -105,7 +107,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           isOpen={isScanModalOpen}
           onClose={() => setIsScanModalOpen(false)}
         />
+        {notificationsEnabled && <Toaster position="top-center" richColors theme="system" />}
       </div>
-    </AccessibilityProvider>
   )
 }

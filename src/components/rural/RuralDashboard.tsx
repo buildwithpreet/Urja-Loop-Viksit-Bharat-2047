@@ -48,7 +48,7 @@ export function RuralDashboard() {
               Transforming <span className="text-emerald-200">Waste</span> <br />into Rural <span className="text-teal-200">Wealth.</span>
             </h1>
             <p className="text-emerald-50/80 text-lg max-w-md font-medium">
-              Don't burn your future. Convert crop residue into Urja Credits and high-quality bio-products.
+              Don&apos;t burn your future. Convert crop residue into Urja Credits and high-quality bio-products.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link href="/bot">

@@ -62,7 +62,10 @@ function ScannerContent() {
   // Generate random ID for QR mode
   useEffect(() => {
     if (mode === "qr") {
-      setRandomId(`USER_${Math.random().toString(36).substring(7)}`)
+      const timer = setTimeout(() => {
+        setRandomId(`USER_${Math.random().toString(36).substring(7)}`)
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [mode])
 

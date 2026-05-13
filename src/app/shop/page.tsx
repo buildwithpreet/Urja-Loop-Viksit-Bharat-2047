@@ -68,7 +68,7 @@ export default function Shop() {
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ eco_credits: profile.eco_credits - price })
-      .eq('id', session.user.id)
+      .eq('id', user.id)
 
     if (profileError) {
       toast.error("Transaction failed")
@@ -83,7 +83,7 @@ export default function Shop() {
 
     // 3. Log Activity
     await supabase.from('activity_log').insert({
-      user_id: session.user.id,
+      user_id: user.id,
       action: "Marketplace Purchase",
       description: `Bought ${item.name} for ${price} credits`,
       points_earned: -price

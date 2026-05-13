@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: urjaloop_backend
+    ports:
+      - '5000:5000'
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGO_URI=mongodb://mongodb:27017/urjaloop
+      - REDIS_URL=redis://redis:6379
+      # Firebase and other env vars should be passed via .env file
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - urjaloop_network
+
+  mongodb:
+    image: mongo:6.0
+    container_name: urjaloop_mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - urjaloop_network
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: urjaloop_redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - urjaloop_network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  urjaloop_network:
+    driver: bridge

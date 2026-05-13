@@ -34,14 +34,31 @@ export const seedDatabase = async () => {
   const { error: ruralError } = await supabase.from('marketplace_items').upsert(ruralItems, { onConflict: 'name' })
   if (ruralError) console.error("Rural Item Seed Error:", ruralError)
 
-  // 4. Seed Mock Profiles (Community Members)
-  const communityProfiles = [
-    { full_name: "Rahul Sharma", role: "citizen", eco_credits: 4500, waste_processed: 124.5, co2_saved: 28.2 },
-    { full_name: "Anita Desai", role: "citizen", eco_credits: 3200, waste_processed: 82.1, co2_saved: 15.4 },
-    { full_name: "Farmer Jagdish", role: "rural", eco_credits: 12000, waste_processed: 2450, co2_saved: 450.0 }
+  // 4. Seed Vehicles (Fleet)
+  const vehicles = [
+    { plate_number: "DL-1CB-4521", type: "urban_truck", status: "on_route", driver_name: "Suresh Kumar", current_lat: 28.6130, current_lng: 77.2095 },
+    { plate_number: "DL-3SA-9812", type: "electric_van", status: "idle", driver_name: "Amit Singh", current_lat: 28.6155, current_lng: 77.2120 },
+    { plate_number: "PB-12-TR-0091", type: "rural_tractor", status: "on_route", driver_name: "Baljeet Singh", current_lat: 30.9010, current_lng: 75.8573 }
   ]
-  // Note: These usually require auth.users, but we can update them if they exist.
-  // For demo, we just focus on the community impact stats.
+  const { error: vehicleError } = await supabase.from('vehicles').upsert(vehicles, { onConflict: 'plate_number' })
+  if (vehicleError) console.error("Vehicle Seed Error:", vehicleError)
+
+  // 5. Seed Collection Centers (Rural)
+  const centers = [
+    { name: "Ludhiana Biomass Hub", location_name: "Focal Point, Ludhiana", capacity: 500, current_stock: 120, type: "biomass", lat: 30.9010, lng: 75.8573 },
+    { name: "Punjab Agri-Processing Unit", location_name: "Moga Highway", capacity: 300, current_stock: 45, type: "processing", lat: 30.9100, lng: 75.8600 }
+  ]
+  const { error: centerError } = await supabase.from('collection_centers').upsert(centers, { onConflict: 'name' })
+  if (centerError) console.error("Center Seed Error:", centerError)
+
+  // 6. Seed Processed Outputs (Marketplace)
+  const outputs = [
+    { name: "Biofuel Briquettes", description: "High-density biomass fuel from crop residue", category: "Biofuel", price_per_unit: 1200, unit: "ton", stock: 50, image_url: "https://images.unsplash.com/photo-1610634289758-5f9175344487" },
+    { name: "Organic Bio-Fertilizer", description: "Premium compost enriched with micronutrients", category: "Fertilizer", price_per_unit: 450, unit: "bag", stock: 200, image_url: "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d" },
+    { name: "Recycled PET Pellets", description: "Industrial grade recycled plastic raw material", category: "Recycled Plastic", price_per_unit: 800, unit: "kg", stock: 1000, image_url: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b" }
+  ]
+  const { error: outputError } = await supabase.from('processed_outputs').upsert(outputs, { onConflict: 'name' })
+  if (outputError) console.error("Output Seed Error:", outputError)
 
   console.log("Seeding Completed Successfully! 🚀")
 }

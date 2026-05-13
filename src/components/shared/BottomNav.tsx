@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
-  Home, MapPin, User, Scan, 
+  Home, MapPin, User, Scan, Truck,
   Store, QrCode, AlertCircle, X, ChevronRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -49,6 +49,14 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
       href: "/scanner?mode=complaint",
       color: "text-red-400",
       bg: "bg-red-400/10"
+    },
+    { 
+      name: "Fleet & Monitoring", 
+      desc: "Real-time infrastructure status", 
+      icon: Truck, 
+      href: "/fleet",
+      color: "text-blue-500",
+      bg: "bg-blue-500/10"
     }
   ]
 

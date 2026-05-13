@@ -15,7 +15,10 @@ import { RuralMap } from "@/components/rural/RuralMap"
 import { GoogleMap, useJsApiLoader, OverlayViewF, PolylineF } from "@react-google-maps/api"
 import { supabase } from "@/lib/supabase"
 
+const LIBRARIES: any[] = []
+
 type MapState = "browsing" | "selected" | "scanning" | "reporting"
+
 type NodeKind = "station" | "bin" | "ewaste" | "compost" | "plastic" | "van" | "complaint" | "cleanup" | "hub"
 
 interface Node {
@@ -105,44 +108,85 @@ export default function MapPage() {
    const [vanPos, setVanPos] = useState({ lat: 28.5520, lng: 77.2080 })
    const [activeLayer, setActiveLayer] = useState<string | null>(null)
    const [storyIdx, setStoryIdx] = useState(0)
-   const [dynamicNodes, setDynamicNodes] = useState<Node[]>([])
    const [loading, setLoading] = useState(false)
+   const [dynamicNodes, setDynamicNodes] = useState<Node[]>([])
+   const [vehicles, setVehicles] = useState<Node[]>([])
+   const [centers, setCenters] = useState<Node[]>([])
 
-   const fetchBins = useCallback(async () => {
+   const fetchInfrastructure = useCallback(async () => {
       setLoading(true)
       try {
+         // 1. Fetch Smart Bins
          const { data: bins } = await supabase.from('smart_bins').select('*')
-         if (bins) {
-            const mapped = bins.map(b => ({
-               id: b.id,
-               kind: "bin" as NodeKind,
-               name: b.location_name || "Smart Bin",
-               lat: b.lat_geo || 28.5524 + (Math.random() - 0.5) * 0.02,
-               lng: b.lng_geo || 77.2003 + (Math.random() - 0.5) * 0.02,
-               fill: b.fill_level || 0,
-               status: (b.fill_level > 80 ? "urgent" : b.fill_level > 50 ? "nearly-full" : "available") as any,
-               wasteTypes: ["dry", "organic"],
-               context: b.location_name || "City Sector",
-               lastPickup: "2h ago",
-               trustBadge: "AI Verified"
-            }))
-            setDynamicNodes(mapped)
-         }
+         const mappedBins = (bins || []).map(b => ({
+            id: b.id,
+            kind: "bin" as NodeKind,
+            name: b.location_name || "Smart Bin",
+            lat: b.lat_geo || 28.5524 + (Math.random() - 0.5) * 0.02,
+            lng: b.lng_geo || 77.2003 + (Math.random() - 0.5) * 0.02,
+            fill: b.fill_level || 0,
+            status: (b.fill_level > 80 ? "urgent" : b.fill_level > 50 ? "nearly-full" : "available") as any,
+            wasteTypes: ["dry", "organic"],
+            context: b.location_name || "City Sector",
+            lastPickup: "2h ago",
+            trustBadge: "AI Verified"
+         }))
+
+         // 2. Fetch Vehicles
+         const { data: vData } = await supabase.from('vehicles').select('*')
+         const mappedVehicles = (vData || []).map(v => ({
+            id: v.id,
+            kind: "van" as NodeKind,
+            name: v.plate_number,
+            lat: v.current_lat || 28.5520,
+            lng: v.current_lng || 77.2080,
+            status: (v.status === 'on_route' ? 'moving' : 'available') as any,
+            wasteTypes: [],
+            context: `${v.type} · Driver: ${v.driver_name}`,
+            lastPickup: "Live",
+            distance: "Live"
+         }))
+
+         // 3. Fetch Collection Centers
+         const { data: cData } = await supabase.from('collection_centers').select('*')
+         const mappedCenters = (cData || []).map(c => ({
+            id: c.id,
+            kind: "hub" as NodeKind,
+            name: c.name,
+            lat: c.lat || 28.5524,
+            lng: c.lng || 77.2153,
+            fill: Math.round((c.current_stock / c.capacity) * 100),
+            status: "available" as any,
+            wasteTypes: [c.type],
+            context: c.location_name,
+            lastPickup: "Verified Center",
+            trustBadge: "Govt Certified"
+         }))
+
+         setDynamicNodes(mappedBins)
+         setVehicles(mappedVehicles)
+         setCenters(mappedCenters)
       } catch (err) {
-         console.error("Fetch error:", err)
+         console.error("Infrastructure fetch error:", err)
       } finally {
          setLoading(false)
       }
    }, [])
 
    useEffect(() => {
-      fetchBins()
-      const i = setInterval(() => setVanPos(p => ({ lat: p.lat + 0.00009, lng: p.lng + 0.00004 })), 4000)
+      fetchInfrastructure()
+      const i = setInterval(() => {
+         setVehicles(prev => prev.map(v => ({
+            ...v,
+            lat: v.lat + (Math.random() - 0.5) * 0.0002,
+            lng: v.lng + (Math.random() - 0.5) * 0.0002,
+         })))
+      }, 5000)
       const storyTimer = setInterval(() => setStoryIdx(p => (p + 1) % STORY_BADGES.length), 4000)
       return () => { clearInterval(i); clearInterval(storyTimer); }
-   }, [fetchBins])
+   }, [fetchInfrastructure])
 
-   const allNodes = useMemo(() => [...STATIC_NODES, ...dynamicNodes], [dynamicNodes])
+   const allNodes = useMemo(() => [...STATIC_NODES.filter(n => n.kind !== 'van' && n.kind !== 'hub'), ...dynamicNodes, ...vehicles, ...centers], [dynamicNodes, vehicles, centers])
 
    const filtered = useMemo(() => {
       if (!query) return allNodes
@@ -157,7 +201,7 @@ export default function MapPage() {
    const { isLoaded } = useJsApiLoader({
       id: "urjaloop-google-maps",
       googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-      libraries: []
+      libraries: LIBRARIES
    })
 
    if (mode === "rural") return <RuralMap />
@@ -213,9 +257,8 @@ export default function MapPage() {
             )}
          </div>
 
-         {/* REFRESH CONTROL */}
          <div className="absolute top-24 right-4 z-[70]">
-             <button onClick={fetchBins} className="w-10 h-10 rounded-xl bg-[#191b1e]/95 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-emerald-500 shadow-2xl transition-all">
+             <button onClick={fetchInfrastructure} className="w-10 h-10 rounded-xl bg-[#191b1e]/95 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-emerald-500 shadow-2xl transition-all">
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
              </button>
          </div>

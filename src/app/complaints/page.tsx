@@ -133,7 +133,12 @@ export default function Complaints() {
     }
 
     const newComplaint = {
+<<<<<<< Updated upstream
       user_id: user.isDemo ? null : session?.user.id,
+=======
+      id: `CMP-${Math.floor(Math.random() * 9000) + 1000}`,
+      user_id: user.id,
+>>>>>>> Stashed changes
       type: formData.type,
       location_name: formData.location,
       severity: selectedSeverity,

@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { Activity, Flame, Users, Leaf } from "lucide-react"
 import { supabase } from "@/lib/supabase"

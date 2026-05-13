@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: urjaloop-backend
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free # or starter
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false # Set in Render Dashboard
+      - key: REDIS_URL
+        sync: false # Set in Render Dashboard
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false

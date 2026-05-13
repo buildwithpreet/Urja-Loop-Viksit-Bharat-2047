@@ -53,6 +53,11 @@ export default function VerifyOtpScreen() {
     if (value && index < 5 && inputRefs.current[index + 1]) {
       inputRefs.current[index + 1]?.focus()
     }
+
+    // Auto-verify when 6th digit is filled
+    if (value && index === 5) {
+      handleVerify(newOtp)
+    }
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -76,8 +81,8 @@ export default function VerifyOtpScreen() {
     }
   }
 
-  const handleVerify = async () => {
-    const otpValue = otp.join("")
+  const handleVerify = async (otpOverride?: string[]) => {
+    const otpValue = (otpOverride || otp).join("")
     const isDemo = searchParams.get("demo") === "true"
 
     if (otpValue.length === 6 && phone) {
@@ -191,67 +196,73 @@ export default function VerifyOtpScreen() {
            </div>
         </div>
 
-        {/* OTP Inputs */}
-        <div className="flex justify-between w-full gap-3">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              ref={(el) => { inputRefs.current[index] = el }}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              onPaste={handlePaste}
-              className={cn(
-                "w-full h-16 text-center text-2xl font-medium rounded-2xl border transition-all focus:outline-none",
-                digit 
-                  ? "border-primary bg-primary/5 text-foreground shadow-[0_0_15px_rgba(52,211,153,0.1)]" 
-                  : "border-border bg-muted/30 text-foreground focus:border-primary/50"
-              )}
-            />
-          ))}
-        </div>
-
-        {/* Controls */}
-        <div className="w-full space-y-8">
-          <div className="flex flex-col items-center space-y-6">
-            <div className="flex items-center gap-3 text-xs font-medium">
-              <Timer size={14} className={cn("text-primary", timer < 10 && "text-red-500 animate-pulse")} />
-              {timer > 0 ? (
-                <p className="text-muted-foreground">
-                  {t("otp_expires")} <span className="text-foreground tabular-nums font-bold">{timer}s</span>
-                </p>
-              ) : (
-                <button 
-                  onClick={() => setTimer(30)}
-                  className="text-primary hover:underline font-semibold"
-                >
-                  {t("otp_resend")}
-                </button>
-              )}
-            </div>
-
-            <button
-              onClick={handleVerify}
-              disabled={!isComplete || isVerifying}
-              className={cn(
-                "w-full h-14 rounded-full font-semibold text-sm transition-all flex items-center justify-center gap-3",
-                isComplete && !isVerifying
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(31,122,61,0.2)] active:scale-95" 
-                  : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-              )}
-            >
-              {isVerifying ? (
-                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              ) : (
-                <>
-                  {t("otp_btn")} <ArrowRight size={18} />
-                </>
-              )}
-            </button>
+        {/* OTP Inputs & Controls */}
+        <form 
+          onSubmit={(e) => { e.preventDefault(); handleVerify() }}
+          className="w-full space-y-12"
+        >
+          <div className="flex justify-between w-full gap-3">
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => { inputRefs.current[index] = el }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                onPaste={handlePaste}
+                className={cn(
+                  "w-full h-16 text-center text-2xl font-medium rounded-2xl border transition-all focus:outline-none",
+                  digit 
+                    ? "border-primary bg-primary/5 text-foreground shadow-[0_0_15px_rgba(52,211,153,0.1)]" 
+                    : "border-border bg-muted/30 text-foreground focus:border-primary/50"
+                )}
+              />
+            ))}
           </div>
+
+          <div className="w-full space-y-8">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="flex items-center gap-3 text-xs font-medium">
+                <Timer size={14} className={cn("text-primary", timer < 10 && "text-red-500 animate-pulse")} />
+                {timer > 0 ? (
+                  <p className="text-muted-foreground">
+                    {t("otp_expires")} <span className="text-foreground tabular-nums font-bold">{timer}s</span>
+                  </p>
+                ) : (
+                  <button 
+                    type="button"
+                    onClick={() => setTimer(30)}
+                    className="text-primary hover:underline font-semibold"
+                  >
+                    {t("otp_resend")}
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={!isComplete || isVerifying}
+                className={cn(
+                  "w-full h-14 rounded-full font-semibold text-sm transition-all flex items-center justify-center gap-3",
+                  isComplete && !isVerifying
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(31,122,61,0.2)] active:scale-95" 
+                    : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+                )}
+              >
+                {isVerifying ? (
+                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                ) : (
+                  <>
+                    {t("otp_btn")} <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
 
           <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/40 uppercase font-bold tracking-[0.2em]">
             <ShieldCheck size={14} className="text-primary/40" />

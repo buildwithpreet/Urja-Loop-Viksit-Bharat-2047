@@ -88,8 +88,20 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
       icon: AlertCircle, 
       href: "/complaints",
       color: "text-red-400",
+<<<<<<< HEAD
       bg: "bg-red-400/10",
       show: true
+=======
+      bg: "bg-red-400/10"
+    },
+    { 
+      name: "Fleet & Monitoring", 
+      desc: "Real-time infrastructure status", 
+      icon: Truck, 
+      href: "/fleet",
+      color: "text-blue-500",
+      bg: "bg-blue-500/10"
+>>>>>>> upstream/main
     }
   ].filter(opt => opt.show)
 

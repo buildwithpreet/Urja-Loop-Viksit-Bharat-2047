@@ -73,7 +73,7 @@ export default function UrjaBot() {
     fetchData()
   }, [])
 
-  const handleSend = (text?: string) => {
+  const handleSend = async (text?: string) => {
     const msg = text || input
     if (!msg.trim()) return
 
@@ -82,30 +82,49 @@ export default function UrjaBot() {
     setInput("")
     setIsTyping(true)
 
-    const lowerMsg = msg.toLowerCase()
-    const context = { credits: profile?.eco_credits || 0, bins: bins }
-    
-    let responseFn = botResponses.default
-    if (lowerMsg.includes("segregat") || lowerMsg.includes("plastic") || lowerMsg.includes("separate")) responseFn = botResponses.segregate
-    else if (lowerMsg.includes("report") || lowerMsg.includes("dump") || lowerMsg.includes("illegal")) responseFn = botResponses.report
-    else if (lowerMsg.includes("credit") || lowerMsg.includes("earn") || lowerMsg.includes("reward")) responseFn = botResponses.credits
-    else if (lowerMsg.includes("bin") || lowerMsg.includes("fill") || lowerMsg.includes("full") || lowerMsg.includes("near")) responseFn = botResponses.bins
-    
-    if (mode === "rural" && (lowerMsg.includes("farm") || lowerMsg.includes("agri") || lowerMsg.includes("prali") || lowerMsg.includes("straw"))) {
-      responseFn = botResponses.rural
-    }
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: msg, 
+          mode: mode,
+          userId: session?.user.id || 'demo-user',
+          history: messages.map(m => ({
+            role: m.role === "user" ? "user" : "model",
+            parts: [{ text: m.content }]
+          }))
+        })
+      })
+      const result = await response.json()
 
-    const response = responseFn(context)
-
-    setTimeout(() => {
+      if (result.success) {
+        setIsTyping(false)
+        setMessages(prev => [...prev, { 
+          role: "bot", 
+          content: result.response, 
+          timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) 
+        }])
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (err) {
       setIsTyping(false)
-      setMessages(prev => [...prev, { role: "bot", content: response, timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }])
-    }, 1400)
+      toast.error("AI assistant temporarily unavailable")
+      setMessages(prev => [...prev, { 
+        role: "bot", 
+        content: "I'm having trouble connecting to my neural network. Please check your internet or try again later. 📡", 
+        timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) 
+      }])
+    }
   }
 
   const handleScan = async () => {
+    toast.info("Opening camera system...")
     setIsTyping(true)
-    const userMsg: Message = { role: "user", content: "[Photo Uploaded: Waste Item]", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }
+    const userMsg: Message = { role: "user", content: "[Camera Scan Active...]", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }
     setMessages(prev => [...prev, userMsg])
     
     try {
@@ -115,7 +134,7 @@ export default function UrjaBot() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          imageUrl: "mock-bot-scan", 
+          imageUrl: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4", 
           userId: session?.user.id || 'demo-user' 
         })
       })
@@ -126,17 +145,14 @@ export default function UrjaBot() {
         setIsTyping(false)
         setMessages(prev => [...prev, { 
           role: "bot", 
-          content: `AI Analysis Complete! ✅\n\nItem: **${type}** (${category})\nReward: **+${credits} Eco Credits**\n\n${message}\n\nYour credits have been added to your wallet automatically.`, 
+          content: `Vision Analysis Complete! 🎯\n\nItem: **${type}**\nCategory: **${category}**\nReward: **+${credits} Eco Credits**\n\nAdvice: ${message}`, 
           timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) 
         }])
         toast.success(`Reward Earned: +${credits} Credits!`)
-      } else {
-        setIsTyping(false)
-        setMessages(prev => [...prev, { role: "bot", content: "I encountered an error while analyzing the image. Please try again.", timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }])
       }
     } catch (err) {
       setIsTyping(false)
-      toast.error("Connection error")
+      toast.error("Scan failed")
     }
   }
 

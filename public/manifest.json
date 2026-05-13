@@ -4,10 +4,37 @@
   "description": "AI-powered smart waste management for Viksit Bharat 2047",
   "start_url": "/",
   "display": "standalone",
+<<<<<<< Updated upstream
   "background_color": "#0a0a0a",
   "theme_color": "#10b981",
   "orientation": "portrait",
   "categories": ["utilities", "lifestyle", "government"],
+=======
+  "background_color": "#0A0C0B",
+  "theme_color": "#1F7A3D",
+  "orientation": "portrait",
+  "categories": ["productivity", "utilities", "education"],
+  "shortcuts": [
+    {
+      "name": "Map",
+      "short_name": "Map",
+      "url": "/map",
+      "icons": [{ "src": "https://api.dicebear.com/7.x/avataaars/svg?seed=Map", "sizes": "192x192" }]
+    },
+    {
+      "name": "Scanner",
+      "short_name": "Scan",
+      "url": "/scanner?mode=waste",
+      "icons": [{ "src": "https://api.dicebear.com/7.x/avataaars/svg?seed=Scan", "sizes": "192x192" }]
+    },
+    {
+      "name": "Marketplace",
+      "short_name": "Shop",
+      "url": "/shop",
+      "icons": [{ "src": "https://api.dicebear.com/7.x/avataaars/svg?seed=Shop", "sizes": "192x192" }]
+    }
+  ],
+>>>>>>> Stashed changes
   "icons": [
     {
       "src": "/favicon.ico",

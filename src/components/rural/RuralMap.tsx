@@ -143,6 +143,8 @@ const mapOptions = {
   ],
 };
 
+const LIBRARIES: any[] = []
+
 export function RuralMap() {
   const [selectedEntity, setSelectedEntity] = useState<any>(locations[0])
   const [showRoutes, setShowRoutes] = useState(true)
@@ -152,8 +154,9 @@ export function RuralMap() {
   const { isLoaded } = useJsApiLoader({
     id: 'urjaloop-google-maps',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries: []
+    libraries: LIBRARIES
   })
+
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     setMap(map)

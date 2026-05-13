@@ -140,23 +140,38 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
   const handleCapture = async () => {
     setStatus("loading")
     
-    // For Demo: Capture a frame (simulate)
     const { data: { session } } = await supabase.auth.getSession()
 
     if (view === "identify" || view === "agri") {
       try {
+        // Capture frame from video if possible
+        let base64 = null
+        if (videoRef.current) {
+          const canvas = document.createElement("canvas")
+          canvas.width = videoRef.current.videoWidth
+          canvas.height = videoRef.current.videoHeight
+          const ctx = canvas.getContext("2d")
+          if (ctx) {
+            ctx.drawImage(videoRef.current, 0, 0)
+            base64 = canvas.toDataURL("image/jpeg", 0.8)
+          }
+        }
+
         const response = await fetch('/api/ai/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            imageUrl: "mock-capture-url", 
-            userId: session?.user.id || 'demo-user' 
+            imageUrl: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4", 
+            userId: session?.user.id || 'demo-user',
+            base64Image: base64,
+            mode: mode
           })
         })
         const result = await response.json()
         if (result.success) {
           setWasteResult(result.data)
           setStatus("success")
+          toast.success("AI Analysis Complete")
         } else {
           toast.error("AI Analysis failed")
           setStatus("idle")
@@ -166,7 +181,9 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
         setStatus("idle")
       }
     } else if (view === "report") {
-      // Existing report logic...
+      // Simulate report submission with delay
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
       const newRef = `CMP-${Math.floor(Math.random() * 9000) + 1000}`
       setReferenceId(newRef)
       if (session) {
@@ -182,7 +199,8 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
           ai_validated: true
         })
       }
-      setTimeout(() => setStatus("success"), 2000)
+      setStatus("success")
+      toast.success("Report submitted successfully")
     }
     
     stopCamera()

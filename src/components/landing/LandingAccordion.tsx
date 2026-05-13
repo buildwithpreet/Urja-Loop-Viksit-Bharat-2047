@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronDown, ChevronUp, ShieldCheck, Zap, Globe, Cpu, Wifi, Recycle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 
 const SECTIONS = [
   {
@@ -112,5 +113,3 @@ export function LandingAccordion() {
     </section>
   )
 }
-
-import { Badge } from "@/components/ui/badge"

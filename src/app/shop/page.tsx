@@ -39,7 +39,49 @@ export default function Shop() {
   const { mode } = useMode()
   const [activeTab, setActiveTab] = useState<"raw" | "processed">("processed")
   const [search, setSearch] = useState("")
-  const [profile, setProfile] = useState<any>({ eco_credits: 500 }) // mock profile for now
+  const [profile, setProfile] = useState<any>(null)
+  const [rawMaterials, setRawMaterials] = useState<any[]>([])
+  const [processedProducts, setProcessedProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (data) setProfile(data)
+      }
+
+      // Fetch Raw Materials
+      const { data: rawItems } = await supabase
+        .from('marketplace_items')
+        .select('*')
+        .eq('type', 'urban')
+      
+      // Fetch Processed Outputs
+      const { data: processedItems } = await supabase
+        .from('processed_outputs')
+        .select('*')
+
+      if (rawItems) setRawMaterials(rawItems)
+      if (processedItems) setProcessedProducts(processedItems.map(p => ({
+        ...p,
+        image: p.image_url, // normalize key
+        price: p.price_per_unit,
+        demand: "High", // Default for demo
+        verified: true,
+        type: p.category,
+        weight: p.unit
+      })))
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
 
   if (mode === "rural") {
     return <RuralShop />
@@ -49,48 +91,48 @@ export default function Shop() {
   const products = activeTab === "raw" ? rawMaterials : processedProducts
 
   const handlePurchase = async (item: any) => {
-    const user = await getSessionUser()
-    if (!user) {
-      toast.error("Please login or setup a demo profile to make a purchase")
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      toast.error("Please login to make a purchase")
       return
     }
 
-    const price = typeof item.price === 'string' 
-      ? parseInt(item.price.replace(/[^0-9]/g, '')) 
-      : item.price
+    const price = item.price || item.price_per_unit
 
     if (!profile || profile.eco_credits < price) {
       toast.error("Insufficient Eco Credits!")
       return
     }
 
-    // 1. Deduct Credits
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ eco_credits: profile.eco_credits - price })
-      .eq('id', user.id)
+    try {
+      // 1. Deduct Credits
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ eco_credits: profile.eco_credits - price })
+        .eq('id', session.user.id)
 
-    if (profileError) {
+      if (profileError) throw profileError
+
+      // 2. Decrement Stock
+      const table = activeTab === "raw" ? 'marketplace_items' : 'processed_outputs'
+      await supabase
+        .from(table)
+        .update({ stock: (item.stock || 10) - 1 })
+        .eq('id', item.id)
+
+      // 3. Log Activity
+      await supabase.from('activity_log').insert({
+        user_id: session.user.id,
+        action: "Marketplace Purchase",
+        description: `Bought ${item.name} for ${price} credits`,
+        points_earned: -price
+      })
+
+      setProfile({...profile, eco_credits: profile.eco_credits - price})
+      toast.success(`Successfully purchased ${item.name}!`)
+    } catch (err) {
       toast.error("Transaction failed")
-      return
     }
-
-    // 2. Decrement Stock
-    await supabase
-      .from('marketplace_items')
-      .update({ stock: (item.stock || 10) - 1 })
-      .eq('id', item.id)
-
-    // 3. Log Activity
-    await supabase.from('activity_log').insert({
-      user_id: user.id,
-      action: "Marketplace Purchase",
-      description: `Bought ${item.name} for ${price} credits`,
-      points_earned: -price
-    })
-
-    setProfile({...profile, eco_credits: profile.eco_credits - price})
-    toast.success(`Successfully purchased ${item.name}!`)
   }
 
   return (

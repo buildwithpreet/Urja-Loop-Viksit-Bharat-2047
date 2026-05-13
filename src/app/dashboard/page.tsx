@@ -11,6 +11,8 @@ import {
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useLanguage } from "@/components/shared/LanguageProvider"
+import { useMode } from "@/components/shared/ModeProvider"
+import { RuralDashboard } from "@/components/rural/RuralDashboard"
 import { useState, useEffect } from "react"
 import { supabase, getSessionUser } from "@/lib/supabase"
 import { useMode } from "@/components/shared/ModeProvider"
@@ -67,7 +69,7 @@ export default function DashboardPage() {
 
     const DEMO_PROFILE_FALLBACK = {
       full_name: "Demo User",
-      location: "Sector 14 · New Delhi",
+      location: mode === 'rural' ? "Ludhiana · Punjab" : "Sector 14 · New Delhi",
       eco_credits: 1240,
       waste_processed: 18.4,
       co2_saved: 4.2
@@ -155,6 +157,10 @@ export default function DashboardPage() {
 
     return () => { supabase.removeChannel(channel) }
   }, [])
+
+  if (mode === "rural") {
+    return <RuralDashboard />
+  }
 
   return (
     <div className="p-4 pb-36 md:p-8 space-y-10 animate-in fade-in duration-700 min-h-screen bg-background text-foreground transition-colors duration-300">

@@ -106,6 +106,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [wasteResult, setWasteResult] = useState<any>(null)
   const [selectedSeverity, setSelectedSeverity] = useState<string>("Medium")
+  const [referenceId, setReferenceId] = useState<string>("")
 
 
   const startCamera = useCallback(async () => {
@@ -129,7 +130,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
 
   useEffect(() => {
     if (isOpen && (view === "identify" || view === "report" || view === "agri") && status === "idle") {
-      startCamera()
+      setTimeout(() => startCamera(), 0)
     } else {
       stopCamera()
     }
@@ -166,9 +167,11 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
       }
     } else if (view === "report") {
       // Existing report logic...
+      const newRef = `CMP-${Math.floor(Math.random() * 9000) + 1000}`
+      setReferenceId(newRef)
       if (session) {
         await supabase.from('complaints').insert({
-          id: `CMP-${Math.floor(Math.random() * 9000) + 1000}`,
+          id: newRef,
           user_id: session.user.id,
           type: "Illegal / Open Dumping",
           location_name: "Sector 14 Market · Block C · New Delhi",
@@ -485,7 +488,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-foreground">Report Submitted</h3>
-                    <p className="text-xs text-muted-foreground mt-1">Reference: CMP-{Math.floor(Math.random() * 9000) + 1000}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Reference: {referenceId}</p>
                   </div>
                   <div className="w-full p-4 bg-muted border border-border rounded-2xl text-left space-y-1">
                     <p className="text-xs font-semibold text-foreground">What happens next?</p>

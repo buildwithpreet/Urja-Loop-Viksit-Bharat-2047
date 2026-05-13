@@ -1,0 +1,365 @@
+﻿
+> urjaloop@0.1.0 lint
+> eslint
+
+node.exe : (node:18172) ESLintIgnoreWarning: The ".eslintignore" file is no longer supported. Switch to using the 
+"ignores" property in "eslint.config.js": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:18172) ES...#ignoring-files:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\backend\src\controllers\ai.controller.ts
+  1:10  warning  'Request' is defined but never used   @typescript-eslint/no-unused-vars
+  7:44  warning  'imageUrl' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\backend\src\controllers\route.controller.ts
+  7:40  warning  'binIds' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\backend\src\middleware\auth.middleware.ts
+  29:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\backend\src\middleware\error.middleware.ts
+  7:3  warning  'next' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\backend\src\routes\user.routes.ts
+  3:23  warning  'requireRole' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\backend\src\sockets\index.ts
+  3:10  warning  'env' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\activity\page.tsx
+  3:38  warning  'Trophy' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\api\ai\analyze\route.ts
+  12:13  warning  'imageUrl' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\bot\page.tsx
+    5:3   warning  'Bot' is defined but never used                  @typescript-eslint/no-unused-vars
+    6:30  warning  'Search' is defined but never used               @typescript-eslint/no-unused-vars
+    7:17  warning  'Camera' is defined but never used               @typescript-eslint/no-unused-vars
+    7:25  warning  'CheckCircle2' is defined but never used         @typescript-eslint/no-unused-vars
+    9:10  warning  'ScrollArea' is defined but never used           @typescript-eslint/no-unused-vars
+  106:9   warning  'handleScan' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  137:14  warning  'err' is defined but never used                  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\community\page.tsx
+   5:10  warning  'MapPin' is defined but never used            @typescript-eslint/no-unused-vars
+   5:18  warning  'CheckCircle2' is defined but never used      @typescript-eslint/no-unused-vars
+   5:32  warning  'AlertTriangle' is defined but never used     @typescript-eslint/no-unused-vars
+   6:3   warning  'Clock' is defined but never used             @typescript-eslint/no-unused-vars
+  11:10  warning  'ScrollArea' is defined but never used        @typescript-eslint/no-unused-vars
+  24:10  warning  'loading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\complaints\page.tsx
+    5:3   warning  'AlertTriangle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+    5:48  warning  'Clock' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+    6:37  warning  'ChevronRight' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    7:3   warning  'Filter' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    7:11  warning  'MessageSquare' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+    7:46  warning  'Target' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    7:54  warning  'Zap' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    7:59  warning  'Phone' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   23:10  warning  'formStep' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   23:20  warning  'setFormStep' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   41:5   error    Error: Cannot access variable before it is declared
+
+`fetchComplaints` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\complaints\page.tsx:41:5
+  39 |
+  40 |   useEffect(() => {
+> 41 |     fetchComplaints()
+     |     ^^^^^^^^^^^^^^^ `fetchComplaints` accessed before it is declared
+  42 |
+  43 |     // Real-time Subscription for Complaints
+  44 |     const channel = supabase
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\complaints\page.tsx:69:3
+  67 |   }
+  68 |
+> 69 |   const fetchComplaints = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 70 |     setIsLoading(true)
+     | ^^^^^^^^^^^^^^^^^^^^^^
+> 71 |     const { data: { session } } = await supabase.auth.getSession()
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^
+> 88 |     setIsLoading(false)
+     | ^^^^^^^^^^^^^^^^^^^^^^
+> 89 |   }
+     | ^^^^ `fetchComplaints` is declared here
+  90 |
+  91 |   const handleSubmit = async (e: React.FormEvent) => {
+  92 |     e.preventDefault()  react-hooks/immutability
+   59:6   warning  React Hook useEffect has a missing dependency: 'selectedComplaint?.id'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
+   82:19  warning  'error' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  117:21  warning  'uploadData' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\dashboard\page.tsx
+   6:3   warning  'Droplets' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  17:7   warning  'communityMetrics' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  37:11  warning  't' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  40:10  warning  'bins' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  43:10  warning  'loading' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  50:20  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\dashboard\page.tsx:50:20
+  48 |     const now = new Date()
+  49 |     const hour = now.getHours()
+> 50 |     if (hour < 12) setGreeting("Good Morning")
+     |                    ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  51 |     else if (hour < 17) setGreeting("Good Afternoon")
+  52 |     else setGreeting("Good Evening")
+  53 |     setCurrentTime(now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }))  react-hooks/set-state-in-effect
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\error.tsx
+  7:3  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\layout.tsx
+  9:10  warning  'AccessibilityProvider' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\map\page.tsx
+    6:24  warning  'Filter' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    7:18  warning  'ArrowRight' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    8:38  warning  'MapPinned' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+    8:49  warning  'Eye' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   10:10  warning  'Badge' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   99:10  warning  'router' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  106:11  warning  'activeLayer' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  106:24  warning  'setActiveLayer' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  139:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\map\page.tsx:139:7
+  137 |
+  138 |    useEffect(() => {
+> 139 |       fetchBins()
+      |       ^^^^^^^^^ Avoid calling setState() directly within an effect
+  140 |       const i = setInterval(() => setVanPos(p => ({ lat: p.lat + 0.00009, lng: p.lng + 0.00004 })), 4000)
+  141 |       const storyTimer = setInterval(() => setStoryIdx(p => (p + 1) % STORY_BADGES.length), 4000)
+  142 |       return () => { clearInterval(i); clearInterval(storyTimer); }  react-hooks/set-state-in-effect
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\onboarding\page.tsx
+   6:3  warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+  16:3  warning  'QrCode' is defined but never used        @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\page.tsx
+  19:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\permissions\page.tsx
+  4:10  warning  'MapPin' is defined but never used  @typescript-eslint/no-unused-vars
+  4:18  warning  'Camera' is defined but never used  @typescript-eslint/no-unused-vars
+  4:45  warning  'Check' is defined but never used   @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\profile\edit\page.tsx
+  5:11  warning  'Phone' is defined but never used       @typescript-eslint/no-unused-vars
+  5:18  warning  'Mail' is defined but never used        @typescript-eslint/no-unused-vars
+  5:24  warning  'User' is defined but never used        @typescript-eslint/no-unused-vars
+  5:30  warning  'Check' is defined but never used       @typescript-eslint/no-unused-vars
+  6:3   warning  'Leaf' is defined but never used        @typescript-eslint/no-unused-vars
+  6:9   warning  'Tractor' is defined but never used     @typescript-eslint/no-unused-vars
+  6:18  warning  'Wheat' is defined but never used       @typescript-eslint/no-unused-vars
+  6:25  warning  'Truck' is defined but never used       @typescript-eslint/no-unused-vars
+  6:42  warning  'CreditCard' is defined but never used  @typescript-eslint/no-unused-vars
+  7:14  warning  'Globe' is defined but never used       @typescript-eslint/no-unused-vars
+  7:35  warning  'Recycle' is defined but never used     @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\profile\page.tsx
+   4:43  warning  'Bell' is defined but never used                        @typescript-eslint/no-unused-vars
+   6:31  warning  'Wallet' is defined but never used                      @typescript-eslint/no-unused-vars
+   6:39  warning  'Menu' is defined but never used                        @typescript-eslint/no-unused-vars
+   6:45  warning  'X' is defined but never used                           @typescript-eslint/no-unused-vars
+   6:48  warning  'Info' is defined but never used                        @typescript-eslint/no-unused-vars
+   7:3   warning  'UserCircle' is defined but never used                  @typescript-eslint/no-unused-vars
+   7:15  warning  'Smartphone' is defined but never used                  @typescript-eslint/no-unused-vars
+   7:27  warning  'Eye' is defined but never used                         @typescript-eslint/no-unused-vars
+   8:8   warning  'Clock' is defined but never used                       @typescript-eslint/no-unused-vars
+   8:15  warning  'ChevronDown' is defined but never used                 @typescript-eslint/no-unused-vars
+  34:11  warning  't' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  35:9   warning  'user' is assigned a value but never used               @typescript-eslint/no-unused-vars
+  38:10  warning  'isSettingsOpen' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  38:26  warning  'setIsSettingsOpen' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  42:10  warning  'loading' is assigned a value but never used            @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\profile\qr\page.tsx
+   4:10  warning  'QrCode' is defined but never used            @typescript-eslint/no-unused-vars
+  13:10  warning  'loading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\scanner\page.tsx
+    6:3   warning  'X' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+    6:11  warning  'Info' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+    6:17  warning  'Camera' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+    7:3   warning  'RefreshCw' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+    7:14  warning  'History' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+    8:16  warning  'Sparkles' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    8:26  warning  'ShoppingBag' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    8:39  warning  'Wind' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+    9:3   warning  'QrCode' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+    9:11  warning  'FlipHorizontal' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  112:9   warning  'resetScan' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  134:92  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\scanner\page.tsx:134:92
+  132 |            <div className="w-64 h-64 bg-black flex items-center justify-center rounded-2xl overflow-hidden p-4">
+  133 |               <img 
+> 134 |                 src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=USER_${Math.random().toString(36).substring(7)}&bgcolor=ffffff&color=000000`} 
+      |                                                                                            ^^^^^^^^^^^^^ Cannot call impure function
+  135 |                 alt="Your QR Code"
+  136 |                 className="w-full h-full"
+  137 |               />  react-hooks/purity
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\shop\page.tsx
+   3:20  warning  'useEffect' is defined but never used     @typescript-eslint/no-unused-vars
+   5:25  warning  'Filter' is defined but never used        @typescript-eslint/no-unused-vars
+   5:46  warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+  10:10  warning  'Tabs' is defined but never used          @typescript-eslint/no-unused-vars
+  10:16  warning  'TabsList' is defined but never used      @typescript-eslint/no-unused-vars
+  10:26  warning  'TabsTrigger' is defined but never used   @typescript-eslint/no-unused-vars
+  11:10  warning  'ScrollArea' is defined but never used    @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\app\verify-otp\page.tsx
+  273:4  error  Parsing error: ')' expected
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\landing\CoreCapabilities.tsx
+  1:31  warning  'Recycle' is defined but never used      @typescript-eslint/no-unused-vars
+  1:40  warning  'ShieldCheck' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\landing\HeroSection.tsx
+  4:10  warning  'ArrowRight' is defined but never used  @typescript-eslint/no-unused-vars
+  4:51  warning  'Cpu' is defined but never used         @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\landing\HowItWorks.tsx
+  1:32  warning  'ArrowRight' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\landing\LandingAccordion.tsx
+   4:23  warning  'ChevronUp' is defined but never used                            @typescript-eslint/no-unused-vars
+   4:47  warning  'Zap' is defined but never used                                  @typescript-eslint/no-unused-vars
+   4:64  warning  'Wifi' is defined but never used                                 @typescript-eslint/no-unused-vars
+   4:70  warning  'Recycle' is defined but never used                              @typescript-eslint/no-unused-vars
+  59:83  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\landing\LandingFooter.tsx
+  2:16  warning  'Globe' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\rural\RuralHome.tsx
+   5:15  warning  'Calendar' is defined but never used          @typescript-eslint/no-unused-vars
+   5:40  warning  'Truck' is defined but never used             @typescript-eslint/no-unused-vars
+   5:47  warning  'Eye' is defined but never used               @typescript-eslint/no-unused-vars
+   6:3   warning  'Flame' is defined but never used             @typescript-eslint/no-unused-vars
+  26:10  warning  'loading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\rural\RuralMap.tsx
+    6:12  warning  'Wheat' is defined but never used         @typescript-eslint/no-unused-vars
+    6:19  warning  'Factory' is defined but never used       @typescript-eslint/no-unused-vars
+    6:28  warning  'Sprout' is defined but never used        @typescript-eslint/no-unused-vars
+    6:53  warning  'X' is defined but never used             @typescript-eslint/no-unused-vars
+  150:10  warning  'map' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\rural\RuralProfile.tsx
+   4:3   warning  'User' is defined but never used                        @typescript-eslint/no-unused-vars
+   5:3   warning  'Settings' is defined but never used                    @typescript-eslint/no-unused-vars
+   6:26  warning  'ArrowRight' is defined but never used                  @typescript-eslint/no-unused-vars
+   7:3   warning  'Menu' is defined but never used                        @typescript-eslint/no-unused-vars
+   7:9   warning  'X' is defined but never used                           @typescript-eslint/no-unused-vars
+  20:10  warning  'cn' is defined but never used                          @typescript-eslint/no-unused-vars
+  29:11  warning  'mode' is assigned a value but never used               @typescript-eslint/no-unused-vars
+  30:10  warning  'isSettingsOpen' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  30:26  warning  'setIsSettingsOpen' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  34:10  warning  'loading' is assigned a value but never used            @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\rural\RuralShop.tsx
+   6:3   warning  'Leaf' is defined but never used              @typescript-eslint/no-unused-vars
+   7:3   warning  'MapPin' is defined but never used            @typescript-eslint/no-unused-vars
+  31:10  warning  'loading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\AccessibilityMenu.tsx
+  6:23  warning  'Move' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\LanguageToggle.tsx
+  4:10  warning  'Globe' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\LeafletMap.tsx
+   6:10  warning  'cn' is defined but never used              @typescript-eslint/no-unused-vars
+  58:41  warning  'selectedEntity' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\ProfileSettingsMenu.tsx
+   8:23  warning  'Languages' is defined but never used           @typescript-eslint/no-unused-vars
+   9:18  warning  'ScreenShare' is defined but never used         @typescript-eslint/no-unused-vars
+  10:20  warning  'Wheat' is defined but never used               @typescript-eslint/no-unused-vars
+  11:27  warning  'ShieldCheck' is defined but never used         @typescript-eslint/no-unused-vars
+  13:3   warning  'Smartphone' is defined but never used          @typescript-eslint/no-unused-vars
+  13:28  warning  'Activity' is defined but never used            @typescript-eslint/no-unused-vars
+  14:18  warning  'Search' is defined but never used              @typescript-eslint/no-unused-vars
+  14:26  warning  'Trash2' is defined but never used              @typescript-eslint/no-unused-vars
+  15:3   warning  'HardDrive' is defined but never used           @typescript-eslint/no-unused-vars
+  15:28  warning  'Info' is defined but never used                @typescript-eslint/no-unused-vars
+  28:34  warning  't' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  30:5   warning  'fontScale' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\ScanModal.tsx
+    8:3    warning  'Zap' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+    8:8    warning  'Target' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   94:7    warning  'WASTE_RESULTS' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  132:7    error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\ScanModal.tsx:132:7
+  130 |   useEffect(() => {
+  131 |     if (isOpen && (view === "identify" || view === "report" || view === "agri") && status === "idle") {
+> 132 |       startCamera()
+      |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  133 |     } else {
+  134 |       stopCamera()
+  135 |     }  react-hooks/set-state-in-effect
+  163:16   warning  'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  348:246  warning  '_tr' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  488:98   error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\ScanModal.tsx:488:98
+  486 |                   <div>
+  487 |                     <h3 className="text-xl font-bold text-foreground">Report Submitted</h3>
+> 488 |                     <p className="text-xs text-muted-foreground mt-1">Reference: CMP-{Math.floor(Math.random() * 9000) + 1000}</p>
+      |                                                                                                  ^^^^^^^^^^^^^ Cannot call impure function
+  489 |                   </div>
+  490 |                   <div className="w-full p-4 bg-muted border border-border rounded-2xl text-left space-y-1">
+  491 |                     <p className="text-xs font-semibold text-foreground">What happens next?</p>     react-hooks/purity
+  517:246  warning  'tr' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\Sidebar.tsx
+  12:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\components\shared\ThemeToggle.tsx
+  8:11  warning  'theme' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\lib\seed.ts
+  38:9  warning  'communityProfiles' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Urja-Loop-Viksit-Bharat-2047\src\lib\supabase.ts
+  33:12  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 169 problems (8 errors, 161 warnings)
+

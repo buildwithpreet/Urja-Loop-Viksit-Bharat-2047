@@ -136,7 +136,7 @@ export default function MapPage() {
    }, [])
 
    useEffect(() => {
-      fetchBins()
+      setTimeout(() => fetchBins(), 0)
       const i = setInterval(() => setVanPos(p => ({ lat: p.lat + 0.00009, lng: p.lng + 0.00004 })), 4000)
       const storyTimer = setInterval(() => setStoryIdx(p => (p + 1) % STORY_BADGES.length), 4000)
       return () => { clearInterval(i); clearInterval(storyTimer); }

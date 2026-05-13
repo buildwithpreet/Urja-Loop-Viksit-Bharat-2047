@@ -37,35 +37,6 @@ export default function Complaints() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchComplaints()
-
-    // Real-time Subscription for Complaints
-    const channel = supabase
-      .channel('complaints-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setComplaints(prev => [payload.new, ...prev])
-        } else if (payload.eventType === 'UPDATE') {
-          setComplaints(prev => prev.map(c => c.id === payload.new.id ? payload.new : c))
-          if (selectedComplaint?.id === payload.new.id) {
-            setSelectedComplaint(payload.new)
-          }
-        }
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [])
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      setSelectedFile(file)
-      setImagePreview(URL.createObjectURL(file))
-    }
-  }
-
   const fetchComplaints = async () => {
     setIsLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
@@ -87,6 +58,35 @@ export default function Complaints() {
     }
     setIsLoading(false)
   }
+
+  useEffect(() => {
+    fetchComplaints()
+
+    // Real-time Subscription for Complaints
+    const channel = supabase
+      .channel('complaints-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setComplaints((prev: any[]) => [payload.new, ...prev])
+        } else if (payload.eventType === 'UPDATE') {
+          setComplaints((prev: any[]) => prev.map(c => c.id === payload.new.id ? payload.new : c))
+          setSelectedComplaint((prev: any) => prev?.id === payload.new.id ? payload.new : prev)
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setSelectedFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -270,6 +270,5 @@ export default function VerifyOtpScreen() {
           </div>
         </div>
       </div>
-    </div>
   )
 }

@@ -256,16 +256,19 @@ export default function EditProfilePage() {
               { id: 'rewards', label: 'Reward Updates', icon: Zap },
               { id: 'darkMode', label: 'Dark Mode', icon: Moon },
             ].map(item => (
-              <div key={item.id} className="p-4 flex items-center justify-between border-b border-white/5 last:border-0">
+              <div 
+                key={item.id} 
+                onClick={() => setFormData(prev => ({
+                  ...prev, 
+                  notifications: { ...prev.notifications, [item.id]: !prev.notifications[item.id as keyof typeof prev.notifications] }
+                }))}
+                className="p-4 flex items-center justify-between border-b border-white/5 last:border-0 cursor-pointer hover:bg-white/[0.02] transition-colors group"
+              >
                 <div className="flex items-center gap-3 text-white/80">
-                  <item.icon size={14} className="text-white/20" />
+                  <item.icon size={14} className="text-white/20 group-hover:text-white/40 transition-colors" />
                   <span className="text-xs font-bold">{item.label}</span>
                 </div>
-                <button 
-                  onClick={() => setFormData({
-                    ...formData, 
-                    notifications: { ...formData.notifications, [item.id]: !formData.notifications[item.id as keyof typeof formData.notifications] }
-                  })}
+                <div 
                   className={cn(
                     "w-8 h-4 rounded-full transition-all relative shrink-0",
                     formData.notifications[item.id as keyof typeof formData.notifications] ? "bg-emerald-500" : "bg-white/10"
@@ -275,7 +278,7 @@ export default function EditProfilePage() {
                     "absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform",
                     formData.notifications[item.id as keyof typeof formData.notifications] ? "translate-x-4" : "translate-x-0"
                   )} />
-                </button>
+                </div>
               </div>
             ))}
           </div>

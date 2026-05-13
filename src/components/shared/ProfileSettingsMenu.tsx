@@ -33,7 +33,8 @@ export function ProfileSettingsMenu() {
     dyslexiaFont, setDyslexiaFont,
     monochrome, setMonochrome,
     largeCursor, setLargeCursor,
-    screenReaderHints, setScreenReaderHints
+    screenReaderHints, setScreenReaderHints,
+    notificationsEnabled, setNotificationsEnabled
   } = useAccessibility()
 
   const handleLogout = async () => {
@@ -121,10 +122,14 @@ export function ProfileSettingsMenu() {
                       label="Saved Locations" 
                       desc="Manage frequent bin clusters" 
                     />
-                    <SystemAction 
+                    <AccessibilityToggle 
                       icon={Bell} 
                       label="Notifications" 
-                      desc="Waste collection & alerts" 
+                      active={notificationsEnabled} 
+                      onClick={() => {
+                        setNotificationsEnabled(!notificationsEnabled)
+                        toast.success(!notificationsEnabled ? "Notifications Synchronized" : "Notifications Silenced")
+                      }} 
                     />
                     <SystemAction 
                       icon={Network} 
@@ -271,6 +276,7 @@ export function ProfileSettingsMenu() {
                     setMonochrome(false)
                     setLargeCursor(false)
                     setScreenReaderHints(false)
+                    setNotificationsEnabled(true)
                     toast.success("System cache cleared and reset")
                   }}
                   className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:underline transition-all"

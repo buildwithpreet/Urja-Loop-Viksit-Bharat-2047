@@ -45,12 +45,14 @@ export default function DashboardPage() {
   const [infraStats, setInfraStats] = useState<any>(null)
 
   useEffect(() => {
-    const now = new Date()
-    const hour = now.getHours()
-    if (hour < 12) setGreeting("Good Morning")
-    else if (hour < 17) setGreeting("Good Afternoon")
-    else setGreeting("Good Evening")
-    setCurrentTime(now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }))
+    setTimeout(() => {
+      const now = new Date()
+      const hour = now.getHours()
+      if (hour < 12) setGreeting("Good Morning")
+      else if (hour < 17) setGreeting("Good Afternoon")
+      else setGreeting("Good Evening")
+      setCurrentTime(now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }))
+    }, 0)
 
     const DEMO_PROFILE_FALLBACK = {
       full_name: "Demo User",

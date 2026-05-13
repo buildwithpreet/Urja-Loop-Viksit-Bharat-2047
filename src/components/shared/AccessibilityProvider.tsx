@@ -19,6 +19,8 @@ interface AccessibilityContextType {
   setLargeCursor: (val: boolean) => void
   screenReaderHints: boolean
   setScreenReaderHints: (val: boolean) => void
+  notificationsEnabled: boolean
+  setNotificationsEnabled: (val: boolean) => void
 }
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined)
@@ -31,6 +33,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   const [monochrome, setMonochrome] = useState(false)
   const [largeCursor, setLargeCursor] = useState(false)
   const [screenReaderHints, setScreenReaderHints] = useState(false)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
 
   // Apply settings to document element
   useEffect(() => {
@@ -75,7 +78,8 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
         dyslexiaFont, setDyslexiaFont,
         monochrome, setMonochrome,
         largeCursor, setLargeCursor,
-        screenReaderHints, setScreenReaderHints
+        screenReaderHints, setScreenReaderHints,
+        notificationsEnabled, setNotificationsEnabled
       }}
     >
       {children}

@@ -25,6 +25,7 @@ function ScannerContent() {
   const [progress, setProgress] = useState(0)
   const [identifiedObject, setIdentifiedObject] = useState<any>(null)
   const [hasPermission, setHasPermission] = useState<boolean|null>(null)
+  const [randomId, setRandomId] = useState("USER_12345")
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream|null>(null)
 
@@ -55,6 +56,13 @@ function ScannerContent() {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop())
       }
+    }
+  }, [mode])
+
+  // Generate random ID for QR mode
+  useEffect(() => {
+    if (mode === "qr") {
+      setRandomId(`USER_${Math.random().toString(36).substring(7)}`)
     }
   }, [mode])
 
@@ -131,7 +139,7 @@ function ScannerContent() {
         <div className="relative p-8 bg-white rounded-[3rem] shadow-[0_0_80px_rgba(255,255,255,0.1)]">
            <div className="w-64 h-64 bg-black flex items-center justify-center rounded-2xl overflow-hidden p-4">
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=USER_${Math.random().toString(36).substring(7)}&bgcolor=ffffff&color=000000`} 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${randomId}&bgcolor=ffffff&color=000000`} 
                 alt="Your QR Code"
                 className="w-full h-full"
               />

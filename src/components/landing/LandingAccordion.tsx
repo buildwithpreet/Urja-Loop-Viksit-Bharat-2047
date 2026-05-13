@@ -57,7 +57,7 @@ export function LandingAccordion() {
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">The Engine Behind the Loop</h2>
           <p className="text-muted-foreground text-sm max-w-lg mx-auto">
-            Deep dive into the hardware, governance, and long-term vision of India's smartest waste infrastructure.
+            Deep dive into the hardware, governance, and long-term vision of India&apos;s smartest waste infrastructure.
           </p>
         </div>
 

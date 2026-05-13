@@ -5,7 +5,7 @@ import {
   Accessibility, Check, ChevronDown, 
   Eye, MousePointer2, Move, Type, 
   Wind, ScreenShare, Languages, Palette,
-  Settings
+  Settings, Bell
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAccessibility } from "./AccessibilityProvider"
@@ -24,7 +24,8 @@ export function AccessibilityMenu({ isCollapsed }: AccessibilityMenuProps) {
     dyslexiaFont, setDyslexiaFont,
     monochrome, setMonochrome,
     largeCursor, setLargeCursor,
-    screenReaderHints, setScreenReaderHints
+    screenReaderHints, setScreenReaderHints,
+    notificationsEnabled, setNotificationsEnabled
   } = useAccessibility()
 
   return (
@@ -128,6 +129,12 @@ export function AccessibilityMenu({ isCollapsed }: AccessibilityMenuProps) {
                     onClick={() => setLargeCursor(!largeCursor)} 
                   />
                    <AccessibilityToggle 
+                    icon={Bell} 
+                    label="System Notifications" 
+                    active={notificationsEnabled} 
+                    onClick={() => setNotificationsEnabled(!notificationsEnabled)} 
+                  />
+                   <AccessibilityToggle 
                     icon={ScreenShare} 
                     label="Screen Reader Hints" 
                     active={screenReaderHints} 
@@ -147,6 +154,7 @@ export function AccessibilityMenu({ isCollapsed }: AccessibilityMenuProps) {
                     setMonochrome(false)
                     setLargeCursor(false)
                     setScreenReaderHints(false)
+                    setNotificationsEnabled(true)
                   }}
                   className="text-primary hover:underline"
                  >

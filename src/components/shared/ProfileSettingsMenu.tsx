@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 import { 
   Settings, X, Globe, Accessibility, 
@@ -22,6 +23,7 @@ import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
 export function ProfileSettingsMenu() {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const { language, setLanguage, t } = useLanguage()
   const { 
@@ -40,7 +42,7 @@ export function ProfileSettingsMenu() {
       toast.error(error.message)
     } else {
       toast.success("Logged out successfully")
-      window.location.href = "/login"
+      router.push("/login")
     }
   }
 

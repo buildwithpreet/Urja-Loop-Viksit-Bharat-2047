@@ -88,11 +88,8 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
       icon: AlertCircle, 
       href: "/complaints",
       color: "text-red-400",
-<<<<<<< HEAD
       bg: "bg-red-400/10",
       show: true
-=======
-      bg: "bg-red-400/10"
     },
     { 
       name: "Fleet & Monitoring", 
@@ -100,8 +97,8 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
       icon: Truck, 
       href: "/fleet",
       color: "text-blue-500",
-      bg: "bg-blue-500/10"
->>>>>>> upstream/main
+      bg: "bg-blue-500/10",
+      show: isCollector
     }
   ].filter(opt => opt.show)
 

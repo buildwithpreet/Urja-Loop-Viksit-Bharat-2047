@@ -4,26 +4,46 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
-  Home, MapPin, User, Scan, Truck,
-  Store, QrCode, AlertCircle, X, ChevronRight
+  Home, MapPin, User, Scan, 
+  Store, QrCode, AlertCircle, X, ChevronRight,
+  LayoutDashboard, Map, CheckSquare, Truck, FileText
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
 import { useLanguage } from "./LanguageProvider"
+
+interface NavItem {
+  name: string
+  label: string
+  href?: string
+  icon: any
+  isPrimary?: boolean
+}
 
 export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
   const { mode } = useMode()
   const pathname = usePathname()
   const { t } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const isCollector = mode === "collector"
 
-  const navItems = [
+  const defaultNavItems: NavItem[] = [
     { name: "Home", label: t("nav_home"), href: "/dashboard", icon: Home },
     { name: "Map", label: t("nav_map"), href: "/map", icon: MapPin },
     { name: "Scanner", label: t("nav_scan"), icon: Scan, isPrimary: true },
     { name: "Market", label: t("nav_shop"), href: "/shop", icon: Store },
     { name: "Profile", label: t("nav_profile"), href: "/profile", icon: User },
   ]
+  
+  const collectorNavItems: NavItem[] = [
+    { name: "Dashboard", label: "Home", href: "/collector", icon: LayoutDashboard },
+    { name: "Routes", label: "Routes", href: "/collector/routes", icon: Map },
+    { name: "Verification", label: "Verify", href: "/collector/verification", icon: QrCode, isPrimary: true },
+    { name: "Tasks", label: "Tasks", href: "/collector/tasks", icon: CheckSquare },
+    { name: "Profile", label: "Profile", href: "/profile", icon: User },
+  ]
+
+  const navItems = isCollector ? collectorNavItems : defaultNavItems
 
   const menuOptions = [
     { 
@@ -32,7 +52,8 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
       icon: QrCode, 
       href: "/scanner?mode=qr",
       color: "text-blue-400",
-      bg: "bg-blue-400/10"
+      bg: "bg-blue-400/10",
+      show: !isCollector
     },
     { 
       name: "Scan Waste Type", 
@@ -40,15 +61,35 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
       icon: Scan, 
       href: "/scanner?mode=waste",
       color: "text-emerald-400",
-      bg: "bg-emerald-400/10"
+      bg: "bg-emerald-400/10",
+      show: !isCollector
+    },
+    { 
+      name: "Vehicle Status", 
+      desc: "Monitor truck health and telemetry", 
+      icon: Truck, 
+      href: "/collector/vehicle",
+      color: "text-cyan-400",
+      bg: "bg-cyan-400/10",
+      show: isCollector
+    },
+    { 
+      name: "Shift Reports", 
+      desc: "Review your performance logs", 
+      icon: FileText, 
+      href: "/collector/reports",
+      color: "text-purple-400",
+      bg: "bg-purple-400/10",
+      show: isCollector
     },
     { 
       name: "File Complaint", 
       desc: "Report illegal dumping nearby", 
       icon: AlertCircle, 
-      href: "/scanner?mode=complaint",
+      href: "/complaints",
       color: "text-red-400",
-      bg: "bg-red-400/10"
+      bg: "bg-red-400/10",
+      show: true
     },
     { 
       name: "Fleet & Monitoring", 
@@ -56,9 +97,10 @@ export function BottomNav({ onScanClick }: { onScanClick?: () => void }) {
       icon: Truck, 
       href: "/fleet",
       color: "text-blue-500",
-      bg: "bg-blue-500/10"
+      bg: "bg-blue-500/10",
+      show: isCollector
     }
-  ]
+  ].filter(opt => opt.show)
 
   return (
     <>

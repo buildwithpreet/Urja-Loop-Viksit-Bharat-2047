@@ -15,6 +15,8 @@ import { useMode } from "@/components/shared/ModeProvider"
 import { RuralDashboard } from "@/components/rural/RuralDashboard"
 import { useState, useEffect } from "react"
 import { supabase, getSessionUser } from "@/lib/supabase"
+import { useMode } from "@/components/shared/ModeProvider"
+import { useRouter } from "next/navigation"
 
 const communityMetrics = [
   { label: "Complaints Resolved", value: "14", sub: "This week in Sector 14", color: "text-primary", icon: CheckCircle2 },
@@ -37,10 +39,18 @@ const INITIAL_BINS = [
 
 export default function DashboardPage() {
   const { t } = useLanguage()
-  const { mode } = useMode()
+  const { mode, isLoaded } = useMode()
+  const router = useRouter()
   const [currentTime, setCurrentTime] = useState("")
   const [greeting, setGreeting] = useState("")
   const [bins, setBins] = useState(INITIAL_BINS)
+
+  useEffect(() => {
+    if (!isLoaded) return
+    if (mode === "collector") {
+      router.push("/collector")
+    }
+  }, [mode, isLoaded, router])
   const [profile, setProfile] = useState<any>(null)
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

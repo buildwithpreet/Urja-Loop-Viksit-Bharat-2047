@@ -63,11 +63,12 @@ export default function RootLayout({
           <LanguageProvider>
             <UserProvider>
               <ModeProvider>
-                <PwaRegister />
-                <Toaster position="top-center" richColors theme="system" />
-                <LayoutWrapper>
-                  {children}
-                </LayoutWrapper>
+                <AccessibilityProvider>
+                  <PwaRegister />
+                  <LayoutWrapper>
+                    {children}
+                  </LayoutWrapper>
+                </AccessibilityProvider>
               </ModeProvider>
             </UserProvider>
           </LanguageProvider>

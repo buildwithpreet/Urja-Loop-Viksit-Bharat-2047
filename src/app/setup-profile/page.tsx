@@ -29,6 +29,8 @@ export default function SetupProfileScreen() {
     if (formData.name && formData.location) {
       setIsSubmitting(true)
       
+      const finalMode = formData.role === "Collector" ? "collector" : formData.areaType
+
       try {
         const { data: { user } } = await supabase.auth.getUser()
         const isDemoSession = localStorage.getItem("urjaloop_demo_session") === "true"
@@ -42,10 +44,10 @@ export default function SetupProfileScreen() {
         if (isDemoSession) {
           // --- HACKATHON DEMO BYPASS ---
           await new Promise(r => setTimeout(r, 1000)) // Artificial delay
-          localStorage.setItem("urjaloop_mode", formData.areaType)
+          localStorage.setItem("urjaloop_mode", finalMode)
           localStorage.setItem("urjaloop_profile", JSON.stringify({
             full_name: formData.name,
-            role: formData.areaType,
+            role: finalMode,
             location: formData.location
           }))
           toast.success("Demo Profile Initialized!")
@@ -60,7 +62,7 @@ export default function SetupProfileScreen() {
           .upsert({
             id: user!.id,
             full_name: formData.name,
-            role: formData.areaType, // Use urban/rural as primary role for mode
+            role: finalMode, // Use urban/rural/collector as primary role for mode
             user_type: formData.role.toLowerCase(), // Collector/Admin/Citizen
             location: formData.location,
             phone: user!.phone,
@@ -72,7 +74,7 @@ export default function SetupProfileScreen() {
         if (error) {
           toast.error(error.message)
         } else {
-          localStorage.setItem("urjaloop_mode", formData.areaType)
+          localStorage.setItem("urjaloop_mode", finalMode)
           toast.success("Profile initialized successfully! Enjoy 500 welcome credits.")
           router.push("/permissions")
         }

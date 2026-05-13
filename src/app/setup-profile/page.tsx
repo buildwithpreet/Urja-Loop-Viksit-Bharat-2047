@@ -45,13 +45,15 @@ export default function SetupProfileScreen() {
           // --- HACKATHON DEMO BYPASS ---
           await new Promise(r => setTimeout(r, 1000)) // Artificial delay
           localStorage.setItem("urjaloop_mode", finalMode)
+          localStorage.setItem("urjaloop_user_type", formData.role.toLowerCase())
           localStorage.setItem("urjaloop_profile", JSON.stringify({
             full_name: formData.name,
             role: finalMode,
+            user_type: formData.role.toLowerCase(),
             location: formData.location
           }))
           toast.success("Demo Profile Initialized!")
-          router.push("/permissions")
+          router.push(formData.role === "Admin" ? "/admin" : "/permissions")
           return
         }
 
@@ -75,8 +77,9 @@ export default function SetupProfileScreen() {
           toast.error(error.message)
         } else {
           localStorage.setItem("urjaloop_mode", finalMode)
+          localStorage.setItem("urjaloop_user_type", formData.role.toLowerCase())
           toast.success("Profile initialized successfully! Enjoy 500 welcome credits.")
-          router.push("/permissions")
+          router.push(formData.role === "Admin" ? "/admin" : "/permissions")
         }
       } catch (err) {
         toast.error("An unexpected error occurred")

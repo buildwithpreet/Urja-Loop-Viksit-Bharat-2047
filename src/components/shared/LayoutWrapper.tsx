@@ -16,6 +16,7 @@ import { useAccessibility } from "./AccessibilityProvider"
 import { Toaster } from "@/components/ui/sonner"
 
 const AUTH_ROUTES = ["/", "/splash", "/onboarding", "/login", "/verify-otp", "/setup-profile", "/permissions"]
+const STANDALONE_ROUTES = ["/admin"]
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isScanModalOpen, setIsScanModalOpen] = useState(false)
@@ -25,6 +26,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { notificationsEnabled } = useAccessibility()
 
   const isAuthRoute = AUTH_ROUTES.includes(pathname)
+  const isStandalone = STANDALONE_ROUTES.includes(pathname)
 
   useEffect(() => {
     const handleOpenScan = () => setIsScanModalOpen(true)

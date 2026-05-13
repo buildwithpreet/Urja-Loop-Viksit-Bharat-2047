@@ -15,7 +15,6 @@ import { useMode } from "@/components/shared/ModeProvider"
 import { RuralDashboard } from "@/components/rural/RuralDashboard"
 import { useState, useEffect } from "react"
 import { supabase, getSessionUser } from "@/lib/supabase"
-import { useMode } from "@/components/shared/ModeProvider"
 import { useRouter } from "next/navigation"
 
 const communityMetrics = [

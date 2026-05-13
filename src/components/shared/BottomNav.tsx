@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { 
   Home, MapPin, User, Scan, 
   Store, QrCode, AlertCircle, X, ChevronRight,
-  LayoutDashboard, Map, CheckSquare
+  LayoutDashboard, Map, CheckSquare, Truck, FileText
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"

@@ -9,16 +9,25 @@ if (!admin.apps.length) {
         credential: admin.credential.cert({
           projectId: env.FIREBASE_PROJECT_ID,
           clientEmail: env.FIREBASE_CLIENT_EMAIL,
-          // Replace escaped newlines if passed directly from env string
           privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         }),
       });
-      console.log('Firebase Admin Initialized');
+      console.log('Firebase Admin Initialized with Service Account');
     } else {
-      console.warn('Firebase Admin not initialized: credentials not fully configured in env');
+      // Fallback to Application Default Credentials on GCP/Cloud Run
+      admin.initializeApp();
+      console.log('Firebase Admin Initialized with Application Default Credentials');
     }
   } catch (error) {
-    console.error('Firebase Admin Initialization Error:', error);
+    console.warn('Firebase Admin Certification loading failed, trying Mock/Local fallback:', error);
+    try {
+      admin.initializeApp({
+        projectId: 'urjaloop-fallback-mock',
+      });
+      console.log('Firebase Admin Initialized in Mock Mode');
+    } catch (e) {
+      console.error('Failed to initialize fallback mock app:', e);
+    }
   }
 }
 

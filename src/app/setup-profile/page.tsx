@@ -29,7 +29,9 @@ export default function SetupProfileScreen() {
     if (formData.name && formData.location) {
       setIsSubmitting(true)
       
-      const finalMode = formData.role === "Collector" ? "collector" : formData.areaType
+      const finalMode = formData.role === "Collector" ? "collector" : 
+                       formData.role === "Admin" ? "admin" : 
+                       formData.areaType
 
       try {
         const { data: { user } } = await supabase.auth.getUser()

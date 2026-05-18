@@ -221,6 +221,11 @@
     to { transform: rotate(360deg); }
   }
 
+  @keyframes grow {
+    from { width: 0%; }
+    to { width: 100%; }
+  }
+
   /* Focus-visible ring for accessibility */
   .focus-ring {
     @apply outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;

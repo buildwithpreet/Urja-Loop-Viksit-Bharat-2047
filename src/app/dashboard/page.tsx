@@ -48,6 +48,8 @@ export default function DashboardPage() {
     if (!isLoaded) return
     if (mode === "collector") {
       router.push("/collector")
+    } else if (mode === "admin") {
+      router.push("/fleet")
     }
   }, [mode, isLoaded, router])
   const [profile, setProfile] = useState<any>(null)

@@ -7,10 +7,10 @@ import { usePathname } from "next/navigation"
 import { 
   Home, MapPin, ShoppingBag, User, BrainCircuit,
   AlertCircle, Leaf, ChevronLeft, ChevronRight, ScanLine,
-  LayoutDashboard, Map, CheckSquare, QrCode, FileText, Truck
+  LayoutDashboard, Map, CheckSquare, QrCode, FileText, Truck,
+  Factory, BarChart3, Shield
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
 import { useUser } from "./UserContext"
 import { LanguageToggle } from "./LanguageToggle"
 import { ThemeToggle } from "./ThemeToggle"
@@ -36,6 +36,7 @@ export function Sidebar() {
 
   const isFarmer = mode === "rural"
   const isCollector = mode === "collector"
+  const isAdmin = mode === "admin"
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -71,7 +72,16 @@ export function Sidebar() {
     { name: "Vehicle Status", label: "Vehicle", href: "/collector/vehicle", icon: Truck },
   ]
 
-  const navItems = isCollector ? collectorNavItems : defaultNavItems
+  const adminNavItems: NavItem[] = [
+    { name: "Fleet Command", label: "Fleet Command", href: "/fleet", icon: LayoutDashboard },
+    { name: "Infrastructure", label: "Hubs & Plants", href: "/fleet#hubs", icon: Factory },
+    { name: "Live Network", label: "Map View", href: "/map", icon: MapPin },
+    { name: "System Analytics", label: "Data Reports", href: "/collector/reports", icon: BarChart3 },
+    { name: "Operator Setup", label: "Operator Setup", href: "/setup-profile", icon: Shield },
+    { name: "My Identity", label: "Admin Profile", href: "/profile", icon: User },
+  ]
+
+  const navItems = isAdmin ? adminNavItems : isCollector ? collectorNavItems : defaultNavItems
 
   return (
     <aside 

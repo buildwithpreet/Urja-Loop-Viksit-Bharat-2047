@@ -12,6 +12,17 @@ import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { useMode } from "@/components/shared/ModeProvider"
 
+const DEFAULT_VEHICLES = [
+  { id: 1, plate_number: "DL 1C AT 8821", type: "Electric Van", driver_name: "Rajesh Kumar", status: "on_route" },
+  { id: 2, plate_number: "DL 4S BR 4490", type: "Hybrid Truck", driver_name: "Suresh Singh", status: "stationary" },
+  { id: 3, plate_number: "DL 8C MK 1102", type: "Electric Van", driver_name: "Amit Sharma", status: "on_route" },
+]
+
+const DEFAULT_CENTERS = [
+  { id: 1, name: "Sector 14 Hub", location_name: "Gurugram, HR", type: "recycling", current_stock: 1240, capacity: 2000 },
+  { id: 2, name: "Okhla Bio-Plant", location_name: "New Delhi, DL", type: "biomass", current_stock: 4800, capacity: 5000 },
+]
+
 export default function FleetPage() {
   const { mode } = useMode()
   const [vehicles, setVehicles] = useState<any[]>([])
@@ -21,12 +32,18 @@ export default function FleetPage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
-      const { data: vData } = await supabase.from('vehicles').select('*')
-      const { data: cData } = await supabase.from('collection_centers').select('*')
-      
-      if (vData) setVehicles(vData)
-      if (cData) setCenters(cData)
-      setLoading(false)
+      try {
+        const { data: vData } = await supabase.from('vehicles').select('*')
+        const { data: cData } = await supabase.from('collection_centers').select('*')
+        
+        setVehicles(vData && vData.length > 0 ? vData : DEFAULT_VEHICLES)
+        setCenters(cData && cData.length > 0 ? cData : DEFAULT_CENTERS)
+      } catch (err) {
+        setVehicles(DEFAULT_VEHICLES)
+        setCenters(DEFAULT_CENTERS)
+      } finally {
+        setLoading(false)
+      }
     }
     fetchData()
   }, [])

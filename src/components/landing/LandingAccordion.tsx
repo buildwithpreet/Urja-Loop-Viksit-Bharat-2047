@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown, ChevronUp, ShieldCheck, Zap, Globe, Cpu, Wifi, Recycle } from "lucide-react"
+import { ChevronDown, ShieldCheck, Globe, Cpu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 

@@ -174,7 +174,7 @@ export default function MapPage() {
    }, [])
 
    useEffect(() => {
-      fetchInfrastructure()
+      setTimeout(() => fetchInfrastructure(), 0)
       const i = setInterval(() => {
          setVehicles(prev => prev.map(v => ({
             ...v,

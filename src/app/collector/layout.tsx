@@ -18,10 +18,11 @@ export default function CollectorLayout({
     if (!isLoaded) return
 
     // If not in collector mode, redirect back to dashboard
-    if (mode !== "collector") {
+    // Allow both collectors and admins
+    if (mode !== "collector" && mode !== "admin") {
       router.replace("/dashboard")
     } else {
-      setIsAuthorized(true)
+      setTimeout(() => setIsAuthorized(true), 0)
     }
   }, [mode, isLoaded, router])
 
@@ -38,7 +39,7 @@ export default function CollectorLayout({
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <ShieldAlert className="w-12 h-12 text-red-500 animate-pulse" />
         <h2 className="text-xl font-bold uppercase tracking-widest text-white/80">Access Denied</h2>
-        <p className="text-sm text-white/50">You do not have collector privileges.</p>
+        <p className="text-sm text-white/50">Insufficient system privileges for this sector.</p>
       </div>
     )
   }

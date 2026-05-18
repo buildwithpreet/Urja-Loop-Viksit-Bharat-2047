@@ -42,6 +42,8 @@ export default function PermissionsScreen() {
     const mode = localStorage.getItem("urjaloop_mode")
     if (mode === "collector") {
       router.push("/collector")
+    } else if (mode === "admin") {
+      router.push("/fleet")
     } else {
       router.push("/dashboard")
     }
@@ -53,6 +55,8 @@ export default function PermissionsScreen() {
     const mode = localStorage.getItem("urjaloop_mode")
     if (mode === "collector") {
       router.push("/collector")
+    } else if (mode === "admin") {
+      router.push("/fleet")
     } else {
       router.push("/dashboard")
     }

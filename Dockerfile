@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy backend package files from the backend subdirectory
 # Cloud Build runs from the root context
 COPY backend/package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy the rest of the backend source code
 COPY backend/ ./
@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Copy production dependencies
 COPY backend/package*.json ./
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy compiled files from the builder stage
 COPY --from=builder /app/dist ./dist

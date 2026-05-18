@@ -15,7 +15,7 @@ export function AIEngineCard({ phase }: AIEngineCardProps) {
   const isIdle = phase === "IDLE" || phase === "DETECTING"
 
   return (
-    <div className="relative p-6 rounded-[2.5rem] bg-card border border-border overflow-hidden flex flex-col h-full">
+    <div className={cn("relative p-6 glass-panel overflow-hidden flex flex-col h-full transition-all duration-500", isAnalyzing ? "neon-glow-secondary border-cyan-500/50" : "border-white/10")}>
       <div className="flex items-center gap-3 mb-6">
         <div className={cn("p-2 rounded-xl", isAnalyzing ? "bg-primary/20 text-primary animate-pulse" : "bg-muted text-muted-foreground")}>
           <Cpu size={24} />

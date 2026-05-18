@@ -6,7 +6,8 @@ import {
   Droplets, Users, Recycle,
   ChevronRight, Leaf, ScanLine,
   Activity, Sparkles, Map as MapIcon,
-  Award, Truck, ShoppingCart
+  Award, Truck, ShoppingCart,
+  X, Trash2, CheckCheck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -16,6 +17,7 @@ import { RuralDashboard } from "@/components/rural/RuralDashboard"
 import { useState, useEffect } from "react"
 import { supabase, getSessionUser } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 
 const communityMetrics = [
   { label: "Complaints Resolved", value: "14", sub: "This week in Sector 14", color: "text-primary", icon: CheckCircle2 },
@@ -43,6 +45,13 @@ export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState("")
   const [greeting, setGreeting] = useState("")
   const [bins, setBins] = useState(INITIAL_BINS)
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: "Urja Credits Awarded", desc: "You received +150 credits for a flawless plastic bottle scan at Gate 2.", time: "10 mins ago", unread: true, type: "success" },
+    { id: 2, title: "Critical SmartBin Alert", desc: "Sector 14 Market SmartBin has breached 90% fill capacity. Collector team dispatched.", time: "1 hour ago", unread: true, type: "alert" },
+    { id: 3, title: "Civic Cleanup Success", desc: "The clean-up report for Sector 14 Central Park has been verified and closed.", time: "3 hours ago", unread: false, type: "info" },
+    { id: 4, title: "System Sync Synchronized", desc: "Your node identity has been securely parsed in SUPABASE Cloud Integrator.", time: "1 day ago", unread: false, type: "system" }
+  ])
 
   useEffect(() => {
     if (!isLoaded) return
@@ -179,9 +188,14 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="w-10 h-10 bg-card border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary transition-all relative">
+          <button 
+            onClick={() => setIsNotificationOpen(true)}
+            className="w-10 h-10 bg-card border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary transition-all relative active:scale-95 shadow-sm"
+          >
             <Bell size={16} />
-            <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
+            {notifications.some(n => n.unread) && (
+              <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+            )}
           </button>
         </div>
       </div>
@@ -494,6 +508,145 @@ export default function DashboardPage() {
           ))}
         </div>
       </div>
+
+      {/* ── NOTIFICATION CENTER MODAL ── */}
+      <AnimatePresence>
+        {isNotificationOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsNotificationOpen(false)}
+              className="absolute inset-0 bg-[#000]/60 backdrop-blur-md"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="relative w-full max-w-md bg-[#0a0e10]/95 border border-white/10 rounded-[2.5rem] p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden z-10 glass-panel"
+            >
+              {/* Glow accents */}
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Title Header */}
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5 relative z-10">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                    <Bell size={18} className="animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg tracking-tight">Notification Center</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">UrjaOS Network Alerts</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {notifications.some(n => n.unread) && (
+                    <button
+                      onClick={() => {
+                        setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
+                      }}
+                      className="p-2 hover:bg-white/5 rounded-xl text-xs text-primary font-semibold transition-all flex items-center gap-1 active:scale-95"
+                      title="Mark all as read"
+                    >
+                      <CheckCheck size={14} />
+                      <span>Read All</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setIsNotificationOpen(false)}
+                    className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all active:scale-95"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Notifications List */}
+              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 relative z-10 custom-scrollbar">
+                {notifications.length === 0 ? (
+                  <div className="py-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground/30">
+                      <Bell size={20} />
+                    </div>
+                    <p className="text-xs uppercase tracking-widest font-bold">No active warnings</p>
+                    <p className="text-[10px] text-muted-foreground/60">Your environment is perfectly synchronized.</p>
+                  </div>
+                ) : (
+                  notifications.map(n => (
+                    <div
+                      key={n.id}
+                      onClick={() => {
+                        setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, unread: false } : item))
+                      }}
+                      className={cn(
+                        "p-4 rounded-2xl border text-left transition-all relative overflow-hidden group cursor-pointer",
+                        n.unread 
+                          ? "bg-white/[0.03] border-white/10 hover:bg-white/[0.05]" 
+                          : "bg-transparent border-white/5 opacity-60 hover:opacity-100 hover:bg-white/[0.01]"
+                      )}
+                    >
+                      {/* Left Border Accent depending on alert type */}
+                      <div className={cn(
+                        "absolute left-0 top-0 bottom-0 w-1 rounded-l-full",
+                        n.type === "success" && "bg-primary",
+                        n.type === "alert" && "bg-red-500",
+                        n.type === "info" && "bg-blue-500",
+                        n.type === "system" && "bg-purple-500"
+                      )} />
+
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm tracking-tight text-white">{n.title}</span>
+                            {n.unread && (
+                              <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{n.desc}</p>
+                          <span className="text-[9px] text-muted-foreground/50 block font-medium mt-2">{n.time}</span>
+                        </div>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setNotifications(prev => prev.filter(item => item.id !== n.id))
+                          }}
+                          className="text-muted-foreground/40 hover:text-red-400 p-1 hover:bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                          title="Dismiss notification"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Footer Panel */}
+              <div className="mt-6 pt-4 border-t border-white/5 text-center relative z-10 flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-semibold">
+                  Network Node Active
+                </span>
+                {notifications.length > 0 && (
+                  <button
+                    onClick={() => setNotifications([])}
+                    className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase tracking-widest transition-all active:scale-95"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   )

@@ -34,6 +34,36 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   const [largeCursor, setLargeCursor] = useState(false)
   const [screenReaderHints, setScreenReaderHints] = useState(false)
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setReducedMotion(localStorage.getItem("urja_reducedMotion") === "true")
+      setHighContrast(localStorage.getItem("urja_highContrast") === "true")
+      setFontScale((localStorage.getItem("urja_fontScale") as FontScale) || "normal")
+      setDyslexiaFont(localStorage.getItem("urja_dyslexiaFont") === "true")
+      setMonochrome(localStorage.getItem("urja_monochrome") === "true")
+      setLargeCursor(localStorage.getItem("urja_largeCursor") === "true")
+      setScreenReaderHints(localStorage.getItem("urja_screenReaderHints") === "true")
+      setNotificationsEnabled(localStorage.getItem("urja_notificationsEnabled") !== "false")
+      setMounted(true)
+    }
+  }, [])
+
+  // Save to localStorage when settings change
+  useEffect(() => {
+    if (mounted && typeof window !== "undefined") {
+      localStorage.setItem("urja_reducedMotion", String(reducedMotion))
+      localStorage.setItem("urja_highContrast", String(highContrast))
+      localStorage.setItem("urja_fontScale", fontScale)
+      localStorage.setItem("urja_dyslexiaFont", String(dyslexiaFont))
+      localStorage.setItem("urja_monochrome", String(monochrome))
+      localStorage.setItem("urja_largeCursor", String(largeCursor))
+      localStorage.setItem("urja_screenReaderHints", String(screenReaderHints))
+      localStorage.setItem("urja_notificationsEnabled", String(notificationsEnabled))
+    }
+  }, [reducedMotion, highContrast, fontScale, dyslexiaFont, monochrome, largeCursor, screenReaderHints, notificationsEnabled, mounted])
 
   // Apply settings to document element
   useEffect(() => {

@@ -228,10 +228,10 @@ function ScannerContent() {
 
       {/* RESULTS SHEET */}
       <div className={cn(
-        "absolute bottom-0 left-0 right-0 z-50 bg-[#1a1c1e] rounded-t-[3rem] px-8 pt-4 pb-12 transition-transform",
+        "absolute bottom-0 left-0 right-0 z-50 glass-panel neon-glow-primary border-primary/50 bg-black/80 rounded-t-[3rem] px-8 pt-4 pb-12 transition-transform",
         state === "success" ? "translate-y-0" : "translate-y-full"
       )}>
-         <div className="w-12 h-1 bg-white/10 rounded-full mx-auto mb-8" />
+         <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-8 shadow-[0_0_10px_white]" />
          
          {identifiedObject && (
             <div className="space-y-6 max-w-xl mx-auto">

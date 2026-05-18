@@ -17,7 +17,7 @@ export function CollectorPreviewCard({ phase, onAccept, onVerify }: CollectorPre
   const isVerified = phase === "REPORTING"
 
   return (
-    <div className="relative p-6 rounded-[2.5rem] bg-card border border-border overflow-hidden flex flex-col h-full">
+    <div className={cn("relative p-6 glass-panel overflow-hidden flex flex-col h-full transition-all duration-500", isAlerting ? "neon-glow-primary border-primary/50" : "border-white/10")}>
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-blue-500/20 text-blue-500">
           <Truck size={24} />

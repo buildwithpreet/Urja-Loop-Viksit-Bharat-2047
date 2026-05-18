@@ -1,37 +1,72 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 
 export function SmartBinAnimation() {
   const [lidOpen, setLidOpen] = useState(false)
   const [wasteDropping, setWasteDropping] = useState(false)
   const [creditPop, setCreditPop] = useState(false)
   const [leafPulse, setLeafPulse] = useState(false)
+  const [fillLevel, setFillLevel] = useState(15)
+  const [statusColor, setStatusColor] = useState("#10b981")
 
   useEffect(() => {
     const cycle = () => {
-      // 1. Lid opens
+      // 1. Reset bin to 15% and green status
+      setFillLevel(15)
+      setStatusColor("#10b981")
+
+      // 2. Lid opens
       setTimeout(() => setLidOpen(true), 200)
-      // 2. Waste drops
-      setTimeout(() => setWasteDropping(true), 800)
-      // 3. Lid closes
-      setTimeout(() => setLidOpen(false), 1800)
-      // 4. Credits pop
-      setTimeout(() => { setWasteDropping(false); setCreditPop(true); setLeafPulse(true) }, 2200)
-      // 5. Reset
-      setTimeout(() => { setCreditPop(false); setLeafPulse(false) }, 3600)
+
+      // 3. Waste drops and fill level increases to 85%
+      setTimeout(() => {
+        setWasteDropping(true)
+        // Smoothly animate the fill level up to 85%
+        let currentFill = 15
+        const fillInterval = setInterval(() => {
+          currentFill += 5
+          if (currentFill >= 85) {
+            currentFill = 85
+            clearInterval(fillInterval)
+            setStatusColor("#ef4444") // Turns to red when critical
+          } else if (currentFill >= 50) {
+            setStatusColor("#f59e0b") // Turns to orange when half full
+          }
+          setFillLevel(currentFill)
+        }, 60)
+      }, 800)
+
+      // 4. Lid closes
+      setTimeout(() => setLidOpen(false), 2400)
+
+      // 5. Credits pop
+      setTimeout(() => { 
+        setWasteDropping(false)
+        setCreditPop(true)
+        setLeafPulse(true) 
+      }, 2800)
+
+      // 6. Reset credit popup
+      setTimeout(() => { 
+        setCreditPop(false) 
+        setLeafPulse(false) 
+      }, 4200)
     }
+    
     cycle()
-    const interval = setInterval(cycle, 4500)
+    const interval = setInterval(cycle, 5500)
     return () => clearInterval(interval)
   }, [])
 
   return (
-    <div className="relative flex flex-col items-center justify-end select-none" style={{ width: 220, height: 320 }}>
+    <Link href="/fleet" className="cursor-pointer block group focus:outline-none">
+      <div className="relative flex flex-col items-center justify-end select-none transition-all duration-500 group-hover:scale-105" style={{ width: 220, height: 320 }}>
 
       {/* === AMBIENT GLOW === */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-40 h-10 rounded-full blur-2xl pointer-events-none"
-        style={{ background: "rgba(16,185,129,0.35)" }} />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-40 h-10 rounded-full blur-2xl pointer-events-none transition-all duration-500"
+        style={{ background: statusColor === "#10b981" ? "rgba(16,185,129,0.35)" : statusColor === "#f59e0b" ? "rgba(245,158,11,0.35)" : "rgba(239,68,68,0.35)" }} />
 
       {/* === FLOATING LEAVES (eco indicators) === */}
       {[
@@ -108,7 +143,7 @@ export function SmartBinAnimation() {
         <rect x="64" y="120" width="72" height="48" rx="7" fill="rgba(2,44,34,0.9)" />
 
         {/* Screen glow line */}
-        <rect x="64" y="120" width="72" height="2" rx="1" fill="rgba(52,211,153,0.6)" />
+        <rect x="64" y="120" width="72" height="2" rx="1" fill={statusColor} className="transition-all duration-300" />
 
         {/* AI text on screen */}
         <text x="100" y="138" textAnchor="middle" fill="#34d399" fontSize="7" fontWeight="bold" fontFamily="monospace">SMART BIN v2</text>
@@ -116,17 +151,17 @@ export function SmartBinAnimation() {
 
         {/* Fill bar on screen */}
         <rect x="70" y="156" width="60" height="4" rx="2" fill="rgba(255,255,255,0.1)" />
-        <rect x="70" y="156" width="18" height="4" rx="2" fill="#10b981" />
-        <text x="136" y="160" fill="rgba(110,231,183,0.6)" fontSize="4.5" fontFamily="monospace">18%</text>
+        <rect x="70" y="156" width={60 * (fillLevel / 100)} height="4" rx="2" fill={statusColor} className="transition-all duration-300" />
+        <text x="136" y="160" fill={statusColor} fontSize="4.5" fontFamily="monospace" className="transition-all duration-300">{fillLevel}%</text>
 
         {/* Recycle symbol */}
         <text x="100" y="197" textAnchor="middle" fill="rgba(52,211,153,0.4)" fontSize="14">♻</text>
 
         {/* Status dot */}
-        <circle cx="158" cy="110" r="4" fill="#10b981">
+        <circle cx="158" cy="110" r="4" fill={statusColor} className="transition-all duration-300">
           <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite" />
         </circle>
-        <circle cx="158" cy="110" r="7" fill="none" stroke="#10b981" strokeWidth="1" opacity="0.3">
+        <circle cx="158" cy="110" r="7" fill="none" stroke={statusColor} strokeWidth="1" opacity="0.3" className="transition-all duration-300">
           <animate attributeName="r" values="5;9;5" dur="1.5s" repeatCount="indefinite" />
           <animate attributeName="opacity" values="0.4;0;0.4" dur="1.5s" repeatCount="indefinite" />
         </circle>
@@ -199,7 +234,7 @@ export function SmartBinAnimation() {
           </circle>
         </svg>
       </div>
-
     </div>
+  </Link>
   )
 }

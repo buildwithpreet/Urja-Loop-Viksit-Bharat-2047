@@ -26,7 +26,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { notificationsEnabled } = useAccessibility()
 
   const isAuthRoute = AUTH_ROUTES.includes(pathname)
-  const isStandalone = STANDALONE_ROUTES.includes(pathname)
+  const isStandalone = STANDALONE_ROUTES.includes(pathname) || pathname.startsWith("/fleet")
 
   useEffect(() => {
     const handleOpenScan = () => setIsScanModalOpen(true)
@@ -62,7 +62,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   if (isAuthRoute) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        {notificationsEnabled && <Toaster position="top-center" richColors theme="system" />}
+        <Toaster position="top-center" richColors theme="system" />
         <AnimatePresence mode="wait">
           <PageTransition key={pathname}>
             {children}
@@ -75,7 +75,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   if (isStandalone) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        {notificationsEnabled && <Toaster position="top-center" richColors theme="system" />}
+        <Toaster position="top-center" richColors theme="system" />
         <AnimatePresence mode="wait">
           <PageTransition key={pathname}>
             {children}
@@ -121,7 +121,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           isOpen={isScanModalOpen}
           onClose={() => setIsScanModalOpen(false)}
         />
-        {notificationsEnabled && <Toaster position="top-center" richColors theme="system" />}
+        <Toaster position="top-center" richColors theme="system" />
       </div>
   )
 }

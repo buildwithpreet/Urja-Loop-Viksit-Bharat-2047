@@ -14,7 +14,7 @@ export function SmartBinCard({ phase, onSimulate }: SmartBinCardProps) {
   const fillLevel = isOverflowing ? 92 : 24
   
   return (
-    <div className="relative p-6 rounded-[2.5rem] bg-card border border-border overflow-hidden group">
+    <div className={cn("relative p-6 glass-panel overflow-hidden group transition-all duration-500", isOverflowing ? "neon-glow-destructive border-red-500/50" : "neon-glow-primary")}>
       {/* Background glow if overflowing */}
       {isOverflowing && (
         <motion.div 

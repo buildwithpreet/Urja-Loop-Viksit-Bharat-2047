@@ -38,13 +38,17 @@ export function ProfileSettingsMenu() {
   } = useAccessibility()
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      toast.error(error.message)
-    } else {
-      toast.success("Logged out successfully")
-      router.push("/login")
+    toast.success("Logged out successfully")
+    try {
+      localStorage.removeItem("urjaloop_demo_session")
+      localStorage.removeItem("urjaloop_mode")
+      await supabase.auth.signOut().catch(() => {})
+    } catch (e) {
+      console.warn("Sign out cleanup warning:", e)
     }
+    setTimeout(() => {
+      window.location.href = "/login"
+    }, 1000)
   }
 
   return (

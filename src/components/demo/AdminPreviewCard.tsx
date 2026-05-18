@@ -50,7 +50,7 @@ export function AdminPreviewCard({ phase }: AdminPreviewCardProps) {
   }, [isReporting, phase])
 
   return (
-    <div className="relative p-6 rounded-[2.5rem] bg-card border border-border overflow-hidden flex flex-col h-full">
+    <div className={cn("relative p-6 glass-panel overflow-hidden flex flex-col h-full transition-all duration-500", isReporting ? "neon-glow-primary border-primary/50" : "neon-glow-secondary border-cyan-500/30")}>
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-purple-500/20 text-purple-500">
           <BarChart3 size={24} />

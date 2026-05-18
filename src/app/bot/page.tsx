@@ -169,10 +169,10 @@ export default function UrjaBot() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] m-4 lg:m-8 bg-card border border-border rounded-3xl overflow-hidden shadow-sm animate-in fade-in duration-700">
+    <div className="flex flex-col h-[calc(100vh-5rem)] m-4 lg:m-8 glass-panel border-primary/20 neon-glow-primary overflow-hidden animate-in fade-in duration-700">
       
       {/* Header */}
-      <div className="p-5 border-b border-border bg-card flex items-center justify-between">
+      <div className="p-5 border-b border-white/10 bg-white/5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-sm">

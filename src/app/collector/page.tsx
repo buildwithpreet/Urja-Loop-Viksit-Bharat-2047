@@ -222,7 +222,23 @@ export default function CollectorDashboard() {
           <div className="lg:col-span-2 space-y-8">
             <motion.div variants={{hidden: {opacity: 0}, visible: {opacity: 1}}} className="glass-panel p-2 relative h-[450px] rounded-[2.5rem] overflow-hidden border-cyan-500/30 neon-glow-secondary shadow-2xl">
                <div className="absolute inset-0 bg-[#0a0e10]/80 z-10" />
-               <div className="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=28.6139,77.2090&zoom=14&size=800x400&style=feature:all|element:labels|visibility:off&style=feature:water|element:geometry|color:0x000000&style=feature:landscape|element:geometry|color:0x0a0e10&style=feature:road|element:geometry|color:0x1a2327&sensor=false')] bg-cover bg-center opacity-50 z-0 mix-blend-screen" />
+               <div 
+                 className="absolute inset-0 bg-cover bg-center opacity-50 z-0 mix-blend-screen" 
+                 style={{ 
+                   backgroundImage: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY 
+                     ? `url('https://maps.googleapis.com/maps/api/staticmap?center=28.6139,77.2090&zoom=14&size=800x400&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&style=feature:all|element:labels|visibility:off&style=feature:water|element:geometry|color:0x000000&style=feature:landscape|element:geometry|color:0x0a0e10&style=feature:road|element:geometry|color:0x1a2327&sensor=false')`
+                     : "radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, transparent 80%)"
+                 }}
+               />
+               {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
+                 <svg className="absolute inset-0 w-full h-full opacity-15 z-0" xmlns="http://www.w3.org/2000/svg">
+                   <pattern id="collector-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                     <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                   </pattern>
+                   <rect width="100%" height="100%" fill="url(#collector-grid)" />
+                   <path d="M 50 200 Q 250 100 450 300 T 750 150" fill="none" stroke="rgba(6, 182, 212, 0.15)" strokeWidth="3" strokeLinecap="round" />
+                 </svg>
+               )}
                
                <div className="relative z-20 h-full flex flex-col justify-between p-8">
                   <div className="flex justify-between items-start">

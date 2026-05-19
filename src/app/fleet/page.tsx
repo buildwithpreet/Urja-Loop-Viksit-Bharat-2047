@@ -399,7 +399,24 @@ export default function SmartCityOperationsCenter() {
               exit={{ opacity: 0 }}
               className="h-[600px] glass-panel rounded-3xl flex items-center justify-center border-primary/30 neon-glow-primary relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=28.6139,77.2090&zoom=12&size=1600x800&style=feature:all|element:labels|visibility:off&style=feature:water|element:geometry|color:0x000000&style=feature:landscape|element:geometry|color:0x0a0e10&style=feature:road|element:geometry|color:0x1a2327&style=feature:poi|visibility:off&sensor=false')] bg-cover bg-center opacity-40 mix-blend-screen" />
+              <div 
+                className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-screen" 
+                style={{ 
+                  backgroundImage: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY 
+                    ? `url('https://maps.googleapis.com/maps/api/staticmap?center=28.6139,77.2090&zoom=12&size=1600x800&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&style=feature:all|element:labels|visibility:off&style=feature:water|element:geometry|color:0x000000&style=feature:landscape|element:geometry|color:0x0a0e10&style=feature:road|element:geometry|color:0x1a2327&style=feature:poi|visibility:off&sensor=false')`
+                    : "radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, transparent 80%)"
+                }}
+              />
+              {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
+                <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+                  <pattern id="fleet-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                  </pattern>
+                  <rect width="100%" height="100%" fill="url(#fleet-grid)" />
+                  <path d="M 100 300 Q 400 150 700 450 T 1300 200" fill="none" stroke="rgba(0, 255, 157, 0.1)" strokeWidth="4" strokeLinecap="round" />
+                  <path d="M 300 100 L 300 500" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="2" strokeDasharray="5,5" />
+                </svg>
+              )}
               
               {/* Fake Map Markers */}
               <motion.div 

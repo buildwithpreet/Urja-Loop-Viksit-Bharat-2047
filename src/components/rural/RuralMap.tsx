@@ -157,12 +157,13 @@ export function RuralMap() {
     libraries: LIBRARIES
   })
 
-
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     setMap(map)
   }, [])
 
-  if (!isLoaded) {
+  const useRealMap = isLoaded && !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+  if (!isLoaded && !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
     return (
       <div className="w-full h-full bg-card flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
@@ -174,34 +175,117 @@ export function RuralMap() {
   return (
     <div className="h-[calc(100vh-0rem)] w-full relative overflow-hidden bg-background animate-in fade-in duration-700">
       
-      {/* Real Google Map Integration */}
+      {/* Real Google Map Integration or Premium Vector Fallback */}
       <div className="absolute inset-0 z-0">
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={center}
-          zoom={13}
-          onLoad={onLoad}
-          options={mapOptions}
-        >
-          {locations.map((loc) => (
-            <MarkerF
-              key={loc.id}
-              position={{ lat: loc.lat, lng: loc.lng }}
-              onClick={() => {
-                setSelectedEntity(loc)
-                setIsSheetExpanded(true)
-              }}
-              icon={{
-                path: loc.type === "plant" ? "M3 21h18V8H3v13zm7-11h4v3h-4v-3zm0 5h4v3h-4v-3z" : google.maps.SymbolPath.CIRCLE,
-                scale: loc.type === "plant" ? 1.5 : 10,
-                fillColor: loc.type === "center" ? "#f59e0b" : loc.type === "plant" ? "#f43f5e" : loc.type === "compost" ? "#10b981" : "#3b82f6",
-                fillOpacity: 1,
-                strokeWeight: 2,
-                strokeColor: "#ffffff",
-              }}
-            />
-          ))}
-        </GoogleMap>
+        {useRealMap ? (
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={center}
+            zoom={13}
+            onLoad={onLoad}
+            options={mapOptions}
+          >
+            {locations.map((loc) => (
+              <MarkerF
+                key={loc.id}
+                position={{ lat: loc.lat, lng: loc.lng }}
+                onClick={() => {
+                  setSelectedEntity(loc)
+                  setIsSheetExpanded(true)
+                }}
+                icon={{
+                  path: loc.type === "plant" ? "M3 21h18V8H3v13zm7-11h4v3h-4v-3zm0 5h4v3h-4v-3z" : google.maps.SymbolPath.CIRCLE,
+                  scale: loc.type === "plant" ? 1.5 : 10,
+                  fillColor: loc.type === "center" ? "#f59e0b" : loc.type === "plant" ? "#f43f5e" : loc.type === "compost" ? "#10b981" : "#3b82f6",
+                  fillOpacity: 1,
+                  strokeWeight: 2,
+                  strokeColor: "#ffffff",
+                }}
+              />
+            ))}
+          </GoogleMap>
+        ) : (
+          // BEAUTIFUL KISAN BIO-MATRIX VEGETATION MAP (HACKATHON GRADE FALLBACK)
+          <div className="w-full h-full relative bg-[#0d1310] overflow-hidden flex items-center justify-center">
+            {/* Ambient Leaf/Agri Grid */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.06),transparent_70%)] animate-pulse" />
+            <svg className="absolute inset-0 w-full h-full opacity-25" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="rural-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                  <circle cx="30" cy="30" r="1" fill="rgba(16,185,129,0.15)" />
+                  <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(16,185,129,0.03)" strokeWidth="1" />
+                </pattern>
+                <linearGradient id="farm-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.8" />
+                </linearGradient>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#rural-grid)" />
+              
+              {/* Agricultural Canal and Field Boundaries */}
+              <path d="M 100 100 Q 400 200 500 500 T 900 800" fill="none" stroke="rgba(16,185,129,0.05)" strokeWidth="8" strokeLinecap="round" />
+              <rect x="150" y="250" width="180" height="120" fill="rgba(16,185,129,0.02)" stroke="rgba(16,185,129,0.05)" strokeWidth="1" rx="10" />
+              <rect x="550" y="150" width="220" height="180" fill="rgba(245,158,11,0.01)" stroke="rgba(245,158,11,0.04)" strokeWidth="1" rx="15" />
+              
+              {/* Active navigation path */}
+              {showRoutes && selectedEntity && (
+                <path 
+                  d={`M 500 400 L ${Math.max(100, Math.min(900, ((selectedEntity.lng - 75.8) / 0.1) * 800 + 100))} ${Math.max(100, Math.min(800, (1 - (selectedEntity.lat - 30.8) / 0.15) * 600 + 100))}`}
+                  fill="none" 
+                  stroke="url(#farm-glow)" 
+                  strokeWidth="3" 
+                  strokeDasharray="6,4" 
+                  className="drop-shadow-[0_0_6px_rgba(16,185,129,0.4)]"
+                />
+              )}
+            </svg>
+
+            {/* Glowing Farm Nodes */}
+            <div className="absolute inset-0">
+              {locations.map((loc) => {
+                const screenX = Math.max(100, Math.min(900, ((loc.lng - 75.8) / 0.1) * 800 + 100))
+                const screenY = Math.max(100, Math.min(800, (1 - (loc.lat - 30.8) / 0.15) * 600 + 100))
+
+                return (
+                  <button
+                    key={loc.id}
+                    onClick={() => {
+                      setSelectedEntity(loc)
+                      setIsSheetExpanded(true)
+                    }}
+                    style={{ left: `${screenX}px`, top: `${screenY}px` }}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 group outline-none z-20 flex flex-col items-center gap-1.5"
+                  >
+                    <div 
+                      className={cn(
+                        "relative flex items-center justify-center w-8 h-8 rounded-full border transition-all duration-300",
+                        loc.type === "center" ? "bg-amber-500/20 border-amber-400 text-amber-400" : 
+                        loc.type === "plant" ? "bg-rose-500/20 border-rose-400 text-rose-400" :
+                        loc.type === "compost" ? "bg-emerald-500/20 border-emerald-400 text-emerald-400" :
+                        "bg-blue-500/20 border-blue-400 text-blue-400",
+                        selectedEntity?.id === loc.id ? "scale-110 shadow-[0_0_12px_rgba(16,185,129,0.4)]" : ""
+                      )}
+                    >
+                      {loc.type === "plant" ? <Factory size={12} /> : 
+                       loc.type === "center" ? <Wheat size={12} /> : 
+                       loc.type === "compost" ? <Leaf size={12} /> : 
+                       <Tractor size={12} />}
+                    </div>
+                    <div className="px-2 py-0.5 bg-[#090e0c]/90 rounded border border-white/5 shadow-md">
+                      <p className="text-[8px] font-bold text-white whitespace-nowrap uppercase tracking-wider">{loc.name}</p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Compass badge */}
+            <div className="absolute bottom-6 right-6 p-4 bg-[#0d1310]/80 border border-white/5 rounded-2xl flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <p className="text-[10px] font-mono text-emerald-400 font-bold tracking-widest uppercase">KISAN_NET_SIMULATOR_ACTIVE</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Top Controls */}

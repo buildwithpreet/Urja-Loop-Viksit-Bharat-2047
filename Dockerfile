@@ -1,38 +1,32 @@
-# Use a more robust Node.js image to avoid Alpine-specific build issues
+# Stage 1: Build Next.js application
 FROM node:20-slim AS builder
-
-# Set working directory
 WORKDIR /app
 
-# Copy backend package files from the backend subdirectory
-# Cloud Build runs from the root context
-COPY backend/package*.json ./
+# Copy lockfile and package configuration
+COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the backend source code
-COPY backend/ ./
+# Copy source files
+COPY . .
 
-# Build the project (runs tsc)
+# Build application
+ENV NODE_ENV=production
 RUN npm run build
 
-# Stage 2: Production
+# Stage 2: Serve application
 FROM node:20-slim
-
 WORKDIR /app
 
-# Copy production dependencies
-COPY backend/package*.json ./
-RUN npm install --only=production
+# Copy dependencies and build assets
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
 
-# Copy compiled files from the builder stage
-COPY --from=builder /app/dist ./dist
-
-# Standard Cloud Run environment variables
+# Expose server port
 ENV NODE_ENV=production
 ENV PORT=8080
-
-# Cloud Run injects the PORT environment variable
 EXPOSE 8080
 
-# Start the server
-CMD ["node", "dist/server.js"]
+# Start Next.js server
+CMD ["npm", "run", "start"]

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
+import { binsApi, alertsApi } from "@/lib/api"
 
 const DEFAULT_BINS = [
   { id: "BIN-001", location: "Sector 14 Market", fillLevel: 85, status: "critical", battery: 42, aiPredicted: "Overflow in 2 hrs" },
@@ -45,23 +46,92 @@ export default function SmartCityOperationsCenter() {
     }, 1000)
   }
 
-  const triggerOverflowAlert = () => {
-    const updatedBins = bins.map(bin => {
-      if (bin.id === "BIN-002") {
-        return {
-          ...bin,
-          fillLevel: 98,
-          status: "critical",
-          aiPredicted: "Critical Overflow! Dispatch Fleet immediately."
-        }
+  const fetchLiveBins = async () => {
+    try {
+      const liveData = await binsApi.getAll()
+      if (liveData && liveData.length > 0) {
+        // Map backend schemas to frontend UI state
+        const mapped = liveData.map((b: any) => ({
+          id: b.binId,
+          location: b.location || (b.binId === "BIN-001" ? "Sector 14 Market" : b.binId === "BIN-002" ? "Cyber Hub Square" : b.binId === "BIN-003" ? "Metro Station Exit" : "Residential Block C"),
+          fillLevel: b.fillLevel,
+          status: b.fillLevel > 80 ? "critical" : "normal",
+          battery: b.battery || 82,
+          aiPredicted: b.fillLevel > 80 ? "Immediate Dispatch Required" : "Stable"
+        }))
+        setBins(mapped)
       }
-      return bin
-    })
-    setBins(updatedBins)
-    toast.error("CRITICAL: BIN-002 (Cyber Hub Square) is overflowing! Dispatch request sent to Fleet.", {
-      description: "Sensor reading: 98% Capacity reached. Immediate response advised.",
-      duration: 5000,
-    })
+    } catch (err) {
+      console.warn("Bins API offline or not initialized. Using simulated telemetry feeds.", err)
+    }
+  }
+
+  useEffect(() => {
+    fetchLiveBins()
+    // Poll the backend bins state every 5 seconds for telemetry updates
+    const interval = setInterval(() => {
+      fetchLiveBins()
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const triggerOverflowAlert = async () => {
+    try {
+      await binsApi.updateStatus("BIN-002", { fillLevel: 98, status: "Active" })
+      await alertsApi.create({
+        type: "Bin Overflow Predicted",
+        location: "Cyber Hub Square (BIN-002)",
+        severity: "Critical",
+        status: "Active"
+      })
+      toast.error("CRITICAL: BIN-002 (Cyber Hub Square) is overflowing! Dispatch request sent to Fleet.", {
+        description: "Sensor reading: 98% Capacity reached. Immediate response advised.",
+        duration: 5000,
+      })
+      fetchLiveBins()
+    } catch (err) {
+      console.error("Overflow simulation failed:", err)
+      const updatedBins = bins.map(bin => {
+        if (bin.id === "BIN-002") {
+          return {
+            ...bin,
+            fillLevel: 98,
+            status: "critical",
+            aiPredicted: "Critical Overflow! Dispatch Fleet immediately."
+          }
+        }
+        return bin
+      })
+      setBins(updatedBins)
+      toast.error("CRITICAL: BIN-002 (Cyber Hub Square) is overflowing! Dispatch request sent to Fleet.", {
+        description: "Sensor reading: 98% Capacity reached. Immediate response advised.",
+        duration: 5000,
+      })
+    }
+  }
+
+  const handleFillBin = async (binId: string) => {
+    const bin = bins.find(b => b.id === binId)
+    if (!bin) return
+    const newFill = Math.min(100, bin.fillLevel + 15)
+    try {
+      await binsApi.updateStatus(binId, { fillLevel: newFill })
+      if (newFill >= 90) {
+        await alertsApi.create({
+          type: "Bin Overflow Predicted",
+          location: `${bin.location} (${binId})`,
+          severity: "Critical",
+          status: "Active"
+        })
+        toast.error(`ALERT: ${binId} has filled up to ${newFill}%! Critical alert logged in DB.`)
+      } else {
+        toast.success(`Telemetry: bin ${binId} patched to ${newFill}% fill level.`)
+      }
+      fetchLiveBins()
+    } catch (err) {
+      console.error("Failed to patch bin capacity:", err)
+      setBins(bins.map(b => b.id === binId ? { ...b, fillLevel: newFill, status: newFill > 80 ? "critical" : "normal" } : b))
+    }
   }
 
   const forceAIAnalysis = () => {
@@ -246,8 +316,16 @@ export default function SmartCityOperationsCenter() {
                           <p className="font-bold text-lg leading-none mb-1">{bin.id}</p>
                           <p className="text-[10px] text-white/50 font-medium uppercase tracking-widest"><MapPin size={10} className="inline mr-1"/>{bin.location}</p>
                         </div>
-                        <div className={cn("text-2xl font-black font-mono", bin.fillLevel > 80 ? "text-red-500" : "text-primary")}>
-                          {bin.fillLevel}%
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={cn("text-2xl font-black font-mono leading-none", bin.fillLevel > 80 ? "text-red-500" : "text-primary")}>
+                            {bin.fillLevel}%
+                          </span>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleFillBin(bin.id); }}
+                            className="text-[9px] font-black uppercase text-primary/80 bg-primary/10 border border-primary/20 rounded-md px-1.5 py-0.5 hover:bg-primary hover:text-[#0a0e10] transition-all active:scale-95"
+                          >
+                            +15% Fill
+                          </button>
                         </div>
                       </div>
 

@@ -16,6 +16,7 @@ import { ConfigurationModule } from "@/components/admin/ConfigurationModule"
 import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { alertsApi } from "@/lib/api"
 
 export default function SmartCityAdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -33,56 +34,73 @@ export default function SmartCityAdminDashboard() {
       window.location.href = "/login"
     }, 1000)
   }
-  const [alerts, setAlerts] = useState<any[]>([
-    { id: 1, type: "System Initialized", location: "Global Core", severity: "Low", time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) }
-  ])
+  const [alerts, setAlerts] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
 
-  // Simulated Socket.IO listener replacement for Hackathon presentation
+  const fetchActiveAlerts = async () => {
+    try {
+      const data = await alertsApi.getAll()
+      // Map API alerts format to the frontend view format
+      const formattedAlerts = data.map((alert: any) => ({
+        id: alert._id || alert.id,
+        type: alert.type,
+        location: alert.location,
+        severity: alert.severity,
+        time: alert.time || (alert.createdAt ? new Date(alert.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }))
+      }))
+      setAlerts(formattedAlerts)
+    } catch (err) {
+      console.warn("Failed to fetch alerts from backend database, continuing in fallback mode.", err)
+    }
+  }
+
+  // Active database polling for Hackathon presentation
   useEffect(() => {
-    // Random alerts every 8 seconds
+    fetchActiveAlerts()
+    
     const interval = setInterval(() => {
-      if (Math.random() > 0.6) {
-        setAlerts(prev => [{
-          id: Date.now(),
-          type: "Bin Overflow Predicted",
-          location: `Sector ${Math.floor(Math.random() * 20) + 1}, Zone ${['A', 'B', 'C'][Math.floor(Math.random() * 3)]}`,
-          severity: Math.random() > 0.8 ? "Critical" : "High",
-          time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-        }, ...prev].slice(0, 15)) // Keep last 15
-      }
-    }, 8000)
+      fetchActiveAlerts()
+    }, 6000)
     return () => clearInterval(interval)
   }, [])
 
-  // Handle Demo Control Triggers
-  const handleSimulationTrigger = (type: string) => {
-    if (type === "overflow") {
-      setAlerts(prev => [{
-        id: Date.now(),
-        type: "MANUAL OVERFLOW TRIGGERED",
-        location: "Demo Sector",
-        severity: "Critical",
-        time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-      }, ...prev].slice(0, 15))
-    } else if (type === "ai_analysis") {
-      setAlerts(prev => [{
-        id: Date.now(),
-        type: "AI Scan Completed",
-        location: "Global Neural Net",
-        severity: "Low",
-        time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-      }, ...prev].slice(0, 15))
-    } else if (type === "assign_collector") {
-      setAlerts(prev => [{
-        id: Date.now(),
-        type: "Fleet Dispatched",
-        location: "Route Alpha",
-        severity: "Medium",
-        time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-      }, ...prev].slice(0, 15))
-    } else if (type === "reset") {
-      setAlerts([])
+  // Handle Demo Control Triggers via Backend API
+  const handleSimulationTrigger = async (type: string) => {
+    try {
+      if (type === "overflow") {
+        await alertsApi.create({
+          type: "Bin Overflow Predicted",
+          location: `Sector ${Math.floor(Math.random() * 20) + 1}, Zone ${['A', 'B', 'C'][Math.floor(Math.random() * 3)]}`,
+          severity: "Critical",
+          status: "Active"
+        })
+        toast.success("Critical Overflow Simulation logged in database!")
+        fetchActiveAlerts()
+      } else if (type === "ai_analysis") {
+        await alertsApi.create({
+          type: "AI Scan Completed",
+          location: "Global Neural Net",
+          severity: "Low",
+          status: "Active"
+        })
+        toast.success("AI Log entry posted to backend!")
+        fetchActiveAlerts()
+      } else if (type === "assign_collector") {
+        await alertsApi.create({
+          type: "Fleet Dispatched",
+          location: "Route Alpha",
+          severity: "Medium",
+          status: "Active"
+        })
+        toast.success("Fleet route alert generated in DB!")
+        fetchActiveAlerts()
+      } else if (type === "reset") {
+        toast.info("Flushing simulation data...")
+        setAlerts([])
+      }
+    } catch (err) {
+      console.error("Simulation trigger failed:", err)
+      toast.error("Failed to post simulation alert to backend MongoDB database.")
     }
   }
 

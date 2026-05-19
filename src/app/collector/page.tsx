@@ -11,23 +11,102 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { alertsApi, binsApi, wastelogsApi } from "@/lib/api"
 
 const MOCK_TASKS = [
   { id: "T-8921", bin: "BIN-001", loc: "Sector 14 Market", type: "Organic", priority: "critical", fill: 92, distance: "1.2 km" },
-  { id: "T-8922", bin: "BIN-045", loc: "Cyber Hub Square", type: "Plastic", priority: "high", fill: 78, distance: "2.4 km" },
-  { id: "T-8923", bin: "BIN-112", loc: "Metro Station Exit", type: "Mixed", priority: "medium", fill: 65, distance: "3.1 km" },
+  { id: "T-8922", bin: "BIN-002", loc: "Cyber Hub Square", type: "Plastic", priority: "high", fill: 78, distance: "2.4 km" },
 ]
 
 export default function CollectorDashboard() {
-  const [tasks, setTasks] = useState(MOCK_TASKS)
+  const [tasks, setTasks] = useState<any[]>([])
   const [scanning, setScanning] = useState(false)
 
-  const handleScan = () => {
+  const fetchLiveTasks = async () => {
+    try {
+      // Fetch both alerts and bins to compile active collector tasks
+      const [allAlerts, allBins] = await Promise.all([
+        alertsApi.getAll(),
+        binsApi.getAll()
+      ])
+
+      const activeAlerts = allAlerts.filter((a: any) => a.status === "Active")
+      
+      const mappedTasks = activeAlerts.map((alert: any) => {
+        // Find corresponding bin details if mentioned in text
+        const binIdMatch = alert.location.match(/BIN-\d+/) || alert.type.match(/BIN-\d+/);
+        const binId = binIdMatch ? binIdMatch[0] : "BIN-001";
+        
+        const relatedBin = allBins.find((b: any) => b.binId === binId);
+        
+        return {
+          id: alert._id || alert.id,
+          bin: binId,
+          loc: alert.location,
+          type: alert.type.toLowerCase().includes("organic") ? "Organic" : "Recyclable",
+          priority: alert.severity.toLowerCase(),
+          fill: relatedBin ? relatedBin.fillLevel : 92,
+          distance: "1.2 km"
+        }
+      })
+
+      // Update state
+      setTasks(mappedTasks)
+    } catch (err) {
+      console.warn("Failed to load live tasks, using local mock task queue.", err)
+      setTasks(MOCK_TASKS)
+    }
+  }
+
+  useEffect(() => {
+    fetchLiveTasks()
+    
+    // Poll for new database task assignments every 5 seconds
+    const interval = setInterval(() => {
+      fetchLiveTasks()
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleScan = async () => {
+    if (tasks.length === 0) return
+    const activeTask = tasks[0]
     setScanning(true)
-    setTimeout(() => {
+    
+    try {
+      toast.loading("Reading IoT QR Code and syncing with Neural Grid...")
+      
+      // 1. Reset bin level in database to 0
+      await binsApi.updateStatus(activeTask.bin, { fillLevel: 0, status: "Active" })
+
+      // 2. Resolve alert in database
+      if (activeTask.id && typeof activeTask.id === "string") {
+        await alertsApi.resolve(activeTask.id)
+      }
+
+      // 3. Log waste collection transaction
+      await wastelogsApi.create({
+        binId: activeTask.bin,
+        amount: activeTask.fill || 85,
+        type: activeTask.type,
+        collectorId: "UV-01"
+      })
+
+      toast.dismiss()
+      toast.success(`Collection Successful for ${activeTask.bin}!`, {
+        description: `Logged ${activeTask.fill}% ${activeTask.type} waste to database. Carbon credits calculated.`
+      })
+
+      fetchLiveTasks()
+    } catch (err) {
+      console.error("Failed to complete collection:", err)
+      toast.dismiss()
+      toast.error("Failed to sync collection with backend MongoDB database, executing offline override.")
+      setTasks(tasks.slice(1))
+    } finally {
       setScanning(false)
-      setTasks(tasks.slice(1)) // "Complete" first task
-    }, 2000)
+    }
   }
 
   const handleLogout = async () => {

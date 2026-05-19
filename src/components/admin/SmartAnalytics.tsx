@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { BarChart3 } from "lucide-react"
-import { analyticsApi, AnalyticsSummary } from "@/lib/api"
+import { adminApi } from "@/lib/api"
 
 const fallbackData = [
   { name: 'Mon', organic: 4000, plastic: 2400 },
@@ -14,13 +14,15 @@ const fallbackData = [
 ]
 
 export function SmartAnalytics() {
-  const [stats, setStats] = useState<AnalyticsSummary | null>(null)
+  const [stats, setStats] = useState<any>(null)
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await analyticsApi.getSummary()
-        setStats(data)
+        const response = await adminApi.getAnalytics()
+        if (response.success) {
+          setStats(response.data)
+        }
       } catch (err) {
         console.warn("Analytics API summary not fully populated yet. Keeping simulation metrics.", err)
       }

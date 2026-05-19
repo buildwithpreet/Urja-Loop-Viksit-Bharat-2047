@@ -108,8 +108,8 @@ export default function DashboardPage() {
 
       // 2. Fetch Bins
       const { data: binsData } = await supabase.from('smart_bins').select('*')
-      if (binsData) {
-        setBins(binsData.map(b => ({
+      if (binsData && Array.isArray(binsData)) {
+        setBins(binsData.map((b: any) => ({
           id: b.id,
           location: b.location_name,
           fill: b.fill_level,
@@ -137,7 +137,7 @@ export default function DashboardPage() {
           .limit(5)
         
         if (logData) {
-          setActivities(logData.map(l => ({
+          setActivities(logData.map((l: any) => ({
             id: l.id,
             item: l.action,
             location: l.description,
@@ -156,7 +156,7 @@ export default function DashboardPage() {
     // Real-time Subscription for Bins
     const channel = supabase
       .channel('schema-db-changes')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'smart_bins' }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'smart_bins' }, (payload: any) => {
         setBins(prev => prev.map(b => b.id === payload.new.id ? {
           ...b, 
           fill: payload.new.fill_level,

@@ -69,7 +69,7 @@ export default function Shop() {
         .select('*')
 
       if (rawItems) setRawMaterials(rawItems)
-      if (processedItems) setProcessedProducts(processedItems.map(p => ({
+      if (processedItems) setProcessedProducts(processedItems.map((p: any) => ({
         ...p,
         image: p.image_url, // normalize key
         price: p.price_per_unit,

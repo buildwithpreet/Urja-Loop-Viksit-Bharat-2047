@@ -40,9 +40,9 @@ export default function Community() {
         .from('profiles')
         .select('waste_processed, co2_saved')
       
-      if (allProfiles) {
-        const waste = allProfiles.reduce((acc, p) => acc + (p.waste_processed || 0), 0)
-        const co2 = allProfiles.reduce((acc, p) => acc + (p.co2_saved || 0), 0)
+      if (allProfiles && Array.isArray(allProfiles)) {
+        const waste = allProfiles.reduce((acc: number, p: any) => acc + (p.waste_processed || 0), 0)
+        const co2 = allProfiles.reduce((acc: number, p: any) => acc + (p.co2_saved || 0), 0)
         setImpactStats({ 
           totalWaste: waste, 
           totalCO2: co2, 

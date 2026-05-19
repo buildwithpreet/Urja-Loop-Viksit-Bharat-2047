@@ -16,14 +16,19 @@ import { ConfigurationModule } from "@/components/admin/ConfigurationModule"
 import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
-import { alertsApi } from "@/lib/api"
+import { adminApi, alertsApi } from "@/lib/api"
+import { useSocket } from "@/hooks/useSocket"
 
 export default function SmartCityAdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
+  
+  // Real-time socket hook
+  const { isConnected, events: socketEvents, alerts: socketAlerts } = useSocket('admin_room')
 
   const handleLogout = async () => {
     toast.success("Logged out successfully")
     try {
+      localStorage.removeItem("urjaloop_auth_token")
       localStorage.removeItem("urjaloop_demo_session")
       localStorage.removeItem("urjaloop_mode")
       await supabase.auth.signOut().catch(() => {})
@@ -34,75 +39,61 @@ export default function SmartCityAdminDashboard() {
       window.location.href = "/login"
     }, 1000)
   }
+
   const [alerts, setAlerts] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
+  const [stats, setStats] = useState<any>(null)
 
-  const fetchActiveAlerts = async () => {
+  const fetchInitialData = async () => {
     try {
-      const data = await alertsApi.getAll()
-      // Map API alerts format to the frontend view format
-      const formattedAlerts = data.map((alert: any) => ({
-        id: alert._id || alert.id,
-        type: alert.type,
-        location: alert.location,
-        severity: alert.severity,
-        time: alert.time || (alert.createdAt ? new Date(alert.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }))
-      }))
-      setAlerts(formattedAlerts)
-    } catch (err) {
-      console.warn("Failed to fetch alerts from backend database, continuing in fallback mode.", err)
-    }
-  }
+      // Try fetching from new backend API
+      const response = await adminApi.getIncidents('Active')
+      if (response.success && response.data) {
+        setAlerts(response.data)
+      } else {
+        // Fallback to legacy alerts API if backend is not fully ready
+        const data = await alertsApi.getAll()
+        const formattedAlerts = data.map((alert: any) => ({
+          id: alert._id || alert.id,
+          type: alert.type,
+          location: alert.location,
+          severity: alert.severity,
+          time: alert.time || (alert.createdAt ? new Date(alert.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }))
+        }))
+        setAlerts(formattedAlerts)
+      }
 
-  // Active database polling for Hackathon presentation
-  useEffect(() => {
-    fetchActiveAlerts()
-    
-    const interval = setInterval(() => {
-      fetchActiveAlerts()
-    }, 6000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Handle Demo Control Triggers via Backend API
-  const handleSimulationTrigger = async (type: string) => {
-    try {
-      if (type === "overflow") {
-        await alertsApi.create({
-          type: "Bin Overflow Predicted",
-          location: `Sector ${Math.floor(Math.random() * 20) + 1}, Zone ${['A', 'B', 'C'][Math.floor(Math.random() * 3)]}`,
-          severity: "Critical",
-          status: "Active"
-        })
-        toast.success("Critical Overflow Simulation logged in database!")
-        fetchActiveAlerts()
-      } else if (type === "ai_analysis") {
-        await alertsApi.create({
-          type: "AI Scan Completed",
-          location: "Global Neural Net",
-          severity: "Low",
-          status: "Active"
-        })
-        toast.success("AI Log entry posted to backend!")
-        fetchActiveAlerts()
-      } else if (type === "assign_collector") {
-        await alertsApi.create({
-          type: "Fleet Dispatched",
-          location: "Route Alpha",
-          severity: "Medium",
-          status: "Active"
-        })
-        toast.success("Fleet route alert generated in DB!")
-        fetchActiveAlerts()
-      } else if (type === "reset") {
-        toast.info("Flushing simulation data...")
-        setAlerts([])
+      // Fetch analytics for header
+      const analyticsRes = await adminApi.getAnalytics()
+      if (analyticsRes.success) {
+        setStats(analyticsRes.data)
       }
     } catch (err) {
-      console.error("Simulation trigger failed:", err)
-      toast.error("Failed to post simulation alert to backend MongoDB database.")
+      console.warn("Failed to fetch initial admin data from backend.", err)
     }
   }
+
+  // Initial load
+  useEffect(() => {
+    fetchInitialData()
+  }, [])
+
+  // Sync socket events to local state
+  useEffect(() => {
+    if (socketAlerts.length > 0) {
+      setAlerts(prev => {
+        // Merge without duplicates based on ID
+        const newAlerts = [...socketAlerts, ...prev]
+        return Array.from(new Map(newAlerts.map(item => [item.id || item._id, item])).values()).slice(0, 50)
+      })
+    }
+    if (socketEvents.length > 0) {
+      setEvents(socketEvents)
+    }
+  }, [socketAlerts, socketEvents])
+
+  // Demo Simulation is now handled inside the DemoSimulationControls component directly via demoApi
+  const handleSimulationTrigger = undefined // Remove legacy trigger
 
   const tabs = [
     { id: "dashboard", icon: LayoutDashboard, label: "Command Center" },
@@ -171,20 +162,22 @@ export default function SmartCityAdminDashboard() {
             <div>
               <h2 className="text-4xl font-black uppercase tracking-tighter text-white drop-shadow-lg">Smart City Operations</h2>
               <div className="flex items-center gap-3 mt-3">
-                <div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_#10b981]" />
-                <span className="text-xs font-bold text-primary uppercase tracking-widest">Live Sync Active</span>
+                <div className={`w-2.5 h-2.5 ${isConnected ? 'bg-primary shadow-[0_0_12px_#10b981]' : 'bg-red-500 shadow-[0_0_12px_#ef4444]'} rounded-full animate-pulse`} />
+                <span className={`text-xs font-bold ${isConnected ? 'text-primary' : 'text-red-500'} uppercase tracking-widest`}>
+                  {isConnected ? 'Live Sync Active' : 'Disconnected'}
+                </span>
               </div>
             </div>
             <div className="flex gap-6 items-center">
               <div className="glass-panel px-8 py-4 flex items-center gap-8 rounded-3xl">
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">Total Active Nodes</p>
-                  <p className="text-2xl font-black text-white">2,482</p>
+                  <p className="text-2xl font-black text-white">{stats?.bins?.total || "2,482"}</p>
                 </div>
                 <div className="w-px h-12 bg-white/10" />
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">Network Efficiency</p>
-                  <p className="text-2xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">98.4%</p>
+                  <p className="text-2xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">{stats?.systemHealth?.uptime || "98.4"}%</p>
                 </div>
               </div>
               <ProfileSettingsMenu />

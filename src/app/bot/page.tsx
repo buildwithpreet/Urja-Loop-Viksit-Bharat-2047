@@ -21,6 +21,7 @@ const suggestedPrompts = [
 
 import { useMode } from "@/components/shared/ModeProvider"
 import { supabase } from "@/lib/supabase"
+import { aiApi } from "@/lib/api"
 
 const botResponses: Record<string, (context: any) => string> = {
   "default": () => "That's a great question! I'm analyzing your request using my sustainability knowledge base. Based on current data in your area, I'd suggest checking the Transparency Map for real-time information. 🌍",
@@ -130,15 +131,9 @@ export default function UrjaBot() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       
-      const response = await fetch('/api/ai/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          imageUrl: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4", 
-          userId: session?.user.id || 'demo-user' 
-        })
+      const result = await aiApi.classify({
+        imageUrl: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4",
       })
-      const result = await response.json()
 
       if (result.success) {
         const { type, credits, message, category } = result.data

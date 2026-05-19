@@ -119,7 +119,7 @@ export default function MapPage() {
       try {
          // 1. Fetch Smart Bins
          const { data: bins } = await supabase.from('smart_bins').select('*')
-         const mappedBins = (bins || []).map(b => ({
+         const mappedBins = (bins || []).map((b: any) => ({
             id: b.id,
             kind: "bin" as NodeKind,
             name: b.location_name || "Smart Bin",
@@ -135,7 +135,7 @@ export default function MapPage() {
 
          // 2. Fetch Vehicles
          const { data: vData } = await supabase.from('vehicles').select('*')
-         const mappedVehicles = (vData || []).map(v => ({
+         const mappedVehicles = (vData || []).map((v: any) => ({
             id: v.id,
             kind: "van" as NodeKind,
             name: v.plate_number,
@@ -150,7 +150,7 @@ export default function MapPage() {
 
          // 3. Fetch Collection Centers
          const { data: cData } = await supabase.from('collection_centers').select('*')
-         const mappedCenters = (cData || []).map(c => ({
+         const mappedCenters = (cData || []).map((c: any) => ({
             id: c.id,
             kind: "hub" as NodeKind,
             name: c.name,

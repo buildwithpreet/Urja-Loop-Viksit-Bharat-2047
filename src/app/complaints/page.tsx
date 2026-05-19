@@ -69,7 +69,7 @@ export default function Complaints() {
     // Real-time Subscription for Complaints
     const channel = supabase
       .channel('complaints-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, (payload: any) => {
         if (payload.eventType === 'INSERT') {
           setComplaints((prev: any[]) => [payload.new, ...prev])
         } else if (payload.eventType === 'UPDATE') {

@@ -109,7 +109,7 @@ export default function VerifyOtpScreen() {
       }
 
       if (error) {
-        toast.error(error.message)
+        toast.error((error as any).message)
         setIsVerifying(false)
       } else {
         // Successfully verified
@@ -138,7 +138,7 @@ export default function VerifyOtpScreen() {
   const handleResend = async () => {
     if (timer > 0) return
     const { error } = await supabase.auth.signInWithOtp({ phone })
-    if (error) toast.error(error.message)
+    if (error) toast.error((error as any).message)
     else {
       toast.success("Code resent!")
       setTimer(30)

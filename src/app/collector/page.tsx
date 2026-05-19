@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
-import { alertsApi, binsApi, wastelogsApi } from "@/lib/api"
+import { collectorApi, wastelogsApi } from "@/lib/api"
+import { useSocket } from "@/hooks/useSocket"
 
 const MOCK_TASKS = [
   { id: "T-8921", bin: "BIN-001", loc: "Sector 14 Market", type: "Organic", priority: "critical", fill: 92, distance: "1.2 km" },
@@ -21,37 +22,25 @@ const MOCK_TASKS = [
 export default function CollectorDashboard() {
   const [tasks, setTasks] = useState<any[]>([])
   const [scanning, setScanning] = useState(false)
+  const { isConnected, events } = useSocket('collector_room')
 
   const fetchLiveTasks = async () => {
     try {
-      // Fetch both alerts and bins to compile active collector tasks
-      const [allAlerts, allBins] = await Promise.all([
-        alertsApi.getAll(),
-        binsApi.getAll()
-      ])
-
-      const activeAlerts = allAlerts.filter((a: any) => a.status === "Active")
-      
-      const mappedTasks = activeAlerts.map((alert: any) => {
-        // Find corresponding bin details if mentioned in text
-        const binIdMatch = alert.location.match(/BIN-\d+/) || alert.type.match(/BIN-\d+/);
-        const binId = binIdMatch ? binIdMatch[0] : "BIN-001";
-        
-        const relatedBin = allBins.find((b: any) => b.binId === binId);
-        
-        return {
-          id: alert._id || alert.id,
-          bin: binId,
-          loc: alert.location,
-          type: alert.type.toLowerCase().includes("organic") ? "Organic" : "Recyclable",
-          priority: alert.severity.toLowerCase(),
-          fill: relatedBin ? relatedBin.fillLevel : 92,
+      const response = await collectorApi.getTasks()
+      if (response.success && response.data) {
+        const mappedTasks = response.data.map((task: any) => ({
+          id: task.taskId || task._id,
+          bin: task.binId || "BIN-001",
+          loc: task.binAddress || "Unknown Location",
+          type: task.wasteType || "Mixed",
+          priority: task.priority || "high",
+          fill: task.fillLevel || 85,
           distance: "1.2 km"
-        }
-      })
-
-      // Update state
-      setTasks(mappedTasks)
+        }))
+        setTasks(mappedTasks)
+      } else {
+        setTasks(MOCK_TASKS)
+      }
     } catch (err) {
       console.warn("Failed to load live tasks, using local mock task queue.", err)
       setTasks(MOCK_TASKS)
@@ -61,13 +50,19 @@ export default function CollectorDashboard() {
   useEffect(() => {
     fetchLiveTasks()
     
-    // Poll for new database task assignments every 5 seconds
     const interval = setInterval(() => {
       fetchLiveTasks()
     }, 5000)
 
     return () => clearInterval(interval)
   }, [])
+
+  // Refetch when socket events come in
+  useEffect(() => {
+    if (events.length > 0) {
+      fetchLiveTasks()
+    }
+  }, [events])
 
   const handleScan = async () => {
     if (tasks.length === 0) return
@@ -77,20 +72,11 @@ export default function CollectorDashboard() {
     try {
       toast.loading("Reading IoT QR Code and syncing with Neural Grid...")
       
-      // 1. Reset bin level in database to 0
-      await binsApi.updateStatus(activeTask.bin, { fillLevel: 0, status: "Active" })
-
-      // 2. Resolve alert in database
-      if (activeTask.id && typeof activeTask.id === "string") {
-        await alertsApi.resolve(activeTask.id)
-      }
-
-      // 3. Log waste collection transaction
-      await wastelogsApi.create({
-        binId: activeTask.bin,
-        amount: activeTask.fill || 85,
-        type: activeTask.type,
-        collectorId: "UV-01"
+      // Complete task via Collector API
+      await collectorApi.completeTask({
+        taskId: activeTask.id,
+        weight: activeTask.fill || 85,
+        notes: "Automated collection scan"
       })
 
       toast.dismiss()
@@ -112,6 +98,7 @@ export default function CollectorDashboard() {
   const handleLogout = async () => {
     toast.success("Collector Session Terminated")
     try {
+      localStorage.removeItem("urjaloop_auth_token")
       localStorage.removeItem("urjaloop_demo_session")
       localStorage.removeItem("urjaloop_mode")
       await supabase.auth.signOut().catch(() => {})
@@ -160,8 +147,8 @@ export default function CollectorDashboard() {
                 </Badge>
               </div>
               <p className="text-[10px] font-mono font-bold text-white/50 uppercase tracking-widest mt-1.5 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping" />
-                <span className="text-primary font-black">Live Telemetry Linked</span>
+                <span className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-primary animate-ping' : 'bg-red-500 animate-pulse'}`} />
+                <span className={isConnected ? "text-primary font-black" : "text-red-500 font-black"}>{isConnected ? 'Live Telemetry Linked' : 'Offline Mode'}</span>
                 <span className="text-white/20">|</span>
                 <Wifi size={12} className="text-cyan-400" />
                 <span>99.2% Signal</span>

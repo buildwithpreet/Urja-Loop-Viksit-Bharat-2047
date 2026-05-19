@@ -1,16 +1,11 @@
-import mongoose from 'mongoose';
-import { env } from './env';
+import { db } from './firebase';
 
 export const connectDB = async () => {
-  if (!env.MONGO_URI) {
-    console.warn('MongoDB URI is not configured in env. Skipping database connection.');
-    return;
-  }
-  try {
-    const conn = await mongoose.connect(env.MONGO_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`Error connecting to MongoDB: ${error}`);
-    process.exit(1);
+  // Google Cloud Firestore operates as a stateless/serverless REST-based client connection
+  // No persistent connection setup is required during boot time!
+  if (db) {
+    console.log('Google Cloud Firestore database connection active!');
+  } else {
+    console.log('Google Cloud Firestore offline. Active memory database backup operational!');
   }
 };

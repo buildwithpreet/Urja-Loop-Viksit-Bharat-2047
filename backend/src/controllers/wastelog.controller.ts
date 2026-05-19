@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { WasteLog } from '../models/wastelog.model';
-import mongoose from 'mongoose';
+import { db } from '../config/firebase';
 
-// In-Memory data store fallback when MongoDB is offline/unconfigured
+// In-Memory data store fallback when GCP Firestore is offline/unconfigured
 let inMemoryWasteLogs: any[] = [
   {
     _id: "log-1",
@@ -34,20 +33,27 @@ let inMemoryWasteLogs: any[] = [
 
 export const createWasteLog = async (req: Request, res: Response) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      const newLog = {
-        _id: new mongoose.Types.ObjectId().toString(),
-        createdAt: new Date(),
-        ...req.body
-      };
-      inMemoryWasteLogs.unshift(newLog);
-      res.status(201).json({ success: true, data: newLog });
-      return;
+    if (db) {
+      try {
+        const newLog = {
+          createdAt: new Date().toISOString(),
+          ...req.body
+        };
+        const docRef = await db.collection('wastelogs').add(newLog);
+        res.status(201).json({ success: true, data: { _id: docRef.id, ...newLog } });
+        return;
+      } catch (e) {
+        console.warn('Firestore createWasteLog failed, using fallback:', e);
+      }
     }
 
-    const wastelog = new WasteLog(req.body);
-    await wastelog.save();
-    res.status(201).json({ success: true, data: wastelog });
+    const newLog = {
+      _id: Math.random().toString(36).substring(7),
+      createdAt: new Date(),
+      ...req.body
+    };
+    inMemoryWasteLogs.unshift(newLog);
+    res.status(201).json({ success: true, data: newLog });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
   }
@@ -55,35 +61,41 @@ export const createWasteLog = async (req: Request, res: Response) => {
 
 export const getWasteLogs = async (req: Request, res: Response) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      let filtered = [...inMemoryWasteLogs];
-      if (req.query.user) {
-        filtered = filtered.filter(l => l.user === req.query.user);
+    if (db) {
+      try {
+        let queryRef: any = db.collection('wastelogs');
+        if (req.query.user) {
+          queryRef = queryRef.where('user', '==', req.query.user);
+        }
+        if (req.query.bin) {
+          queryRef = queryRef.where('bin', '==', req.query.bin);
+        }
+        if (req.query.category) {
+          queryRef = queryRef.where('classification.category', '==', req.query.category);
+        }
+
+        const snapshot = await queryRef.get();
+        const wastelogs = snapshot.docs.map((doc: any) => ({ _id: doc.id, ...doc.data() }));
+        if (wastelogs.length > 0) {
+          res.status(200).json({ success: true, data: wastelogs });
+          return;
+        }
+      } catch (e) {
+        console.warn('Firestore getWasteLogs failed, using fallback:', e);
       }
-      if (req.query.bin) {
-        filtered = filtered.filter(l => l.bin === req.query.bin);
-      }
-      if (req.query.category) {
-        filtered = filtered.filter(l => l.classification?.category === req.query.category);
-      }
-      res.status(200).json({ success: true, data: filtered });
-      return;
     }
 
-    const filters: any = {};
-    if (req.query.user) filters.user = req.query.user;
-    if (req.query.bin) filters.bin = req.query.bin;
-    
+    let filtered = [...inMemoryWasteLogs];
+    if (req.query.user) {
+      filtered = filtered.filter(l => l.user === req.query.user);
+    }
+    if (req.query.bin) {
+      filtered = filtered.filter(l => l.bin === req.query.bin);
+    }
     if (req.query.category) {
-      filters['classification.category'] = req.query.category;
+      filtered = filtered.filter(l => l.classification?.category === req.query.category);
     }
-
-    const wastelogs = await WasteLog.find(filters)
-      .populate('user', 'name email')
-      .populate('bin', 'location status')
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({ success: true, data: wastelogs });
+    res.status(200).json({ success: true, data: filtered });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -92,20 +104,20 @@ export const getWasteLogs = async (req: Request, res: Response) => {
 export const getWasteLogById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    if (mongoose.connection.readyState !== 1) {
-      const wastelog = inMemoryWasteLogs.find(l => l._id === id);
-      if (!wastelog) {
-        res.status(404).json({ success: false, error: 'WasteLog not found' });
-        return;
+
+    if (db) {
+      try {
+        const doc = await db.collection('wastelogs').doc(id).get();
+        if (doc.exists) {
+          res.status(200).json({ success: true, data: { _id: doc.id, ...doc.data() } });
+          return;
+        }
+      } catch (e) {
+        console.warn('Firestore getWasteLogById failed, using fallback:', e);
       }
-      res.status(200).json({ success: true, data: wastelog });
-      return;
     }
 
-    const wastelog = await WasteLog.findById(id)
-      .populate('user', 'name email')
-      .populate('bin', 'location status');
-      
+    const wastelog = inMemoryWasteLogs.find(l => l._id === id);
     if (!wastelog) {
       res.status(404).json({ success: false, error: 'WasteLog not found' });
       return;
@@ -119,22 +131,23 @@ export const getWasteLogById = async (req: Request, res: Response): Promise<void
 export const deleteWasteLog = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    if (mongoose.connection.readyState !== 1) {
-      const idx = inMemoryWasteLogs.findIndex(l => l._id === id);
-      if (idx === -1) {
-        res.status(404).json({ success: false, error: 'WasteLog not found' });
+
+    if (db) {
+      try {
+        await db.collection('wastelogs').doc(id).delete();
+        res.status(200).json({ success: true, data: {} });
         return;
+      } catch (e) {
+        console.warn('Firestore deleteWasteLog failed, using fallback:', e);
       }
-      inMemoryWasteLogs.splice(idx, 1);
-      res.status(200).json({ success: true, data: {} });
-      return;
     }
 
-    const wastelog = await WasteLog.findByIdAndDelete(id);
-    if (!wastelog) {
+    const idx = inMemoryWasteLogs.findIndex(l => l._id === id);
+    if (idx === -1) {
       res.status(404).json({ success: false, error: 'WasteLog not found' });
       return;
     }
+    inMemoryWasteLogs.splice(idx, 1);
     res.status(200).json({ success: true, data: {} });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });

@@ -33,3 +33,18 @@ if (!admin.apps.length) {
 
 export const firebaseAdmin = admin;
 export const auth = admin.auth();
+
+// Safely initialize Google Cloud Firestore with a dynamic fallback catch-all
+let firestoreDb: any = null;
+try {
+  if (admin.apps.length) {
+    firestoreDb = admin.firestore();
+    // Configure settings for seamless timezone handling
+    firestoreDb.settings({ ignoreUndefinedProperties: true });
+    console.log('Google Cloud Firestore initialized successfully!');
+  }
+} catch (error) {
+  console.warn('Google Cloud Firestore failed to initialize, using offline memory fallback:', error);
+}
+
+export const db = firestoreDb;

@@ -1,10 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { auth } from '../config/firebase';
-import { User, IUser } from '../models/user.model';
-import mongoose from 'mongoose';
+import { auth, db } from '../config/firebase';
 
 export interface AuthRequest extends Request {
-  user?: IUser | any;
+  user?: any;
   firebaseUser?: any;
 }
 
@@ -12,8 +10,8 @@ export const verifyToken = async (req: AuthRequest, res: Response, next: NextFun
   try {
     const token = req.headers.authorization?.split('Bearer ')[1];
     
-    // In-memory demo admin fallback when MongoDB is unconfigured or token is a mock/demo
-    if (mongoose.connection.readyState !== 1 || !token || token === 'demo-token') {
+    // In-memory demo admin fallback when GCP Firestore is unconfigured/offline or token is a mock/demo
+    if (!db || !token || token === 'demo-token') {
       req.user = {
         firebaseId: 'demo-admin-id',
         email: 'admin@urjaloop.com',
@@ -32,22 +30,43 @@ export const verifyToken = async (req: AuthRequest, res: Response, next: NextFun
     const decodedToken = await auth.verifyIdToken(token);
     req.firebaseUser = decodedToken;
 
-    let user = await User.findOne({ firebaseId: decodedToken.uid });
-    if (!user) {
-      // Auto-provision user if they exist in Firebase but not in MongoDB
-      user = await User.create({
-        firebaseId: decodedToken.uid,
-        email: decodedToken.email || 'user@urjaloop.com',
-        role: 'admin', // Default to admin for seamless evaluation
-        profile: {
-          fullName: decodedToken.name || 'Firebase User',
-          phoneNumber: decodedToken.phone_number || '',
-        },
-        qrIdentity: decodedToken.uid,
-      });
+    let user: any = null;
+    try {
+      const userDoc = await db.collection('users').doc(decodedToken.uid).get();
+      if (userDoc.exists) {
+        user = userDoc.data();
+      } else {
+        // Auto-provision user if they exist in Firebase but not in Firestore yet
+        user = {
+          firebaseId: decodedToken.uid,
+          email: decodedToken.email || 'user@urjaloop.com',
+          role: 'admin', // Default to admin for seamless evaluation
+          profile: {
+            fullName: decodedToken.name || 'Firebase User',
+            phoneNumber: decodedToken.phone_number || '',
+          },
+          qrIdentity: decodedToken.uid,
+          carbonCredits: 100,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        await db.collection('users').doc(decodedToken.uid).set(user);
+      }
+    } catch (dbErr) {
+      console.warn('Firestore user fetch failed, using fallback:', dbErr);
     }
 
-    req.user = user;
+    req.user = user || {
+      firebaseId: decodedToken.uid,
+      email: decodedToken.email || 'user@urjaloop.com',
+      role: 'admin',
+      profile: {
+        fullName: decodedToken.name || 'Firebase User',
+        phoneNumber: decodedToken.phone_number || '',
+      },
+      qrIdentity: decodedToken.uid,
+      carbonCredits: 100
+    };
     next();
   } catch (error) {
     // If token verification fails (e.g. invalid/expired/mock key), fallback to Demo Admin

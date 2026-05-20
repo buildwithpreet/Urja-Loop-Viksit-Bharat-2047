@@ -11,7 +11,7 @@ const mockAuth = (req: any, res: any, next: any) => {
 
 router.use(mockAuth);
 
-router.post('/register', async (req, res) => {
+router.post('/register', async (req: any, res: any) => {
   try {
     const { state, district, village, areaAcres, location } = req.body;
     // In real app, farmerId comes from req.user
@@ -23,7 +23,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.get('/my-land', async (req, res) => {
+router.get('/my-land', async (req: any, res: any) => {
   try {
     // const lands = await Land.find({ farmerId: req.user.id });
     res.status(200).json({ success: true, data: [] });
@@ -32,7 +32,7 @@ router.get('/my-land', async (req, res) => {
   }
 });
 
-router.post('/harvest', async (req, res) => {
+router.post('/harvest', async (req: any, res: any) => {
   try {
     const { landId, cropType, season, expectedHarvestDate } = req.body;
     const newCrop = new CropCycle({ landId, cropType, season, expectedHarvestDate });
@@ -43,7 +43,7 @@ router.post('/harvest', async (req, res) => {
   }
 });
 
-router.get('/analytics', async (req, res) => {
+router.get('/analytics', async (req: any, res: any) => {
   res.status(200).json({ success: true, data: { totalWaste: 1500, carbonCredits: 45, earnings: 12000 } });
 });
 

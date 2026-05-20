@@ -9,7 +9,7 @@ const mockAuth = (req: any, res: any, next: any) => {
   next();
 };
 
-router.get('/products', async (req, res) => {
+router.get('/products', async (req: any, res: any) => {
   try {
     // const products = await Product.find();
     res.status(200).json({ success: true, data: [
@@ -21,7 +21,7 @@ router.get('/products', async (req, res) => {
   }
 });
 
-router.post('/orders/create', mockAuth, async (req, res) => {
+router.post('/orders/create', mockAuth, async (req: any, res: any) => {
   try {
     const { products, totalAmount } = req.body;
     const newOrder = new Order({ buyerId: req.user.id, products, totalAmount });
@@ -34,7 +34,7 @@ router.post('/orders/create', mockAuth, async (req, res) => {
   }
 });
 
-router.get('/orders/history', mockAuth, async (req, res) => {
+router.get('/orders/history', mockAuth, async (req: any, res: any) => {
   try {
     // const orders = await Order.find({ buyerId: req.user.id });
     res.status(200).json({ success: true, data: [] });

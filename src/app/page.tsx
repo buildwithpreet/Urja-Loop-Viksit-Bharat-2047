@@ -67,7 +67,7 @@ export default function LandingPage() {
                 transition={{ delay: 0.3 }}
                 className="lg:col-span-2 h-[250px]"
               >
-                <SmartDigester />
+                <SmartDigester mode="rural" />
               </motion.div>
             </div>
           </div>

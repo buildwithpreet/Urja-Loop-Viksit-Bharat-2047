@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 
-export type AppMode = "urban" | "rural" | "collector"
+export type AppMode = "urban" | "rural" | "collector" | "admin"
 
 interface ModeContextType {
   mode: AppMode
@@ -24,7 +24,7 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initMode = async () => {
       const savedMode = localStorage.getItem("urjaloop_mode") as AppMode
-      if (savedMode && (savedMode === "urban" || savedMode === "rural" || savedMode === "collector")) {
+      if (savedMode && (savedMode === "urban" || savedMode === "rural" || savedMode === "collector" || savedMode === "admin")) {
         setModeState(savedMode)
       } else {
         try {
@@ -54,7 +54,7 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
 
   const refreshMode = () => {
     const savedMode = localStorage.getItem("urjaloop_mode") as AppMode
-    if (savedMode && (savedMode === "urban" || savedMode === "rural" || savedMode === "collector")) {
+    if (savedMode && (savedMode === "urban" || savedMode === "rural" || savedMode === "collector" || savedMode === "admin")) {
       setModeState(savedMode)
     }
   }
@@ -65,6 +65,8 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
     
     if (newMode === "collector") {
       router.push("/collector")
+    } else if (newMode === "admin") {
+      router.push("/fleet")
     } else {
       router.push("/dashboard")
     }

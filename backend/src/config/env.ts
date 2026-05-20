@@ -1,21 +1,16 @@
 import dotenv from 'dotenv';
-import { z } from 'zod';
-
 dotenv.config();
 
-const envSchema = z.object({
-  PORT: z.string().default('5000'),
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  MONGO_URI: z.string().url(),
-  REDIS_URL: z.string().url().optional(),
-  FIREBASE_PROJECT_ID: z.string(),
-  FIREBASE_CLIENT_EMAIL: z.string().email(),
-  FIREBASE_PRIVATE_KEY: z.string(),
-  CLOUDINARY_CLOUD_NAME: z.string().optional(),
-  CLOUDINARY_API_KEY: z.string().optional(),
-  CLOUDINARY_API_SECRET: z.string().optional(),
-  GOOGLE_MAPS_API_KEY: z.string().optional(),
-  AI_SERVICE_URL: z.string().url().optional(),
-});
-
-export const env = envSchema.parse(process.env);
+export const env = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  PORT: parseInt(process.env.PORT || '8080', 10),
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+  JWT_SECRET: process.env.JWT_SECRET || 'urjaloop_secret_fallback_key',
+  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+  FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
+  FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
+  MQTT_BROKER_URL: process.env.MQTT_BROKER_URL || 'mqtt://broker.hivemq.com',
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
+  MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/urjaloop'
+};

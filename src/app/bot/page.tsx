@@ -21,6 +21,7 @@ const suggestedPrompts = [
 
 import { useMode } from "@/components/shared/ModeProvider"
 import { supabase } from "@/lib/supabase"
+import { aiApi } from "@/lib/api"
 
 const botResponses: Record<string, (context: any) => string> = {
   "default": () => "That's a great question! I'm analyzing your request using my sustainability knowledge base. Based on current data in your area, I'd suggest checking the Transparency Map for real-time information. 🌍",
@@ -130,15 +131,9 @@ export default function UrjaBot() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       
-      const response = await fetch('/api/ai/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          imageUrl: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4", 
-          userId: session?.user.id || 'demo-user' 
-        })
+      const result = await aiApi.classify({
+        imageUrl: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4",
       })
-      const result = await response.json()
 
       if (result.success) {
         const { type, credits, message, category } = result.data
@@ -169,10 +164,10 @@ export default function UrjaBot() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] m-4 lg:m-8 bg-card border border-border rounded-3xl overflow-hidden shadow-sm animate-in fade-in duration-700">
+    <div className="flex flex-col h-[calc(100vh-5rem)] m-4 lg:m-8 glass-panel border-primary/20 neon-glow-primary overflow-hidden animate-in fade-in duration-700">
       
       {/* Header */}
-      <div className="p-5 border-b border-border bg-card flex items-center justify-between">
+      <div className="p-5 border-b border-white/10 bg-white/5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-sm">

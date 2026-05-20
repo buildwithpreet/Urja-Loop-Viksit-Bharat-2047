@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { useMode } from "@/components/shared/ModeProvider"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
+import { aiApi } from "@/lib/api"
 
 interface ScanModalProps {
   isOpen: boolean
@@ -157,17 +158,11 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
           }
         }
 
-        const response = await fetch('/api/ai/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            imageUrl: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4", 
-            userId: session?.user.id || 'demo-user',
-            base64Image: base64,
-            mode: mode
-          })
+        const result = await aiApi.classify({
+          imageUrl: "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4",
+          base64Image: base64 || undefined
         })
-        const result = await response.json()
+        
         if (result.success) {
           setWasteResult(result.data)
           setStatus("success")

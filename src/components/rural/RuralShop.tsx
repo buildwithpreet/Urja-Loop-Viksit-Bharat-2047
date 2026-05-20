@@ -38,8 +38,8 @@ export function RuralShop() {
         .select('*')
       
       if (data && !error && data.length > 0) {
-        const raw = data.filter(item => item.type === 'Raw Material' || item.type === 'Biomass')
-        const processed = data.filter(item => item.type === 'Energy' || item.type === 'Fertilizer')
+        const raw = data.filter((item: any) => item.type === 'Raw Material' || item.type === 'Biomass')
+        const processed = data.filter((item: any) => item.type === 'Energy' || item.type === 'Fertilizer')
         if (raw.length > 0) setRawItems(raw as any)
         if (processed.length > 0) setProcessedItems(processed as any)
       }

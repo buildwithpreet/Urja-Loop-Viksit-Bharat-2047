@@ -69,7 +69,7 @@ export default function Profile() {
               .limit(10)
             
             if (logData && logData.length > 0) {
-              setActivities(logData.map(l => ({
+              setActivities(logData.map((l: any) => ({
                 id: l.id,
                 action: l.action,
                 detail: l.description,
@@ -93,7 +93,7 @@ export default function Profile() {
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
-      toast.error(error.message)
+      toast.error((error as any).message)
     } else {
       toast.success("Logged out successfully")
       window.location.href = "/login"

@@ -46,6 +46,9 @@ const translations: Translations = {
     nav_community: "Urja Matrix",
     nav_profile: "Profile Node",
     nav_bot: "Urja AI",
+    rural_badge_verified: "Verified Farm Node",
+    rural_overview_tab: "Operations Overview",
+    rural_hub_tab: "Farmer Intelligence Hub",
     
     // Dashboard Extra
     greeting_morning: "Good Morning",
@@ -222,6 +225,14 @@ const translations: Translations = {
     landing_login: "Log In",
     landing_start: "Get Started",
 
+    // BioGrid Hero
+    hero_title_1: "SMART",
+    hero_title_2: "BioGRID",
+    hero_subtitle: "AI Powered Rural Circular Bio-Economy Infrastructure",
+    hero_desc: "Transforming agricultural waste into Bio-Energy, Organic Fertilizer, Rural Income, and Carbon Credits through decentralized IoT networks.",
+    hero_btn_explore: "Explore Ecosystem",
+    hero_btn_farmer: "Farmer Portal",
+
     // Common
     common_loading: "Synchronizing Network...",
     common_status: "Status",
@@ -236,6 +247,9 @@ const translations: Translations = {
     nav_community: "ऊर्जा मैट्रिक्स",
     nav_profile: "प्रोफ़ाइल नोड",
     nav_bot: "ऊर्जा एआई",
+    rural_badge_verified: "सत्यापित फार्म नोड",
+    rural_overview_tab: "संचालन अवलोकन",
+    rural_hub_tab: "किसान इंटेलिजेंस हब",
     
     // Dashboard
     greeting_morning: "सुप्रभात",
@@ -410,6 +424,14 @@ const translations: Translations = {
     landing_login: "लॉग इन करें",
     landing_start: "शुरू करें",
     
+    // BioGrid Hero
+    hero_title_1: "स्मार्ट",
+    hero_title_2: "बायोग्रिड",
+    hero_subtitle: "एआई संचालित ग्रामीण परिपत्र जैव-अर्थव्यवस्था बुनियादी ढांचा",
+    hero_desc: "विकेंद्रीकृत IoT नेटवर्क के माध्यम से कृषि अपशिष्ट को जैव-ऊर्जा, जैविक उर्वरक, ग्रामीण आय और कार्बन क्रेडिट में बदलना।",
+    hero_btn_explore: "पारिस्थितिकी तंत्र का अन्वेषण करें",
+    hero_btn_farmer: "किसान पोर्टल",
+
     // Common
     common_loading: "नेटवर्क सिंक्रनाइज़ हो रहा है...",
     common_status: "स्थिति",

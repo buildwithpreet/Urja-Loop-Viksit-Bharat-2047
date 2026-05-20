@@ -1,41 +1,84 @@
 import { Request, Response } from 'express';
-import { Route } from '../models/route.model';
-import { Bin } from '../models/bin.model';
+import { db } from '../config/firebase';
 
-// Mock routing logic. In a real system, you would call Google Maps Route Optimization API
-// or a TSP solver using the coordinates of the bins.
-const calculateOptimizedRoute = async (binIds: string[]) => {
-  return {
-    distance: 12.5, // km
-    duration: 45, // minutes
-    polyline: 'mock_encoded_polyline_string'
-  };
-};
+// In-Memory data store fallback when GCP Firestore is offline/unconfigured
+let inMemoryRoutes = [
+  {
+    _id: "route-1",
+    routeId: "R-7092",
+    collector: "Rajesh Kumar",
+    status: "in-progress",
+    waypoints: [
+      [77.2090, 28.6139],
+      [77.2180, 28.6250]
+    ],
+    bins: ["BIN-001", "BIN-002"],
+    createdAt: new Date()
+  }
+];
 
-export const generateRoute = async (req: Request, res: Response): Promise<void> => {
+export const generateRoute = async (req: Request, res: Response) => {
   try {
-    const { fleetId } = req.body;
+    if (db) {
+      try {
+        const binsSnapshot = await db.collection('bins').get();
+        const highFillBins = binsSnapshot.docs
+          .map((doc: any) => ({ _id: doc.id, ...doc.data() }))
+          .filter((b: any) => b.currentFillLevel >= 80);
 
-    // Find bins that need pickup (e.g., > 80% full)
-    const binsToPickup = await Bin.find({ currentFillLevel: { $gte: 80 } }).limit(10);
-    
-    if (binsToPickup.length === 0) {
-      res.status(200).json({ success: true, message: 'No bins currently require pickup' });
-      return;
+        const routeData = {
+          routeId: `R-${Math.floor(Math.random() * 9000) + 1000}`,
+          collector: "Demo Dispatcher",
+          status: "assigned",
+          waypoints: highFillBins.map((b: any) => b.location?.coordinates || [77.2090, 28.6139]),
+          bins: highFillBins.map((b: any) => b.binId),
+          createdAt: new Date().toISOString()
+        };
+        await db.collection('routes').add(routeData);
+
+        res.status(200).json({ success: true, data: routeData });
+        return;
+      } catch (e) {
+        console.warn('Firestore generateRoute failed, using fallback:', e);
+      }
     }
 
-    const binIds = binsToPickup.map(b => b._id.toString());
-    const routingResult = await calculateOptimizedRoute(binIds);
-
-    const newRoute = await Route.create({
-      fleetId,
-      assignedBins: binIds,
-      optimizedPath: routingResult,
-      status: 'pending'
-    });
-
-    res.status(201).json({ success: true, data: newRoute });
+    const routeData = {
+      _id: Math.random().toString(36).substring(7),
+      routeId: `R-${Math.floor(Math.random() * 9000) + 1000}`,
+      collector: "Demo Dispatcher",
+      status: "assigned" as const,
+      waypoints: [
+        [77.2090, 28.6139],
+        [77.2180, 28.6250]
+      ],
+      bins: ["BIN-001", "BIN-002"],
+      createdAt: new Date()
+    };
+    inMemoryRoutes.push(routeData);
+    res.status(200).json({ success: true, data: routeData });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const getRoutes = async (req: Request, res: Response) => {
+  try {
+    if (db) {
+      try {
+        const snapshot = await db.collection('routes').get();
+        const routes = snapshot.docs.map((doc: any) => ({ _id: doc.id, ...doc.data() }));
+        if (routes.length > 0) {
+          res.status(200).json({ success: true, data: routes });
+          return;
+        }
+      } catch (e) {
+        console.warn('Firestore getRoutes failed, using fallback:', e);
+      }
+    }
+
+    res.status(200).json({ success: true, data: inMemoryRoutes });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
   }
 };

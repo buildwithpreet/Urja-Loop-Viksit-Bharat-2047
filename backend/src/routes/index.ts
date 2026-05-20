@@ -9,6 +9,9 @@ import adminRoutes from './admin.routes';
 import rewardsRoutes from './rewards.routes';
 import notificationRoutes from './notification.routes';
 import demoRoutes from './demo.routes';
+import farmRoutes from './farm.routes';
+import digesterRoutes from './digester.routes';
+import marketplaceRoutes from './marketplace.routes';
 
 const router = Router();
 
@@ -28,5 +31,8 @@ router.use('/admin', adminRoutes);
 router.use('/rewards', rewardsRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/demo', demoRoutes);
+router.use('/farm', farmRoutes);
+router.use('/digester', digesterRoutes);
+router.use('/marketplace', marketplaceRoutes);
 
 export default router;

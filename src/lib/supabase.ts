@@ -96,13 +96,16 @@ export const supabase = {
       const user = decodeToken(token);
       return { data: { user: { id: user?.id, email: user?.id, phone: user?.phone || "" } } };
     },
-    verifyOtp: async (params: any) => {
+    verifyOtp: async (params: any): Promise<{ data: any; error: any }> => {
       return { data: { user: { id: params.phone, email: params.phone, phone: params.phone } }, error: null };
     },
-    signInWithOtp: async (params: any) => {
+    signInWithOtp: async (params: any): Promise<{ data: any; error: any }> => {
       return { data: {}, error: null };
     },
-    signOut: async () => {
+    signInWithOAuth: async (params: any): Promise<{ data: any; error: any }> => {
+      return { data: {}, error: { message: "OAuth provider not configured" } };
+    },
+    signOut: async (): Promise<{ error: any }> => {
       if (typeof window !== 'undefined') localStorage.removeItem('urjaloop_auth_token');
       return { error: null };
     }

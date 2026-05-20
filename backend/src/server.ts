@@ -4,6 +4,7 @@ import { env } from './config/env';
 import { connectDB } from './config/db';
 import { initSockets } from './sockets';
 import { initMqtt } from './services/mqtt.service';
+import { startTelemetrySimulator } from './services/telemetrySimulator';
 import './config/firebase'; // Initialize Firebase
 import './config/redis'; // Initialize Redis
 
@@ -17,6 +18,9 @@ const startServer = async () => {
   
   // Initialize MQTT for IoT
   initMqtt();
+  
+  // Start BioGRID telemetry simulator
+  startTelemetrySimulator();
   
   server.listen(env.PORT, () => {
     console.log(`Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);

@@ -2,35 +2,37 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Shield, LayoutDashboard, Globe, Zap, BarChart3, Settings, LogOut } from "lucide-react"
+import { Shield, LayoutDashboard, Globe, Zap, Settings, LogOut, Trees, Building } from "lucide-react"
 
-// Import the newly created modular components
+// Import new BioGRID components
+import { BioCngDashboard } from "@/components/biogrid/BioCngDashboard"
+import { SmartDigester } from "@/components/biogrid/SmartDigester"
+import { WasteToEnergyPipeline } from "@/components/biogrid/WasteToEnergyPipeline"
+import { CarbonAndImpact } from "@/components/biogrid/CarbonAndImpact"
+import { AIEngine } from "@/components/biogrid/AIEngine"
+import { SdgAndInvestorPanel } from "@/components/biogrid/SdgAndInvestorPanel"
+
+// Import existing modules that still apply to other tabs
 import { LiveCityMap } from "@/components/admin/LiveCityMap"
-import { AIInsightsPanel } from "@/components/admin/AIInsightsPanel"
-import { LiveAlertCenter } from "@/components/admin/LiveAlertCenter"
-import { SmartAnalytics } from "@/components/admin/SmartAnalytics"
-import { SystemHealthMonitor } from "@/components/admin/SystemHealthMonitor"
-import { DemoSimulationControls } from "@/components/admin/DemoSimulationControls"
 import { SystemCoreModule } from "@/components/admin/SystemCoreModule"
 import { ConfigurationModule } from "@/components/admin/ConfigurationModule"
 import { ProfileSettingsMenu } from "@/components/shared/ProfileSettingsMenu"
+
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
-import { adminApi, alertsApi } from "@/lib/api"
 import { useSocket } from "@/hooks/useSocket"
 
-export default function SmartCityAdminDashboard() {
+export default function SmartBioGridOperationsCenter() {
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [ecosystemMode, setEcosystemMode] = useState<'rural' | 'urban'>('rural')
   
   // Real-time socket hook
-  const { isConnected, events: socketEvents, alerts: socketAlerts } = useSocket('admin_room')
+  const { isConnected, events: socketEvents } = useSocket('admin_room')
 
   const handleLogout = async () => {
     toast.success("Logged out successfully")
     try {
       localStorage.removeItem("urjaloop_auth_token")
-      localStorage.removeItem("urjaloop_demo_session")
-      localStorage.removeItem("urjaloop_mode")
       await supabase.auth.signOut().catch(() => {})
     } catch (e) {
       console.warn("Sign out cleanup warning:", e)
@@ -40,65 +42,9 @@ export default function SmartCityAdminDashboard() {
     }, 1000)
   }
 
-  const [alerts, setAlerts] = useState<any[]>([])
-  const [events, setEvents] = useState<any[]>([])
-  const [stats, setStats] = useState<any>(null)
-
-  const fetchInitialData = async () => {
-    try {
-      // Try fetching from new backend API
-      const response = await adminApi.getIncidents('Active')
-      if (response.success && response.data) {
-        setAlerts(response.data)
-      } else {
-        // Fallback to legacy alerts API if backend is not fully ready
-        const data = await alertsApi.getAll()
-        const formattedAlerts = data.map((alert: any) => ({
-          id: alert._id || alert.id,
-          type: alert.type,
-          location: alert.location,
-          severity: alert.severity,
-          time: alert.time || (alert.createdAt ? new Date(alert.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }))
-        }))
-        setAlerts(formattedAlerts)
-      }
-
-      // Fetch analytics for header
-      const analyticsRes = await adminApi.getAnalytics()
-      if (analyticsRes.success) {
-        setStats(analyticsRes.data)
-      }
-    } catch (err) {
-      console.warn("Failed to fetch initial admin data from backend.", err)
-    }
-  }
-
-  // Initial load
-  useEffect(() => {
-    fetchInitialData()
-  }, [])
-
-  // Sync socket events to local state
-  useEffect(() => {
-    if (socketAlerts.length > 0) {
-      setAlerts(prev => {
-        // Merge without duplicates based on ID
-        const newAlerts = [...socketAlerts, ...prev]
-        return Array.from(new Map(newAlerts.map(item => [item.id || item._id, item])).values()).slice(0, 50)
-      })
-    }
-    if (socketEvents.length > 0) {
-      setEvents(socketEvents)
-    }
-  }, [socketAlerts, socketEvents])
-
-  // Demo Simulation is now handled inside the DemoSimulationControls component directly via demoApi
-  const handleSimulationTrigger = undefined // Remove legacy trigger
-
   const tabs = [
-    { id: "dashboard", icon: LayoutDashboard, label: "Command Center" },
+    { id: "dashboard", icon: LayoutDashboard, label: "BioGRID Control" },
     { id: "map", icon: Globe, label: "Live City Map" },
-    { id: "analytics", icon: BarChart3, label: "Analytics Hub" },
     { id: "system", icon: Zap, label: "System Core" },
     { id: "settings", icon: Settings, label: "Configuration" },
   ]
@@ -113,8 +59,8 @@ export default function SmartCityAdminDashboard() {
             <Shield size={26} className="text-black" />
           </div>
           <div className="hidden xl:block">
-            <h1 className="text-lg font-black uppercase tracking-tighter leading-none text-white">UrjaLoop</h1>
-            <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] mt-1">Mission Control</p>
+            <h1 className="text-lg font-black uppercase tracking-tighter leading-none text-white">SMART-BioGRID</h1>
+            <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] mt-1">Operations Center</p>
           </div>
         </div>
 
@@ -160,24 +106,45 @@ export default function SmartCityAdminDashboard() {
           {/* HEADER */}
           <header className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-10">
             <div>
-              <h2 className="text-4xl font-black uppercase tracking-tighter text-white drop-shadow-lg">Smart City Operations</h2>
+              <h2 className="text-4xl font-black uppercase tracking-tighter text-white drop-shadow-lg flex items-center gap-4">
+                National BioGRID
+                {/* RURAL / URBAN TOGGLE */}
+                <div className="bg-black/50 border border-white/10 rounded-full p-1 flex items-center text-sm ml-4">
+                  <button 
+                    onClick={() => setEcosystemMode('rural')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${ecosystemMode === 'rural' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'text-white/40 hover:text-white'}`}
+                  >
+                    <Trees size={16} /> RURAL
+                  </button>
+                  <button 
+                    onClick={() => setEcosystemMode('urban')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${ecosystemMode === 'urban' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50' : 'text-white/40 hover:text-white'}`}
+                  >
+                    <Building size={16} /> URBAN
+                  </button>
+                </div>
+              </h2>
               <div className="flex items-center gap-3 mt-3">
                 <div className={`w-2.5 h-2.5 ${isConnected ? 'bg-primary shadow-[0_0_12px_#10b981]' : 'bg-red-500 shadow-[0_0_12px_#ef4444]'} rounded-full animate-pulse`} />
                 <span className={`text-xs font-bold ${isConnected ? 'text-primary' : 'text-red-500'} uppercase tracking-widest`}>
-                  {isConnected ? 'Live Sync Active' : 'Disconnected'}
+                  {isConnected ? 'Telemetry Sync Active' : 'Waiting for telemetry...'}
+                </span>
+                <span className="text-xs text-white/30 ml-4 tracking-widest">
+                  MODE: {ecosystemMode === 'rural' ? 'AGRI & DUNG WASTE' : 'HOTEL & MANDI WASTE'}
                 </span>
               </div>
             </div>
+            
             <div className="flex gap-6 items-center">
               <div className="glass-panel px-8 py-4 flex items-center gap-8 rounded-3xl">
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">Total Active Nodes</p>
-                  <p className="text-2xl font-black text-white">{stats?.bins?.total || "2,482"}</p>
+                  <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">Total Active Digesters</p>
+                  <p className="text-2xl font-black text-white">482</p>
                 </div>
                 <div className="w-px h-12 bg-white/10" />
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">Network Efficiency</p>
-                  <p className="text-2xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">{stats?.systemHealth?.uptime || "98.4"}%</p>
+                  <p className="text-2xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">98.4%</p>
                 </div>
               </div>
               <ProfileSettingsMenu />
@@ -192,34 +159,30 @@ export default function SmartCityAdminDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
-                className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+                className="grid grid-cols-1 lg:grid-cols-12 gap-6"
               >
-                {/* Main Map Area (Spans 8 columns on large screens) */}
-                <div className="lg:col-span-8 min-h-[600px] rounded-3xl overflow-hidden shadow-2xl">
-                  <LiveCityMap events={events} />
+                {/* Top Row: Smart Digester & Waste Pipeline */}
+                <div className="lg:col-span-7 min-h-[350px] rounded-3xl overflow-hidden shadow-2xl">
+                  <SmartDigester mode={ecosystemMode} />
+                </div>
+                <div className="lg:col-span-5 min-h-[350px] rounded-3xl overflow-hidden shadow-2xl">
+                  <WasteToEnergyPipeline />
                 </div>
 
-                {/* AI Insights & Controls (Spans 4 columns) */}
-                <div className="lg:col-span-4 flex flex-col gap-8">
-                  <div className="flex-1 min-h-[350px] rounded-3xl overflow-hidden shadow-2xl">
-                    <AIInsightsPanel />
-                  </div>
-                  <div className="min-h-[220px] rounded-3xl overflow-hidden shadow-2xl">
-                    <DemoSimulationControls onTrigger={handleSimulationTrigger} />
-                  </div>
+                {/* Middle Row: Bio-CNG Production & AI Engine */}
+                <div className="lg:col-span-7 min-h-[400px] rounded-3xl overflow-hidden shadow-2xl">
+                  <BioCngDashboard />
                 </div>
-
-                {/* Bottom Row: Analytics, Alerts, Health */}
                 <div className="lg:col-span-5 min-h-[400px] rounded-3xl overflow-hidden shadow-2xl">
-                  <SmartAnalytics />
+                  <AIEngine />
                 </div>
 
-                <div className="lg:col-span-4 min-h-[400px] rounded-3xl overflow-hidden shadow-2xl">
-                  <LiveAlertCenter alerts={alerts} />
+                {/* Bottom Row: Carbon Impact & Investor Panel */}
+                <div className="lg:col-span-6 min-h-[350px] rounded-3xl overflow-hidden shadow-2xl">
+                  <CarbonAndImpact />
                 </div>
-
-                <div className="lg:col-span-3 min-h-[400px] rounded-3xl overflow-hidden shadow-2xl">
-                  <SystemHealthMonitor />
+                <div className="lg:col-span-6 min-h-[350px] rounded-3xl overflow-hidden shadow-2xl">
+                  <SdgAndInvestorPanel />
                 </div>
               </motion.div>
             )}
@@ -232,21 +195,10 @@ export default function SmartCityAdminDashboard() {
                 exit={{ opacity: 0, scale: 0.98 }}
                 className="h-[800px] rounded-3xl overflow-hidden shadow-2xl border border-primary/20"
               >
-                <LiveCityMap events={events} />
+                <LiveCityMap events={socketEvents} />
               </motion.div>
             )}
 
-            {activeTab === "analytics" && (
-              <motion.div 
-                key="analytics"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="h-[800px] rounded-3xl overflow-hidden shadow-2xl"
-              >
-                <SmartAnalytics />
-              </motion.div>
-            )}
             {activeTab === "system" && (
               <motion.div 
                 key="system"
@@ -273,13 +225,6 @@ export default function SmartCityAdminDashboard() {
           </AnimatePresence>
         </div>
       </main>
-
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(16,185,129,0.3); border-radius: 20px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(16,185,129,0.6); }
-      `}</style>
     </div>
   )
 }

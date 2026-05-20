@@ -3,31 +3,53 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Leaf, ArrowRight, ShieldCheck, Phone, Lock } from "lucide-react"
+import { Leaf, ArrowRight, ShieldCheck, Phone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { LanguageToggle } from "@/components/shared/LanguageToggle"
 import { useLanguage } from "@/components/shared/LanguageProvider"
 
-import { usersApi } from "@/lib/api"
+import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
 export default function LoginScreen() {
   const router = useRouter()
   const { t } = useLanguage()
   const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
   const [agreed, setAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+    if (error) {
+      console.warn("Google OAuth not fully configured, simulating...")
+      toast.info("Simulating Google Login...")
+      localStorage.setItem("urjaloop_demo_session", "true")
+      setTimeout(() => router.push("/onboarding"), 1000)
+    }
+  }
+
+  const handleFacebookLogin = async () => {
+    toast.info("Simulating Facebook Login...")
+    localStorage.setItem("urjaloop_demo_session", "true")
+    setTimeout(() => router.push("/onboarding"), 1000)
+  }
+
+  const handleAppleLogin = async () => {
+    toast.info("Simulating Apple Login...")
+    localStorage.setItem("urjaloop_demo_session", "true")
+    setTimeout(() => router.push("/onboarding"), 1000)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (phone.length < 10) {
       toast.error("Please enter a valid phone number")
-      return
-    }
-    if (!password) {
-      toast.error("Please enter a password")
       return
     }
     if (!agreed) {
@@ -39,17 +61,35 @@ export default function LoginScreen() {
     const fullPhone = phone.startsWith("+91") ? phone : `+91${phone}`
     
     try {
-      const response = await usersApi.login({ phone: fullPhone, password })
-      if (response && response.success && response.token) {
-        localStorage.setItem("urjaloop_auth_token", response.token)
-        toast.success("Login successful!")
-        router.push("/dashboard")
-      } else {
-        toast.error("Invalid credentials")
+      // --- HACKATHON DEMO BYPASS ---
+      // Allow specific demo numbers or any number starting with 00 to bypass SMS
+      if (phone === "0000000000" || phone === "9999999999" || phone.startsWith("00")) {
+        toast.success("Demo Mode: OTP Bypassed")
+        router.push(`/verify-otp?phone=${encodeURIComponent(fullPhone)}&demo=true`)
+        return
       }
-    } catch (err: any) {
-      console.error("Login Error:", err)
-      toast.error(err.message || "Connection failed. Please try again.")
+      // -----------------------------
+
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: fullPhone,
+      })
+
+      if (error) {
+        console.error("Supabase Auth Error:", error)
+        
+        if (error.message.includes("provider") || error.status === 400) {
+          toast.error("SMS Provider not configured in Supabase.")
+          toast.info("Try 'Quick Demo Access' to skip SMS verification.")
+        } else {
+          toast.error(error.message || "Failed to send verification code")
+        }
+      } else {
+        toast.success("Verification code sent!")
+        router.push(`/verify-otp?phone=${encodeURIComponent(fullPhone)}`)
+      }
+    } catch (err) {
+      console.error("Unexpected Login Error:", err)
+      toast.error("Connection failed. Check console or use Demo Mode.")
     } finally {
       setIsSubmitting(false)
     }
@@ -110,23 +150,6 @@ export default function LoginScreen() {
                   className="w-full h-20 ultra-glass border border-foreground/10 rounded-2xl pl-24 pr-8 text-xl font-black tracking-widest text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 bg-foreground/5"
                 />
               </div>
-
-              <div className="flex items-center justify-between px-2 mt-4">
-                <label htmlFor="password" className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                  Password
-                </label>
-                <Lock size={14} className="text-primary opacity-40" />
-              </div>
-              <div className="relative flex items-center group/input">
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter Password"
-                  className="w-full h-20 ultra-glass border border-foreground/10 rounded-2xl px-6 text-xl font-black text-foreground focus:outline-none focus:border-primary/50 transition-all placeholder:opacity-20 bg-foreground/5"
-                />
-              </div>
             </div>
 
             {/* Protocol Agreement */}
@@ -146,10 +169,10 @@ export default function LoginScreen() {
 
             <button
               type="submit"
-              disabled={phone.length < 10 || !password || !agreed || isSubmitting}
+              disabled={phone.length < 10 || !agreed || isSubmitting}
               className={cn(
                 "w-full h-20 rounded-3xl font-black text-[13px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 relative overflow-hidden group/btn",
-                phone.length >= 10 && password && agreed
+                phone.length >= 10 && agreed
                   ? "btn-premium shadow-primary/30 active:scale-95"
                   : "bg-foreground/5 text-muted-foreground opacity-40 cursor-not-allowed grayscale"
               )}
@@ -163,10 +186,53 @@ export default function LoginScreen() {
               )}
             </button>
 
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-neutral-200 dark:border-white/10"></div>
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest">
+                <span className="bg-white dark:bg-[#121413] px-4 text-neutral-400">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full h-14 bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 rounded-full flex items-center justify-center gap-3 font-semibold text-sm text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-all"
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" className="w-5 h-5" alt="Google" />
+                Continue with Google
+              </button>
+
+              <button
+                type="button"
+                onClick={handleFacebookLogin}
+                className="w-full h-14 bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 rounded-full flex items-center justify-center gap-3 font-semibold text-sm text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-all"
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" className="w-5 h-5" alt="Facebook" />
+                Continue with Facebook
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAppleLogin}
+                className="w-full h-14 bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 rounded-full flex items-center justify-center gap-3 font-semibold text-sm text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-all"
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" className="w-5 h-5 dark:invert" alt="Apple" />
+                Continue with Apple
+              </button>
+            </div>
+
             <div className="text-center pt-2 flex flex-col gap-4">
-              <Link href="/register" className="text-xs font-bold text-primary hover:underline">
-                Create a New Account
-              </Link>
+              <button 
+                type="button" 
+                onClick={() => { setPhone("9999999999"); setAgreed(true) }}
+                className="text-xs font-bold text-primary hover:underline"
+              >
+                Quick Demo Access (Bypass SMS)
+              </button>
+              <button type="button" className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest hover:text-muted-foreground transition-colors">View more</button>
             </div>
           </form>
         </div>

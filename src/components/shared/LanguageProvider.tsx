@@ -46,6 +46,9 @@ const translations: Translations = {
     nav_community: "Urja Matrix",
     nav_profile: "Profile Node",
     nav_bot: "Urja AI",
+    rural_badge_verified: "Verified Farm Node",
+    rural_overview_tab: "Operations Overview",
+    rural_hub_tab: "Farmer Intelligence Hub",
     
     // Dashboard Extra
     greeting_morning: "Good Morning",
@@ -244,6 +247,9 @@ const translations: Translations = {
     nav_community: "ऊर्जा मैट्रिक्स",
     nav_profile: "प्रोफ़ाइल नोड",
     nav_bot: "ऊर्जा एआई",
+    rural_badge_verified: "सत्यापित फार्म नोड",
+    rural_overview_tab: "संचालन अवलोकन",
+    rural_hub_tab: "किसान इंटेलिजेंस हब",
     
     // Dashboard
     greeting_morning: "सुप्रभात",
